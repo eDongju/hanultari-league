@@ -76,7 +76,7 @@ export default function PlayerSetup({ allMembers, participatingMembers, setParti
   };
 
   return (
-    <div style={{ padding: '20px', background: 'white', borderRadius: '8px' }}>
+    <div className="content-card">
       <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px' }}>
         1. 주말리그 선수 입력
       </h2>
@@ -133,7 +133,7 @@ export default function PlayerSetup({ allMembers, participatingMembers, setParti
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB' }}
                 >
                   <option value="">-- 선수를 선택하세요 --</option>
-                  {allMembers.map(m => (
+                  {[...allMembers].sort((a, b) => a.name.localeCompare(b.name)).map(m => (
                     // 이미 다른 슬롯에 선택된 선수는 비활성화 (현재 슬롯에 선택된 본인은 제외)
                     <option 
                       key={m.id} 

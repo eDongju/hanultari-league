@@ -1,29 +1,25 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
-import html2canvas from 'html2canvas';
-import { Camera, Plus, Trash2, Trophy, ArrowUpDown, X, User, Download, Upload } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Camera, Plus, Trash2, ArrowUpDown, X, User } from 'lucide-react';
 import './index.css';
 import membersData from './members.json';
-
+import { collection, doc, onSnapshot, setDoc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { db } from './firebase';
 import PlayerSetup from './components/PlayerSetup';
 import MatchInput from './components/MatchInput';
 import RankingsView from './components/RankingsView';
 import LeagueHistory from './components/LeagueHistory';
-interface Player {
-  id: string;
-  no: string;
-  name: string;
-  wins: number | '';
-  losses: number | '';
-  ptsFor: number | '';
-  ptsAgainst: number | '';
-  ptsDiff: number;
-  rank: number;
-}
+import combinations from './data/combinations.json';
+
+const charToIndex = (c: string) => {
+  if (c >= '1' && c <= '9') return parseInt(c) - 1;
+  return c.charCodeAt(0) - 'A'.charCodeAt(0) + 9;
+};
 
 interface Member {
   id: string;
   name: string;
   score: string | number; // LeaguePoint 역할
+  previousScore?: string | number; // 롤백용 이전 점수
   gamePoint?: string | number; // 새롭게 추가된 GamePoint
   birthdate: string;
   age: number | string;
@@ -53,7 +49,7 @@ const ProfileImage = ({ member, size = 45 }: { member: Member, size?: number }) 
 
   if (hasError) {
     return (
-      <div style={{ width: size, height: size, borderRadius: '50%', background: '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9CA3AF', flexShrink: 0, border: size > 50 ? '2px dashed #D1D5DB' : 'none' }}>
+      <div style={{ width: size, height: size, borderRadius: '8px', background: '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9CA3AF', flexShrink: 0, border: size > 50 ? '2px dashed #D1D5DB' : 'none' }}>
         {size > 50 ? <Camera size={32} /> : <User size={20} />}
       </div>
     );
@@ -64,7 +60,7 @@ const ProfileImage = ({ member, size = 45 }: { member: Member, size?: number }) 
       src={imgSrc as string} 
       alt={member.name} 
       onError={handleError}
-      style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} 
+      style={{ width: size, height: size, borderRadius: '8px', objectFit: 'cover', flexShrink: 0, border: '1px solid #E5E7EB' }} 
     />
   );
 };
@@ -73,10 +69,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<'match' | 'members' | 'playerSetup' | 'matchInput' | 'rankings' | 'history'>('playerSetup');
   
   // 저장된 리그 기록 상태
-  const [savedSessions, setSavedSessions] = useState<Record<string, any>>(() => {
-    const saved = localStorage.getItem('hanultari_league_sessions');
-    return saved ? JSON.parse(saved) : {};
-  });
+  const [savedSessions, setSavedSessions] = useState<Record<string, any>>({});
 
   // 현재 진행 중인 리그의 고유 ID (새로 작성 중일 경우 null)
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
@@ -98,36 +91,43 @@ function App() {
   // 경기 중 선수 교체 오버라이드 상태 { matchId: { 0: memberId, 1: memberId, 2: memberId, 3: memberId } }
   const [matchOverrides, setMatchOverrides] = useState<Record<string, Record<number, string>>>({});
 
-  const [players, setPlayers] = useState<Player[]>([]);
-  
-  const [allMembers, setAllMembers] = useState<Member[]>(() => {
-    const saved = localStorage.getItem('hanultari_members');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
-    }
-    return membersData.members;
-  });
+  const [allMembers, setAllMembers] = useState<Member[]>([]);
 
   useEffect(() => {
-    localStorage.setItem('hanultari_members', JSON.stringify(allMembers));
-  }, [allMembers]);
+    const unsubMembers = onSnapshot(collection(db, 'members'), (snapshot) => {
+      if (!snapshot.empty) {
+        setAllMembers(snapshot.docs.map(doc => doc.data() as Member));
+      } else {
+        const defaultMembers = membersData as any;
+        setAllMembers(defaultMembers);
+        const batch = writeBatch(db);
+        defaultMembers.forEach((m: Member) => batch.set(doc(db, 'members', m.id), m));
+        batch.commit();
+      }
+    });
+
+    const unsubSessions = onSnapshot(collection(db, 'sessions'), (snapshot) => {
+      const sessions: Record<string, any> = {};
+      snapshot.forEach(doc => { sessions[doc.id] = doc.data(); });
+      setSavedSessions(sessions);
+    });
+
+    return () => {
+      unsubMembers();
+      unsubSessions();
+    };
+  }, []);
 
   // 상태 변경 시 자동 저장 로직 (Auto-save)
   useEffect(() => {
-    // 아직 선수가 한 명도 선택되지 않은 초기 상태면 자동 저장하지 않음
     if (participatingMembers.filter(Boolean).length === 0) return;
-    
-    // 리그 초기 세팅 시에 빈 값이 불필요하게 저장되는 것을 방지
-    if (Object.keys(matchScores).length === 0 && Object.keys(matchOverrides).length === 0) {
-       // 점수나 오버라이드가 없고, 그냥 인원만 설정한 상태라도 저장은 해둠 (단, 최초 로드 시 무한루프 방지)
-    }
+    if (Object.keys(matchScores).length === 0 && Object.keys(matchOverrides).length === 0) {}
 
-    setSavedSessions(prev => {
+    const timeoutId = setTimeout(async () => {
       let idToSave = currentSessionId;
       if (!idToSave) {
         idToSave = `${currentSessionDate}_${Date.now()}`;
-        // setTimeout을 사용하여 비동기적으로 id를 업데이트해 렌더링 충돌 방지
-        setTimeout(() => setCurrentSessionId(idToSave), 0);
+        setCurrentSessionId(idToSave);
       }
       
       const newSession = {
@@ -139,11 +139,88 @@ function App() {
         matchOverrides
       };
 
-      const updated = { ...prev, [idToSave]: newSession };
-      localStorage.setItem('hanultari_league_sessions', JSON.stringify(updated));
-      return updated;
-    });
+      await setDoc(doc(db, 'sessions', idToSave), newSession);
+    }, 1500); // 1.5초 디바운스
+
+    return () => clearTimeout(timeoutId);
   }, [participatingMembers, bracketOption, matchScores, matchOverrides, currentSessionDate, currentSessionId]);
+
+  const globalStats = useMemo(() => {
+    const stats: Record<string, { matches: number, wins: number, losses: number, sessionMatches: number, sessionWins: number, sessionLosses: number }> = {};
+    allMembers.forEach(m => {
+      const bWins = Number((m as any).baseWins) || 0;
+      const bLosses = Number((m as any).baseLosses) || 0;
+      stats[m.id] = { 
+        matches: bWins + bLosses, 
+        wins: bWins, 
+        losses: bLosses,
+        sessionMatches: 0,
+        sessionWins: 0,
+        sessionLosses: 0
+      };
+    });
+
+    Object.values(savedSessions).forEach((session: any) => {
+      const currentCombinations = (combinations as Record<string, string[]>)[session.bracketOption] || [];
+      const mScores = session.matchScores || {};
+      const mOverrides = session.matchOverrides || {};
+      const pMembers = session.participatingMembers || [];
+
+      currentCombinations.forEach((matchStr, matchIdx) => {
+        let matchSubIdx = 0;
+        for (let i = 0; i < matchStr.length; i += 4) {
+          const sub = matchStr.slice(i, i + 4);
+          if (sub.length === 4) {
+            const matchId = `${matchIdx}-${matchSubIdx}`;
+            const score = mScores[matchId];
+            if (score && score.t1 !== '' && score.t2 !== '') {
+              const s1 = parseInt(score.t1) || 0;
+              const s2 = parseInt(score.t2) || 0;
+              
+              const p1Id = mOverrides[matchId]?.[0] || pMembers[charToIndex(sub[0])]?.id;
+              const p2Id = mOverrides[matchId]?.[1] || pMembers[charToIndex(sub[1])]?.id;
+              const p3Id = mOverrides[matchId]?.[2] || pMembers[charToIndex(sub[2])]?.id;
+              const p4Id = mOverrides[matchId]?.[3] || pMembers[charToIndex(sub[3])]?.id;
+              
+              const t1Ids = [p1Id, p2Id];
+              const t2Ids = [p3Id, p4Id];
+
+              t1Ids.forEach(pid => {
+                if (pid && stats[pid]) {
+                  stats[pid].matches += 1;
+                  stats[pid].sessionMatches += 1;
+                  if (s1 > s2) {
+                    stats[pid].wins += 1;
+                    stats[pid].sessionWins += 1;
+                  } else if (s1 < s2) {
+                    stats[pid].losses += 1;
+                    stats[pid].sessionLosses += 1;
+                  }
+                }
+              });
+
+              t2Ids.forEach(pid => {
+                if (pid && stats[pid]) {
+                  stats[pid].matches += 1;
+                  stats[pid].sessionMatches += 1;
+                  if (s2 > s1) {
+                    stats[pid].wins += 1;
+                    stats[pid].sessionWins += 1;
+                  } else if (s2 < s1) {
+                    stats[pid].losses += 1;
+                    stats[pid].sessionLosses += 1;
+                  }
+                }
+              });
+            }
+            matchSubIdx++;
+          }
+        }
+      });
+    });
+
+    return stats;
+  }, [savedSessions, allMembers]);
 
   // 리그 불러오기 함수
   const loadSession = (session: any) => {
@@ -157,87 +234,23 @@ function App() {
   };
 
   // 리그 삭제 함수
-  const deleteSession = (id: string) => {
-    const updated = { ...savedSessions };
-    delete updated[id];
-    setSavedSessions(updated);
-    localStorage.setItem('hanultari_league_sessions', JSON.stringify(updated));
+  const deleteSession = async (id: string) => {
+    await deleteDoc(doc(db, 'sessions', id));
   };
 
-  const [leagueDate, setLeagueDate] = useState(new Date().toISOString().slice(0, 10));
-  const tableRef = useRef<HTMLDivElement>(null);
+  const leagueDate = new Date().toISOString().slice(0, 10);
 
   const [sortConfig, setSortConfig] = useState<{ key: keyof Member | 'rank' | 'sumPoint'; direction: 'asc' | 'desc' }>({ key: 'rank', direction: 'asc' });
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
-  useEffect(() => {
-    const updatedPlayers = players.map(p => {
-      const pFor = Number(p.ptsFor) || 0;
-      const pAgainst = Number(p.ptsAgainst) || 0;
-      return { ...p, ptsDiff: pFor - pAgainst };
-    });
-
-    const sorted = [...updatedPlayers].sort((a, b) => {
-      const aWins = Number(a.wins) || 0;
-      const bWins = Number(b.wins) || 0;
-      if (aWins !== bWins) return bWins - aWins;
-      if (a.ptsDiff !== b.ptsDiff) return b.ptsDiff - a.ptsDiff;
-      const aFor = Number(a.ptsFor) || 0;
-      const bFor = Number(b.ptsFor) || 0;
-      return bFor - aFor;
-    });
-
-    const rankedPlayers = updatedPlayers.map(p => {
-      const rank = sorted.findIndex(s => s.id === p.id) + 1;
-      return { ...p, rank };
-    });
-
-    const isDifferent = rankedPlayers.some((p, i) => p.ptsDiff !== players[i].ptsDiff || p.rank !== players[i].rank);
-    if (isDifferent) {
-      setPlayers(rankedPlayers);
-    }
-  }, [players]);
-
-  const handleCapture = async () => {
-    if (!tableRef.current) return;
-    try {
-      const canvas = await html2canvas(tableRef.current, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        ignoreElements: (element) => element.classList.contains('no-capture')
-      });
-      const image = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = image;
-      link.download = `한울타리결과_${leagueDate}.png`;
-      link.click();
-    } catch (err) {
-      console.error('Failed to capture image', err);
-      alert('이미지 저장에 실패했습니다.');
-    }
-  };
-
-  const addPlayer = () => {
-    const newNo = String(players.length + 1);
-    setPlayers([...players, { 
-      id: Date.now().toString(), 
-      no: newNo, 
-      name: '', 
-      wins: '', losses: '', ptsFor: '', ptsAgainst: '', ptsDiff: 0, rank: players.length + 1 
-    }]);
-  };
-
-  const removePlayer = (id: string) => {
-    setPlayers(players.filter(p => p.id !== id));
-  };
-
-  const updatePlayer = (id: string, field: keyof Player, value: any) => {
-    setPlayers(players.map(p => p.id === id ? { ...p, [field]: value } : p));
-  };
 
   const sortedMembers = useMemo(() => {
-    // 순위(RANK)는 이제 SumPoint(LeaguePoint + GamePoint) 기준으로 계산합니다.
-    const getSum = (m: Member) => (Number(m.score) || 0) + (Number(m.gamePoint) || 0);
+    // 순위(RANK)는 이제 SumPoint(dynamic L.Point + GamePoint) 기준으로 계산합니다.
+    const getSum = (m: Member) => {
+      const sStats = globalStats[m.id] || { sessionMatches: 0, sessionWins: 0 };
+      const dynamicLPoint = (Number(m.score) || 0) + (sStats.sessionWins * 2) + (sStats.sessionMatches * 0.5);
+      return (Number(m.gamePoint) || 0) + dynamicLPoint;
+    };
 
     const baseSorted = [...allMembers].sort((a, b) => getSum(b) - getSum(a));
     const membersWithRank = baseSorted.map((m, idx) => ({ ...m, rank: idx + 1, sumPoint: getSum(m) }));
@@ -246,7 +259,17 @@ function App() {
       let valA = a[sortConfig.key as keyof typeof a];
       let valB = b[sortConfig.key as keyof typeof b];
 
-      if (sortConfig.key === 'score' || sortConfig.key === 'gamePoint') {
+      if (sortConfig.key === 'score') {
+        const sStatsA = globalStats[a.id] || { sessionMatches: 0, sessionWins: 0 };
+        const lPointA = (Number(a.score) || 0) + (sStatsA.sessionWins * 2) + (sStatsA.sessionMatches * 0.5);
+        const sStatsB = globalStats[b.id] || { sessionMatches: 0, sessionWins: 0 };
+        const lPointB = (Number(b.score) || 0) + (sStatsB.sessionWins * 2) + (sStatsB.sessionMatches * 0.5);
+        if (lPointA < lPointB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (lPointA > lPointB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      }
+
+      if (sortConfig.key === 'gamePoint') {
         let vA = a[sortConfig.key];
         let vB = b[sortConfig.key];
         
@@ -275,14 +298,9 @@ function App() {
     setSortConfig({ key, direction });
   };
 
-  const handleSaveMember = () => {
+  const handleSaveMember = async () => {
     if (!selectedMember) return;
-    const exists = allMembers.some(m => m.id === selectedMember.id);
-    if (exists) {
-      setAllMembers(allMembers.map(m => m.id === selectedMember.id ? selectedMember : m));
-    } else {
-      setAllMembers([...allMembers, selectedMember]);
-    }
+    await setDoc(doc(db, 'members', selectedMember.id), selectedMember);
     setSelectedMember(null);
   };
 
@@ -300,40 +318,20 @@ function App() {
     setSelectedMember(newMember);
   };
 
-  const handleDeleteMember = () => {
-    if (!selectedMember) return;
-    if (window.confirm(`${selectedMember.name} 회원을 목록에서 완전히 삭제하시겠습니까?`)) {
-      setAllMembers(allMembers.filter(m => m.id !== selectedMember.id));
-      setSelectedMember(null);
+  const handleDeleteMember = async (memberId: string, memberName: string) => {
+    const pwd = window.prompt(`"${memberName}" 회원을 목록에서 완전히 삭제하시려면 암호(0000)를 입력하세요.`);
+    if (pwd === '0000') {
+      await deleteDoc(doc(db, 'members', memberId));
+      if (selectedMember && selectedMember.id === memberId) {
+        setSelectedMember(null);
+      }
+      alert('삭제되었습니다.');
+    } else if (pwd !== null) {
+      alert('암호가 일치하지 않습니다.');
     }
   };
 
-  const handleBackupDB = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allMembers, null, 2));
-    const dlAnchorElem = document.createElement('a');
-    dlAnchorElem.setAttribute("href", dataStr);
-    dlAnchorElem.setAttribute("download", `hanultari_db_${new Date().toISOString().slice(0, 10)}.json`);
-    dlAnchorElem.click();
-  };
 
-  const handleRestoreDB = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const json = JSON.parse(e.target?.result as string);
-        if (Array.isArray(json)) {
-          setAllMembers(json);
-          alert('DB 복원이 완료되었습니다!');
-        }
-      } catch (err) {
-        alert('잘못된 DB 파일입니다.');
-      }
-    };
-    reader.readAsText(file);
-    event.target.value = '';
-  };
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -363,15 +361,19 @@ function App() {
 
   return (
     <div className="container" style={{ position: 'relative' }}>
-      <div className="card">
+      <div className="card" style={{ position: 'relative' }}>
+        <div style={{ position: 'absolute', top: '15px', right: '20px', fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 'bold' }}>
+          v1.5 (2026.08.09)
+        </div>
         <div className="header">
           <h1>한울타리 주말리그</h1>
           <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginTop: '1rem', alignItems: 'center' }}>
             {/* 새로운 주말리그용 탭 4개 */}
-            <button onClick={() => setActiveTab('playerSetup')} style={{ padding: '0.5rem 1rem', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'playerSetup' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'playerSetup' ? 'white' : '#374151' }}>1. 선수 입력</button>
-            <button onClick={() => setActiveTab('matchInput')} style={{ padding: '0.5rem 1rem', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'matchInput' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'matchInput' ? 'white' : '#374151' }}>2. 대진표 및 결과 입력</button>
-            <button onClick={() => setActiveTab('rankings')} style={{ padding: '0.5rem 1rem', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'rankings' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'rankings' ? 'white' : '#374151' }}>3. 결과 및 순위</button>
-            <button onClick={() => setActiveTab('history')} style={{ padding: '0.5rem 1rem', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'history' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'history' ? 'white' : '#374151' }}>4. 리그결과 (기록)</button>
+            <button onClick={() => setActiveTab('playerSetup')} style={{ padding: '0.6rem 1.2rem', fontSize: '1.15rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'playerSetup' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'playerSetup' ? 'white' : '#374151' }}>1. 선수 입력</button>
+            <button onClick={() => setActiveTab('matchInput')} style={{ padding: '0.6rem 1.2rem', fontSize: '1.15rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'matchInput' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'matchInput' ? 'white' : '#374151' }}>2. 대진표 및 결과 입력</button>
+            <button onClick={() => setActiveTab('rankings')} style={{ padding: '0.6rem 1.2rem', fontSize: '1.15rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'rankings' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'rankings' ? 'white' : '#374151' }}>3. 결과 및 순위</button>
+            <button onClick={() => setActiveTab('history')} style={{ padding: '0.6rem 1.2rem', fontSize: '1.15rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'history' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'history' ? 'white' : '#374151' }}>4. 리그결과 (기록)</button>
+            <button onClick={() => setActiveTab('members')} style={{ padding: '0.6rem 1.2rem', fontSize: '1.15rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'members' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'members' ? 'white' : '#374151' }}>5. 한울랭킹 ({allMembers.length}명)</button>
             
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
               {currentSessionId && (
@@ -399,10 +401,6 @@ function App() {
               />
             </div>
             
-            <div style={{ width: '100%', height: '1px', background: '#E5E7EB', margin: '5px 0' }}></div>
-            {/* 기존 탭 (Legacy) */}
-            <button onClick={() => setActiveTab('match')} style={{ padding: '0.5rem 1.5rem', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'match' ? '#6B7280' : '#F3F4F6', color: activeTab === 'match' ? 'white' : '#9CA3AF' }}>[이전] 대진 결과 관리</button>
-            <button onClick={() => setActiveTab('members')} style={{ padding: '0.5rem 1.5rem', borderRadius: '20px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'members' ? '#6B7280' : '#F3F4F6', color: activeTab === 'members' ? 'white' : '#9CA3AF' }}>[이전] 회원 정보 ({allMembers.length}명)</button>
           </div>
         </div>
 
@@ -444,117 +442,6 @@ function App() {
           />
         )}
 
-        {activeTab === 'match' && (
-          <>
-            <div className="actions" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <div>
-                <label style={{ fontWeight: 'bold', marginRight: '10px' }}>리그일:</label>
-                <input 
-                  type="date" 
-                  value={leagueDate} 
-                  onChange={(e) => setLeagueDate(e.target.value)}
-                  style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)' }}
-                />
-              </div>
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <button className="button-primary" style={{ background: '#3B82F6' }} onClick={addPlayer}>
-                  <Plus size={18} />
-                  선수 추가
-                </button>
-                <button className="button-primary" style={{ background: '#10B981' }} onClick={handleCapture}>
-                  <Camera size={18} />
-                  결과 이미지 저장
-                </button>
-              </div>
-            </div>
-
-            <div className="table-wrapper" ref={tableRef} style={{ padding: '20px', background: 'white' }}>
-              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                <h2 style={{ fontSize: '1.8rem', color: '#1E3A8A', margin: 0 }}>한울타리 주말리그 경기결과</h2>
-                <p style={{ color: '#6B7280', fontSize: '0.9rem', marginTop: '5px' }}>{leagueDate} | 참석인원: {players.length}명</p>
-              </div>
-
-              <datalist id="members-list">
-                {allMembers.map((m) => (
-                  <option key={m.id} value={m.name} />
-                ))}
-              </datalist>
-
-              <table>
-                <thead>
-                  <tr>
-                    <th style={{ width: '60px' }}>No</th>
-                    <th style={{ width: '120px' }}>이름</th>
-                    <th style={{ width: '80px' }}>승</th>
-                    <th style={{ width: '80px' }}>패</th>
-                    <th style={{ width: '80px' }}>득점</th>
-                    <th style={{ width: '80px' }}>실점</th>
-                    <th style={{ width: '80px' }}>득실</th>
-                    <th style={{ width: '80px' }}>순위</th>
-                    <th className="no-capture" style={{ width: '50px' }}>삭제</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {players.sort((a,b) => a.rank - b.rank).map((player) => (
-                    <tr key={player.id}>
-                      <td>
-                        <input 
-                          type="text" 
-                          className="input-cell" 
-                          value={player.no} 
-                          onChange={(e) => updatePlayer(player.id, 'no', e.target.value)} 
-                        />
-                      </td>
-                      <td>
-                        <input 
-                          type="text" 
-                          className="input-cell" 
-                          style={{ width: '100px', fontWeight: 'bold' }}
-                          value={player.name}
-                          list="members-list"
-                          onChange={(e) => updatePlayer(player.id, 'name', e.target.value)} 
-                        />
-                      </td>
-                      <td>
-                        <input type="number" className="input-cell" value={player.wins} onChange={(e) => updatePlayer(player.id, 'wins', e.target.value)} />
-                      </td>
-                      <td>
-                        <input type="number" className="input-cell" value={player.losses} onChange={(e) => updatePlayer(player.id, 'losses', e.target.value)} />
-                      </td>
-                      <td>
-                        <input type="number" className="input-cell" value={player.ptsFor} onChange={(e) => updatePlayer(player.id, 'ptsFor', e.target.value)} />
-                      </td>
-                      <td>
-                        <input type="number" className="input-cell" value={player.ptsAgainst} onChange={(e) => updatePlayer(player.id, 'ptsAgainst', e.target.value)} />
-                      </td>
-                      <td style={{ fontWeight: 'bold', color: player.ptsDiff > 0 ? '#10B981' : player.ptsDiff < 0 ? '#EF4444' : '#6B7280' }}>
-                        {player.ptsDiff > 0 ? `+${player.ptsDiff}` : player.ptsDiff}
-                      </td>
-                      <td>
-                        <span className={`rank-badge rank-${player.rank}`}>
-                          {player.rank === 1 ? <Trophy size={14} style={{marginRight:'2px'}}/> : null}
-                          {player.rank}
-                        </span>
-                      </td>
-                      <td className="no-capture">
-                        <button 
-                          onClick={() => removePlayer(player.id)}
-                          style={{ background: 'transparent', border: 'none', color: '#EF4444', cursor: 'pointer', padding: '5px' }}
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div style={{ textAlign: 'right', marginTop: '10px', fontSize: '0.75rem', color: '#9CA3AF' }}>
-                Generated by AI Agent
-              </div>
-            </div>
-          </>
-        )}
-
         {activeTab === 'members' && (
           <div style={{ padding: '0' }}>
             <div style={{ background: '#002865', color: 'white', padding: '2rem', borderRadius: '12px 12px 0 0', marginBottom: '0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -563,28 +450,11 @@ function App() {
                 <p style={{ color: '#93C5FD', margin: 0 }}>Hanultari Official Rankings • {leagueDate}</p>
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
-                <input type="file" id="restore-db" accept=".json" style={{ display: 'none' }} onChange={handleRestoreDB} />
-                <button 
-                  onClick={() => document.getElementById('restore-db')?.click()}
-                  style={{ 
-                    background: 'rgba(255,255,255,0.2)', color: 'white', border: 'none', padding: '0.75rem 1rem', 
-                    borderRadius: '8px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' 
-                  }}>
-                  <Upload size={16} /> DB 복원
-                </button>
-                <button 
-                  onClick={handleBackupDB}
-                  style={{ 
-                    background: 'rgba(255,255,255,0.2)', color: 'white', border: 'none', padding: '0.75rem 1rem', 
-                    borderRadius: '8px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' 
-                  }}>
-                  <Download size={16} /> DB 백업
-                </button>
                 <button 
                   onClick={handleAddNewMember}
                   style={{ 
                     background: '#10B981', color: 'white', border: 'none', padding: '0.75rem 1.5rem', 
-                    borderRadius: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginLeft: '10px'
+                    borderRadius: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'
                   }}>
                   <Plus size={18} />
                   신규 회원 추가
@@ -592,62 +462,89 @@ function App() {
               </div>
             </div>
             
-            <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: '0 0 12px 12px', overflow: 'hidden' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: '0 0 12px 12px', overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '650px' }}>
                 <thead style={{ background: '#F9FAFB', borderBottom: '2px solid #E5E7EB' }}>
                   <tr>
-                    <th onClick={() => handleSort('rank')} style={{ padding: '15px 20px', width: '80px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer' }}>
-                      RANK <ArrowUpDown size={12} style={{display:'inline', marginLeft:'4px'}}/>
+                    <th onClick={() => handleSort('rank')} style={{ padding: '8px 4px', width: '50px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'center' }}>
+                      RANK <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th onClick={() => handleSort('name')} style={{ padding: '15px 20px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer' }}>
-                      PLAYER <ArrowUpDown size={12} style={{display:'inline', marginLeft:'4px'}}/>
+                    <th onClick={() => handleSort('name')} style={{ padding: '8px 4px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer' }}>
+                      PLAYER <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th onClick={() => handleSort('score')} style={{ padding: '15px 10px', width: '110px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
-                      LeaguePoint <ArrowUpDown size={12} style={{display:'inline', marginLeft:'4px'}}/>
+                    <th onClick={() => handleSort('score')} style={{ padding: '8px 4px', width: '70px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
+                      L.Point <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th onClick={() => handleSort('gamePoint')} style={{ padding: '15px 10px', width: '110px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
-                      GamePoint <ArrowUpDown size={12} style={{display:'inline', marginLeft:'4px'}}/>
+                    <th style={{ padding: '8px 4px', width: '60px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
+                      승률
                     </th>
-                    <th onClick={() => handleSort('sumPoint')} style={{ padding: '15px 10px', width: '110px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer', fontWeight: 'bold' }}>
-                      SumPoint <ArrowUpDown size={12} style={{display:'inline', marginLeft:'4px'}}/>
+                    <th style={{ padding: '8px 4px', width: '50px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
+                      전체승
                     </th>
-                    <th onClick={() => handleSort('age')} style={{ padding: '15px 20px', width: '100px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'center', cursor: 'pointer' }}>
-                      AGE <ArrowUpDown size={12} style={{display:'inline', marginLeft:'4px'}}/>
+                    <th style={{ padding: '8px 4px', width: '50px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
+                      전체패
+                    </th>
+                    <th onClick={() => handleSort('gamePoint')} style={{ padding: '8px 4px', width: '70px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
+                      G.Point <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
+                    </th>
+                    <th onClick={() => handleSort('sumPoint')} style={{ padding: '8px 4px', width: '70px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer', fontWeight: 'bold' }}>
+                      SUM <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedMembers.map((member) => (
-                    <tr 
+                  {sortedMembers.map((member) => {
+                    const gStats = globalStats[member.id] || { matches: 0, wins: 0, losses: 0, sessionMatches: 0, sessionWins: 0, sessionLosses: 0 };
+                    const winRate = gStats.matches > 0 ? ((gStats.wins / gStats.matches) * 100).toFixed(1) + '%' : '-';
+                    const dynamicLPoint = (Number(member.score) || 0) + (gStats.sessionWins * 2) + (gStats.sessionMatches * 0.5);
+                    const rank = member.rank;
+                    let baseBg = 'white';
+                    let hoverBg = '#F3F4F6';
+                    if (rank <= 3) {
+                      baseBg = 'rgba(254, 240, 138, 0.4)'; // #FEF08A with opacity
+                      hoverBg = 'rgba(254, 240, 138, 0.7)';
+                    } else if (rank <= 10) {
+                      baseBg = 'rgba(219, 234, 254, 0.5)'; // Light blue (#DBEAFE)
+                      hoverBg = 'rgba(219, 234, 254, 0.8)'; // Slightly darker blue on hover
+                    }
+
+                    return (
+                      <tr 
                       key={member.id} 
                       onClick={() => setSelectedMember(member)}
-                      style={{ borderBottom: '1px solid #E5E7EB', transition: 'background 0.2s', cursor: 'pointer' }} 
-                      onMouseOver={e => e.currentTarget.style.background = '#F3F4F6'} 
-                      onMouseOut={e => e.currentTarget.style.background = 'white'}
+                      style={{ borderBottom: '1px solid #E5E7EB', transition: 'background 0.2s', cursor: 'pointer', background: baseBg }} 
+                      onMouseOver={e => e.currentTarget.style.background = hoverBg} 
+                      onMouseOut={e => e.currentTarget.style.background = baseBg}
                     >
-                      <td style={{ padding: '15px 20px', fontSize: '1.2rem', fontWeight: 'bold', color: '#374151' }}>
+                      <td style={{ padding: '10px 4px', fontSize: '1.1rem', fontWeight: 'bold', color: '#374151', textAlign: 'center' }}>
                         {member.rank}
                       </td>
-                      <td style={{ padding: '15px 20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                        <ProfileImage member={member} size={50} />
-                        <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#002865' }}>
+                      <td style={{ padding: '10px 4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <ProfileImage member={member} size={40} />
+                        <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#002865' }}>
                           {member.name}
                         </div>
                       </td>
-                      <td style={{ padding: '15px 10px', textAlign: 'right', color: '#4B5563', fontSize: '1.05rem' }}>
-                        {member.score === '-' ? '0' : Number(member.score).toFixed(0)}
+                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#4B5563', fontSize: '1rem', fontWeight: 'bold' }}>
+                        {dynamicLPoint.toFixed(1)}
                       </td>
-                      <td style={{ padding: '15px 10px', textAlign: 'right', color: '#4B5563', fontSize: '1.05rem' }}>
+                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#2563EB', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                        {winRate}
+                      </td>
+                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#10B981', fontSize: '0.9rem' }}>
+                        {gStats.wins}승
+                      </td>
+                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#EF4444', fontSize: '0.9rem' }}>
+                        {gStats.losses}패
+                      </td>
+                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#4B5563', fontSize: '1rem' }}>
                         {member.gamePoint === undefined ? '0' : Number(member.gamePoint).toFixed(0)}
                       </td>
-                      <td style={{ padding: '15px 10px', textAlign: 'right', fontWeight: 'bold', color: '#002865', fontSize: '1.15rem' }}>
-                        {(Number(member.score) || 0) + (Number(member.gamePoint) || 0)}
-                      </td>
-                      <td style={{ padding: '15px 20px', textAlign: 'center', color: '#4B5563' }}>
-                        {member.age}
+                      <td style={{ padding: '10px 4px', textAlign: 'right', fontWeight: 'bold', color: '#002865', fontSize: '1.05rem' }}>
+                        {((Number(member.gamePoint) || 0) + dynamicLPoint).toFixed(1)}
                       </td>
                     </tr>
-                  ))}
+                  )})}
                 </tbody>
               </table>
             </div>
@@ -665,6 +562,11 @@ function App() {
             <div style={{ background: '#002865', padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'white' }}>
               <h3 style={{ margin: 0, fontSize: '1.2rem' }}>선수 프로필 편집</h3>
               <button onClick={() => setSelectedMember(null)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><X size={24} /></button>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', padding: '10px 20px 0 20px' }}>
+              <div style={{ fontSize: '0.9rem', color: '#6B7280' }}>
+                * 점수(L.Point)는 리그결과(기록)에 따라 자동으로 갱신됩니다.
+              </div>
             </div>
             <div style={{ padding: '20px' }}>
               
@@ -715,7 +617,7 @@ function App() {
                   정보 저장하기
                 </button>
                 <button 
-                  onClick={handleDeleteMember} 
+                  onClick={() => handleDeleteMember(selectedMember.id, selectedMember.name)} 
                   style={{ background: '#EF4444', color: 'white', border: 'none', padding: '0.75rem 1rem', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
                 >
                   <Trash2 size={18} />

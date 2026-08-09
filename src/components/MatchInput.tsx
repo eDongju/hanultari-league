@@ -51,7 +51,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
   };
 
   return (
-    <div style={{ padding: '20px', background: 'white', borderRadius: '8px' }}>
+    <div className="content-card">
       <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px' }}>
         2. 대진표 및 경기 결과 입력
       </h2>
@@ -96,8 +96,13 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                     return member ? member.name : fallbackStr;
                   };
 
-                  const t1Name = `${getPlayerName(p1Id, p1 ? p1.name : `선수${charToIndex(mStr[0]) + 1}`)} & ${getPlayerName(p2Id, p2 ? p2.name : `선수${charToIndex(mStr[1]) + 1}`)}`;
-                  const t2Name = `${getPlayerName(p3Id, p3 ? p3.name : `선수${charToIndex(mStr[2]) + 1}`)} & ${getPlayerName(p4Id, p4 ? p4.name : `선수${charToIndex(mStr[3]) + 1}`)}`;
+                  const p1NameStr = getPlayerName(p1Id, p1 ? p1.name : `선수${charToIndex(mStr[0]) + 1}`);
+                  const p2NameStr = getPlayerName(p2Id, p2 ? p2.name : `선수${charToIndex(mStr[1]) + 1}`);
+                  const p3NameStr = getPlayerName(p3Id, p3 ? p3.name : `선수${charToIndex(mStr[2]) + 1}`);
+                  const p4NameStr = getPlayerName(p4Id, p4 ? p4.name : `선수${charToIndex(mStr[3]) + 1}`);
+                  
+                  const t1Name = `${p1NameStr} & ${p2NameStr}`;
+                  const t2Name = `${p3NameStr} & ${p4NameStr}`;
 
                   const PlayerSelect = ({ posIdx, val }: { posIdx: number, val: string }) => (
                     <select 
@@ -106,7 +111,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                       style={{ padding: '2px 4px', borderRadius: '4px', border: '1px solid #D1D5DB', fontSize: '0.85rem', width: '80px' }}
                     >
                       <option value="">--선택--</option>
-                      {allMembers.map(m => (
+                      {[...allMembers].sort((a, b) => a.name.localeCompare(b.name)).map(m => (
                         <option key={m.id} value={m.id}>{m.name}</option>
                       ))}
                     </select>
@@ -116,15 +121,17 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
 
                   return (
                     <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#F9FAFB', padding: '10px', borderRadius: '6px', marginBottom: '10px' }}>
-                      <div style={{ flex: 1, textAlign: 'right', display: 'flex', gap: '5px', justifyContent: 'flex-end', paddingRight: '15px' }}>
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'flex-end', paddingRight: '15px' }}>
                         {isEditing ? (
                           <>
                             <PlayerSelect posIdx={0} val={p1Id} />
-                            <span style={{ fontWeight: 'bold', color: '#0369A1', lineHeight: '25px' }}>&</span>
                             <PlayerSelect posIdx={1} val={p2Id} />
                           </>
                         ) : (
-                          <span style={{ fontWeight: 'bold', color: '#0369A1', lineHeight: '25px' }}>{t1Name}</span>
+                          <>
+                            <span style={{ fontWeight: 'bold', color: '#0369A1', whiteSpace: 'nowrap' }}>{p1NameStr}</span>
+                            <span style={{ fontWeight: 'bold', color: '#0369A1', whiteSpace: 'nowrap' }}>{p2NameStr}</span>
+                          </>
                         )}
                       </div>
                       
@@ -147,15 +154,17 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                         </button>
                       </div>
 
-                      <div style={{ flex: 1, textAlign: 'left', display: 'flex', gap: '5px', paddingLeft: '15px' }}>
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'flex-start', paddingLeft: '15px' }}>
                         {isEditing ? (
                           <>
                             <PlayerSelect posIdx={2} val={p3Id} />
-                            <span style={{ fontWeight: 'bold', color: '#6D28D9', lineHeight: '25px' }}>&</span>
                             <PlayerSelect posIdx={3} val={p4Id} />
                           </>
                         ) : (
-                          <span style={{ fontWeight: 'bold', color: '#6D28D9', lineHeight: '25px' }}>{t2Name}</span>
+                          <>
+                            <span style={{ fontWeight: 'bold', color: '#6D28D9', whiteSpace: 'nowrap' }}>{p3NameStr}</span>
+                            <span style={{ fontWeight: 'bold', color: '#6D28D9', whiteSpace: 'nowrap' }}>{p4NameStr}</span>
+                          </>
                         )}
                       </div>
                       

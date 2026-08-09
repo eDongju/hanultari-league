@@ -32,7 +32,7 @@ export default function LeagueHistory({ savedSessions, onLoadSession, onDeleteSe
   };
 
   return (
-    <div style={{ padding: '20px', background: 'white', borderRadius: '8px' }}>
+    <div className="content-card">
       <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px' }}>
         4. 리그 결과 (기록 보관함)
       </h2>

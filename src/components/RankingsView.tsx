@@ -1,5 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import combinations from '../data/combinations.json';
+import html2canvas from 'html2canvas';
+import { Camera } from 'lucide-react';
 
 const charToIndex = (c: string) => {
   if (c >= '1' && c <= '9') return parseInt(c) - 1;
@@ -29,6 +31,29 @@ interface PlayerStats {
 }
 
 export default function RankingsView({ allMembers, participatingMembers, bracketOption, matchScores, matchOverrides }: RankingsViewProps) {
+  const tableRef = useRef<HTMLDivElement>(null);
+
+  const handleCapture = async () => {
+    if (!tableRef.current) return;
+    try {
+      const canvas = await html2canvas(tableRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff'
+      });
+      const image = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = image;
+      
+      const today = new Date();
+      const dateStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      
+      link.download = `한울타리_경기결과_${dateStr}.png`;
+      link.click();
+    } catch (err) {
+      console.error('Failed to capture image', err);
+      alert('이미지 저장에 실패했습니다.');
+    }
+  };
   
   const stats = useMemo(() => {
     // 1. 기초 스탯 초기화 (참가 멤버 및 오버라이드된 멤버 모두 포함)
@@ -133,11 +158,31 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
   }, [participatingMembers, bracketOption, matchScores]);
 
   return (
-    <div style={{ padding: '20px', background: 'white', borderRadius: '8px' }}>
-      <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px' }}>
-        4. 경기 결과 및 순위
-      </h2>
+    <div className="content-card" style={{ position: 'relative' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', marginBottom: '10px' }}>
+        <h2 style={{ color: '#1E3A8A', margin: 0 }}>
+          3. 경기 결과 및 순위
+        </h2>
+        <div style={{ display: 'flex', gap: '10px' }}>
+
+          <button 
+            onClick={handleCapture}
+            style={{ 
+              background: '#10B981', color: 'white', border: 'none', padding: '8px 16px', 
+              borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold'
+            }}
+          >
+            <Camera size={18} />
+            결과 이미지 저장
+          </button>
+        </div>
+      </div>
       <p style={{ color: '#6B7280', marginBottom: '20px' }}>현재까지 입력된 점수를 바탕으로 실시간 순위가 자동 계산됩니다.</p>
+      
+      <div ref={tableRef} style={{ background: 'white', padding: '10px' }}>
+        <h3 style={{ textAlign: 'center', color: '#1E3A8A', marginBottom: '20px', display: 'none' }} className="print-title">
+          한울타리 주말리그 경기결과
+        </h3>
 
       {stats.length === 0 ? (
         <p>참가 선수가 없습니다.</p>
@@ -186,6 +231,7 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
           </table>
         </div>
       )}
+      </div>
     </div>
   );
 }
