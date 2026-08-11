@@ -103,7 +103,7 @@ function App() {
   });
   
   const [courtName, setCourtName] = useState<string>(() => localStorage.getItem('courtName') || '');
-  const [courtType, setCourtType] = useState<string>(() => localStorage.getItem('courtType') || '하드코트');
+  const [courtType, setCourtType] = useState<string>(() => localStorage.getItem('courtType') || '인조잔디');
 
   const touchStartPos = useRef<{x: number, y: number} | null>(null);
   const touchEndPos = useRef<{x: number, y: number} | null>(null);
@@ -301,7 +301,7 @@ function App() {
     setMatchScores(session.matchScores || {});
     setMatchOverrides(session.matchOverrides || {});
     setCourtName(session.courtName || '');
-    setCourtType(session.courtType || '하드코트');
+    setCourtType(session.courtType || '인조잔디');
     setActiveTab('rankings'); // 불러오면 결과 화면으로 이동
 
     localStorage.setItem('currentSessionId', session.id);
@@ -311,7 +311,7 @@ function App() {
     localStorage.setItem('matchScores', JSON.stringify(session.matchScores || {}));
     localStorage.setItem('matchOverrides', JSON.stringify(session.matchOverrides || {}));
     localStorage.setItem('courtName', session.courtName || '');
-    localStorage.setItem('courtType', session.courtType || '하드코트');
+    localStorage.setItem('courtType', session.courtType || '인조잔디');
   };
 
   // 리그 삭제 함수
@@ -473,7 +473,7 @@ function App() {
                       setMatchScores({});
                       setMatchOverrides({});
                       setCourtName('');
-                      setCourtType('하드코트');
+                      setCourtType('인조잔디');
                       setActiveTab('playerSetup');
                       
                       localStorage.removeItem('currentSessionId');
