@@ -340,7 +340,7 @@ export default function MealCalculator({
 
           {/* 결과 테이블 */}
           {(!Array.isArray(resultTable) && resultTable.results.length > 0) && (
-            <div className="table-wrapper" style={{ border: '2px solid #1E3A8A', borderRadius: '8px', overflow: 'hidden' }}>
+            <div className="table-wrapper" style={{ border: '2px solid #1E3A8A', borderRadius: '8px', overflowX: 'auto' }}>
               <div style={{ background: '#1E3A8A', color: 'white', padding: '15px', textAlign: 'center' }}>
                 <h3 style={{ margin: 0, fontSize: '1.2rem' }}>밥값 정산 결과</h3>
                 <p style={{ margin: '5px 0 0 0', fontSize: '0.9rem', color: '#93C5FD' }}>총 {eatingMembers.length}명 식사 (1위 무료)</p>
