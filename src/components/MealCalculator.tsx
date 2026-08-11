@@ -30,7 +30,7 @@ export default function MealCalculator({
   const [eatingMembers, setEatingMembers] = useState<string[]>([]); // id array
   const [totalCost, setTotalCost] = useState<string>('');
   const [coffeeCost, setCoffeeCost] = useState<string>('');
-  const [costGap, setCostGap] = useState<number>(10000); // 엑셀 원본의 갭 설정 기본값 10000원
+  const [costGap, setCostGap] = useState<number>(1000); // 갭 설정 기본값 1000원
   
   // 최초 한 번만 디폴트로 모두 식사한다고 설정하기 위한 플래그
   const [initializedEaters, setInitializedEaters] = useState(false);
@@ -194,13 +194,9 @@ export default function MealCalculator({
     // offsets = mealCosts[N][rank] (rank: 1 to N)
     // Base = (C - sum(offsets)) / (N-1)
     
-    let sumOffsets = 0;
-    const gapMultiplier = costGap / 10000; // 엑셀의 기본 갭 10000을 1.0배율(기본 룩업테이블)로 사용
-    
-    for (let i = 1; i <= N; i++) {
-      const rankRule = (mealCosts as any)[i.toString()] || {};
-      sumOffsets += (rankRule[N.toString()] || 0) * gapMultiplier;
-    }
+    // 수학적 공식: 각 순위(r)의 오프셋 = (r - (N+1)/2) * costGap
+    // N-1명(2등~N등)의 오프셋 총합 = ((N-1) / 2) * costGap
+    const sumOffsets = ((N - 1) / 2) * costGap;
     
     let base = 0;
     if (N > 1) {
@@ -214,8 +210,7 @@ export default function MealCalculator({
       if (mealRank === 1) {
         pay = 0;
       } else {
-        const rankRule = (mealCosts as any)[mealRank.toString()] || {};
-        const offset = (rankRule[N.toString()] || 0) * gapMultiplier;
+        const offset = (mealRank - (N + 1) / 2) * costGap;
         pay = base + offset + coffee;
       }
       
@@ -302,7 +297,7 @@ export default function MealCalculator({
               </label>
               <input 
                 type="number" 
-                placeholder="예: 10000"
+                placeholder="예: 1000"
                 value={costGap}
                 onChange={e => setCostGap(parseInt(e.target.value) || 0)}
                 style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #C4B5FD', fontSize: '1.2rem', fontWeight: 'bold', color: '#4C1D95' }}
