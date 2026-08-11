@@ -585,13 +585,13 @@ function App() {
                       PLAYER <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
                     <th onClick={() => handleSort('score')} style={{ padding: '8px 4px', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
-                      L.POINT <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
+                      L.PT <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
                     <th style={{ padding: '8px 4px', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
-                      R.POINT
+                      R.PT
                     </th>
                     <th onClick={() => handleSort('gamePoint')} style={{ padding: '8px 4px', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
-                      G.POINT <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
+                      G.PT <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
                     <th style={{ padding: '8px 4px', width: '10%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
                       승률
