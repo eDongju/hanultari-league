@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import mealCosts from '../data/mealCosts.json';
 import combinations from '../data/combinations.json';
 import { type Member, ProfileImage } from '../App';
 
