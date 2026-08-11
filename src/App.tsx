@@ -67,7 +67,7 @@ export const ProfileImage = ({ member, size = 45 }: { member: Member, size?: num
       src={imgSrc as string} 
       alt={member.name} 
       onError={handleError}
-      style={{ width: size, height: size, borderRadius: '8px', objectFit: 'cover', flexShrink: 0, border: '1px solid #E5E7EB' }} 
+      style={{ width: size, height: size, aspectRatio: '1/1', borderRadius: '8px', objectFit: 'cover', objectPosition: 'center 15%', flexShrink: 0, border: '1px solid #E5E7EB' }} 
     />
   );
 };
