@@ -16,6 +16,7 @@ interface RankingsViewProps {
   matchOverrides: Record<string, Record<number, string>>;
   courtName: string;
   courtType: string;
+  courtEnv: string;
 }
 
 interface PlayerStats {
