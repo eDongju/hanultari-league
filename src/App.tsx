@@ -740,7 +740,7 @@ function App() {
 
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>전국 대회 입상</label>
-                <textarea rows={6} value={selectedMember.nationalPrize || ''} onChange={e => setSelectedMember({...selectedMember, nationalPrize: e.target.value})} placeholder={`(2026-08-09) 수원화성배 32강 : 5점\n\n(한울타리페어 점수)\n우승(45), 준우승(30), 4강(20), 8강(13), 16강(8), 32강(5)\n(타클럽페어 점수, 복식/단식/혼복)\n우승(35), 준우승(23), 4강(15), 8강(9), 16강(5), 32강(3)`} style={{ width: '100%', padding: '12px', border: '1px solid #D1D5DB', borderRadius: '6px', resize: 'vertical', lineHeight: '1.5' }}></textarea>
+                <textarea rows={6} value={selectedMember.nationalPrize || ''} onChange={e => setSelectedMember({...selectedMember, nationalPrize: e.target.value})} placeholder={`(2026-08-09) 수원화성배 32강 : 5점\n\n(한울타리페어 점수)\n우승(45), 준우승(30), 입상(20), 8강(13), 16강(8), 32강(5)\n(타클럽페어 점수, 복식/단식/혼복)\n우승(35), 준우승(23), 입상(15), 8강(9), 16강(5), 32강(3)\n(단체전 점수)\n우승(15), 준우승(10), 입상(5점)`} style={{ width: '100%', padding: '12px', border: '1px solid #D1D5DB', borderRadius: '6px', resize: 'vertical', lineHeight: '1.5' }}></textarea>
               </div>
 
               <div style={{ marginBottom: '15px' }}>
