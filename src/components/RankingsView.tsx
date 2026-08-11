@@ -40,7 +40,10 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
     try {
       const canvas = await html2canvas(tableRef.current, {
         scale: 2,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        scrollY: -window.scrollY,
+        windowWidth: document.documentElement.scrollWidth,
+        windowHeight: document.documentElement.scrollHeight
       });
       const image = canvas.toDataURL('image/png');
       const link = document.createElement('a');
