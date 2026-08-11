@@ -103,11 +103,23 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                 style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #93C5FD', fontSize: '1rem' }} 
               />
               <datalist id="court-list">
-                <option value="양재시민의숲 테니스장" />
-                <option value="보라매공원 테니스장" />
-                <option value="올림픽공원 테니스장" />
-                <option value="귀뚜라미 테니스장" />
-                <option value="장충 테니스장" />
+                <option value="화성-상신리" />
+                <option value="수원-북중" />
+                <option value="화성-도로공사" />
+                <option value="화성-테니스연구소" />
+                <option value="화성-루트82" />
+                <option value="화성-팔탄" />
+                <option value="군포-산본IC" />
+                <option value="군포-시립" />
+                <option value="안양-안양교도소" />
+                <option value="의왕-구치소" />
+                <option value="안양-새물공원" />
+                <option value="안성-종합" />
+                <option value="안산-시립" />
+                <option value="수원-만석" />
+                <option value="수원-호매실" />
+                <option value="오산-시립" />
+                <option value="오산-죽미" />
               </datalist>
             </div>
             <div style={{ width: '120px' }}>
