@@ -651,7 +651,7 @@ function App() {
                         {roundPoint.toFixed(1)}
                       </td>
                       <td style={{ padding: '10px 4px', textAlign: 'right', color: '#4B5563', fontSize: '1rem' }}>
-                        {gamePoint.toFixed(0)}
+                        {gamePoint.toFixed(1)}
                       </td>
                       <td style={{ padding: '10px 4px', textAlign: 'right', color: '#2563EB', fontSize: '0.9rem', fontWeight: 'bold' }}>
                         {winRate}
