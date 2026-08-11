@@ -66,33 +66,48 @@ const ProfileImage = ({ member, size = 45 }: { member: Member, size?: number }) 
 };
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'match' | 'members' | 'playerSetup' | 'matchInput' | 'rankings' | 'history'>('playerSetup');
+  const [activeTab, setActiveTab] = useState<'match' | 'members' | 'playerSetup' | 'matchInput' | 'rankings' | 'history'>(() => {
+    return (localStorage.getItem('activeTab') as any) || 'playerSetup';
+  });
   
   // 저장된 리그 기록 상태
   const [savedSessions, setSavedSessions] = useState<Record<string, any>>({});
 
-  // 현재 진행 중인 리그의 고유 ID (새로 작성 중일 경우 null)
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(() => {
+    return localStorage.getItem('currentSessionId') || null;
+  });
   const [currentSessionDate, setCurrentSessionDate] = useState<string>(() => {
+    const savedDate = localStorage.getItem('currentSessionDate');
+    if (savedDate) return savedDate;
     const today = new Date();
-    // YYYY-MM-DD 형식 (한국 시간 기준)
     return new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
   });
   
-  // 주말리그에 참가할 선수들 상태 (PlayerSetup에서 설정하고 BracketView에서 사용)
-  const [participatingMembers, setParticipatingMembers] = useState<(Member | null)[]>(Array(5).fill(null));
+  const [participatingMembers, setParticipatingMembers] = useState<(Member | null)[]>(() => {
+    const saved = localStorage.getItem('participatingMembers');
+    return saved ? JSON.parse(saved) : Array(5).fill(null);
+  });
   
-  // 대진표 옵션 상태 (예: "5", "12-2c" 등)
-  const [bracketOption, setBracketOption] = useState<string>("5");
+  const [bracketOption, setBracketOption] = useState<string>(() => {
+    return localStorage.getItem('bracketOption') || "5";
+  });
   
-  // 경기 결과 점수 상태 { matchId: { t1: score, t2: score } }
-  const [matchScores, setMatchScores] = useState<Record<string, { t1: string, t2: string }>>({});
+  const [matchScores, setMatchScores] = useState<Record<string, { t1: string, t2: string }>>(() => {
+    const saved = localStorage.getItem('matchScores');
+    return saved ? JSON.parse(saved) : {};
+  });
 
-  // 경기 중 선수 교체 오버라이드 상태 { matchId: { 0: memberId, 1: memberId, 2: memberId, 3: memberId } }
-  const [matchOverrides, setMatchOverrides] = useState<Record<string, Record<number, string>>>({});
+  const [matchOverrides, setMatchOverrides] = useState<Record<string, Record<number, string>>>(() => {
+    const saved = localStorage.getItem('matchOverrides');
+    return saved ? JSON.parse(saved) : {};
+  });
   
-  const [courtName, setCourtName] = useState<string>('');
-  const [courtType, setCourtType] = useState<string>('하드코트');
+  const [courtName, setCourtName] = useState<string>(() => localStorage.getItem('courtName') || '');
+  const [courtType, setCourtType] = useState<string>(() => localStorage.getItem('courtType') || '하드코트');
+
+  useEffect(() => {
+    localStorage.setItem('activeTab', activeTab);
+  }, [activeTab]);
 
   const [allMembers, setAllMembers] = useState<Member[]>([]);
 
@@ -143,6 +158,15 @@ function App() {
         courtName,
         courtType
       };
+
+      localStorage.setItem('currentSessionId', idToSave);
+      localStorage.setItem('currentSessionDate', currentSessionDate);
+      localStorage.setItem('participatingMembers', JSON.stringify(participatingMembers));
+      localStorage.setItem('bracketOption', bracketOption);
+      localStorage.setItem('matchScores', JSON.stringify(matchScores));
+      localStorage.setItem('matchOverrides', JSON.stringify(matchOverrides));
+      localStorage.setItem('courtName', courtName);
+      localStorage.setItem('courtType', courtType);
 
       await setDoc(doc(db, 'sessions', idToSave), newSession);
     }, 1500); // 1.5초 디바운스
@@ -238,6 +262,15 @@ function App() {
     setCourtName(session.courtName || '');
     setCourtType(session.courtType || '하드코트');
     setActiveTab('rankings'); // 불러오면 결과 화면으로 이동
+
+    localStorage.setItem('currentSessionId', session.id);
+    localStorage.setItem('currentSessionDate', session.date);
+    localStorage.setItem('participatingMembers', JSON.stringify(session.participatingMembers || Array(5).fill(null)));
+    localStorage.setItem('bracketOption', session.bracketOption || '5');
+    localStorage.setItem('matchScores', JSON.stringify(session.matchScores || {}));
+    localStorage.setItem('matchOverrides', JSON.stringify(session.matchOverrides || {}));
+    localStorage.setItem('courtName', session.courtName || '');
+    localStorage.setItem('courtType', session.courtType || '하드코트');
   };
 
   // 리그 삭제 함수
@@ -395,6 +428,15 @@ function App() {
                       setCourtName('');
                       setCourtType('하드코트');
                       setActiveTab('playerSetup');
+                      
+                      localStorage.removeItem('currentSessionId');
+                      localStorage.removeItem('currentSessionDate');
+                      localStorage.removeItem('participatingMembers');
+                      localStorage.removeItem('bracketOption');
+                      localStorage.removeItem('matchScores');
+                      localStorage.removeItem('matchOverrides');
+                      localStorage.removeItem('courtName');
+                      localStorage.removeItem('courtType');
                     }
                   }}
                   style={{ padding: '8px 16px', background: '#F59E0B', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
