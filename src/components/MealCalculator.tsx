@@ -334,6 +334,7 @@ export default function MealCalculator({
                       color: isEating ? '#065F46' : '#6B7280',
                       cursor: 'pointer',
                       fontWeight: 'bold',
+                      fontSize: '1.1rem',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '5px'
