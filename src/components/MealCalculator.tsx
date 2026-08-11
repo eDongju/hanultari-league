@@ -29,7 +29,7 @@ export default function MealCalculator({
   const [selectedSessions, setSelectedSessions] = useState<string[]>(['current']);
   const [eatingMembers, setEatingMembers] = useState<string[]>([]); // id array
   const [totalCost, setTotalCost] = useState<string>('');
-  const [costGap, setCostGap] = useState<number>(1000); // 갭 설정 기본값 1000원
+  const [costGap, setCostGap] = useState<number>(10000); // 엑셀 원본의 갭 설정 기본값 10000원
   
   // 최초 한 번만 디폴트로 모두 식사한다고 설정하기 위한 플래그
   const [initializedEaters, setInitializedEaters] = useState(false);
@@ -194,7 +194,7 @@ export default function MealCalculator({
     // Base = (C - sum(offsets)) / (N-1)
     
     let sumOffsets = 0;
-    const gapMultiplier = costGap / 1000;
+    const gapMultiplier = costGap / 10000; // 엑셀의 기본 갭 10000을 1.0배율(기본 룩업테이블)로 사용
     
     for (let i = 1; i <= N; i++) {
       const rankRule = (mealCosts as any)[i.toString()] || {};
@@ -300,7 +300,7 @@ export default function MealCalculator({
               </label>
               <input 
                 type="number" 
-                placeholder="예: 1000"
+                placeholder="예: 10000"
                 value={costGap}
                 onChange={e => setCostGap(parseInt(e.target.value) || 0)}
                 style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #C4B5FD', fontSize: '1.2rem', fontWeight: 'bold', color: '#4C1D95' }}
