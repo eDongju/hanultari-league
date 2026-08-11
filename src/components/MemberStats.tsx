@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ProfileImage, Member } from '../App';
+import { ProfileImage, type Member } from '../App';
 
 interface MemberStatsProps {
   allMembers: any[];
