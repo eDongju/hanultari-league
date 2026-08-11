@@ -745,7 +745,7 @@ function App() {
 
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>간식점수</label>
-                <textarea rows={6} value={selectedMember.snackScoreText || ''} onChange={e => setSelectedMember({...selectedMember, snackScoreText: e.target.value})} placeholder="간식 제공 내역 및 점수 입력..." style={{ width: '100%', padding: '12px', border: '1px solid #D1D5DB', borderRadius: '6px', resize: 'vertical', lineHeight: '1.5' }}></textarea>
+                <textarea rows={6} value={selectedMember.snackScoreText || ''} onChange={e => setSelectedMember({...selectedMember, snackScoreText: e.target.value})} placeholder={`(2026-08-09) 메가 커피 : 1점\n(간식 점수)\n커피(1), 식사(2)`} style={{ width: '100%', padding: '12px', border: '1px solid #D1D5DB', borderRadius: '6px', resize: 'vertical', lineHeight: '1.5' }}></textarea>
               </div>
 
               <div style={{ marginBottom: '20px' }}>
