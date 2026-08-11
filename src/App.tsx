@@ -369,7 +369,7 @@ function App() {
   return (
     <div className="container" style={{ position: 'relative' }}>
       <div className="card" style={{ position: 'relative' }}>
-        <div style={{ position: 'absolute', top: '15px', right: '20px', fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 'bold' }}>
+        <div style={{ position: 'fixed', bottom: '15px', right: '20px', fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 'bold', zIndex: 1000, background: 'rgba(255, 255, 255, 0.8)', padding: '2px 8px', borderRadius: '4px' }}>
           v1.5 (2026.08.09)
         </div>
         <div className="header">
