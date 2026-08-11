@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Camera, Plus, Trash2, ArrowUpDown, X, User } from 'lucide-react';
 import './index.css';
 import membersData from './members.json';
@@ -104,6 +104,47 @@ function App() {
   
   const [courtName, setCourtName] = useState<string>(() => localStorage.getItem('courtName') || '');
   const [courtType, setCourtType] = useState<string>(() => localStorage.getItem('courtType') || '하드코트');
+
+  const touchStartPos = useRef<{x: number, y: number} | null>(null);
+  const touchEndPos = useRef<{x: number, y: number} | null>(null);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchEndPos.current = null;
+    touchStartPos.current = { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY };
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    touchEndPos.current = { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY };
+  };
+
+  const onTouchEndFn = (e: React.TouchEvent) => {
+    if (!touchStartPos.current || !touchEndPos.current) return;
+    
+    // 테이블과 같이 좌우 스크롤이 있는 요소 내에서의 터치면 탭 전환 무시
+    const target = e.target as HTMLElement;
+    if (target.closest('table') || target.closest('select') || target.closest('input')) return;
+
+    const xDistance = touchStartPos.current.x - touchEndPos.current.x;
+    const yDistance = Math.abs(touchStartPos.current.y - touchEndPos.current.y);
+    
+    // 상하 스크롤 중이면 무시
+    if (yDistance > Math.abs(xDistance)) return;
+
+    const isLeftSwipe = xDistance > 80;
+    const isRightSwipe = xDistance < -80;
+    
+    if (isLeftSwipe || isRightSwipe) {
+      const TABS = ['playerSetup', 'matchInput', 'rankings', 'history', 'members'];
+      const currentIndex = TABS.indexOf(activeTab);
+      
+      if (isLeftSwipe && currentIndex < TABS.length - 1) {
+        setActiveTab(TABS[currentIndex + 1] as any);
+      }
+      if (isRightSwipe && currentIndex > 0) {
+        setActiveTab(TABS[currentIndex - 1] as any);
+      }
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem('activeTab', activeTab);
@@ -400,7 +441,13 @@ function App() {
   };
 
   return (
-    <div className="container" style={{ position: 'relative' }}>
+    <div 
+      className="container" 
+      style={{ position: 'relative' }}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEndFn}
+    >
       <div className="card" style={{ position: 'relative' }}>
         <div style={{ position: 'fixed', bottom: '15px', right: '20px', fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 'bold', zIndex: 1000, background: 'rgba(255, 255, 255, 0.8)', padding: '2px 8px', borderRadius: '4px' }}>
           v1.5 (2026.08.09)
