@@ -121,6 +121,7 @@ function App() {
   
   const [courtName, setCourtName] = useState<string>(() => localStorage.getItem('courtName') || '');
   const [courtType, setCourtType] = useState<string>(() => localStorage.getItem('courtType') || '인조잔디');
+  const [courtEnv, setCourtEnv] = useState<string>(() => localStorage.getItem('courtEnv') || '야외');
 
   const touchStartPos = useRef<{x: number, y: number} | null>(null);
   const touchEndPos = useRef<{x: number, y: number} | null>(null);
@@ -227,12 +228,13 @@ function App() {
       localStorage.setItem('matchOverrides', JSON.stringify(matchOverrides));
       localStorage.setItem('courtName', courtName);
       localStorage.setItem('courtType', courtType);
+      localStorage.setItem('courtEnv', courtEnv);
 
       await setDoc(doc(db, 'sessions', idToSave), newSession);
     }, 1500); // 1.5초 디바운스
 
     return () => clearTimeout(timeoutId);
-  }, [participatingMembers, bracketOption, matchScores, matchOverrides, currentSessionDate, currentSessionId, courtName, courtType]);
+  }, [participatingMembers, bracketOption, matchScores, matchOverrides, currentSessionDate, currentSessionId, courtName, courtType, courtEnv]);
 
   const globalStats = useMemo(() => {
     const stats: Record<string, { matches: number, wins: number, losses: number, sessionMatches: number, sessionWins: number, sessionLosses: number, deuceCount: number, adCount: number, duoStats: Record<string, { wins: number, matches: number }>, attendances: number }> = {};
@@ -352,6 +354,7 @@ function App() {
     setMatchOverrides(session.matchOverrides || {});
     setCourtName(session.courtName || '');
     setCourtType(session.courtType || '인조잔디');
+    setCourtEnv(session.courtEnv || '야외');
     setActiveTab('rankings'); // 불러오면 결과 화면으로 이동
 
     localStorage.setItem('currentSessionId', session.id);
@@ -362,6 +365,7 @@ function App() {
     localStorage.setItem('matchOverrides', JSON.stringify(session.matchOverrides || {}));
     localStorage.setItem('courtName', session.courtName || '');
     localStorage.setItem('courtType', session.courtType || '인조잔디');
+    localStorage.setItem('courtEnv', session.courtEnv || '야외');
   };
 
   // 리그 삭제 함수
@@ -529,6 +533,7 @@ function App() {
                       setMatchOverrides({});
                       setCourtName('');
                       setCourtType('인조잔디');
+                      setCourtEnv('야외');
                       setActiveTab('playerSetup');
                       
                       localStorage.removeItem('currentSessionId');
@@ -539,6 +544,7 @@ function App() {
                       localStorage.removeItem('matchOverrides');
                       localStorage.removeItem('courtName');
                       localStorage.removeItem('courtType');
+                      localStorage.removeItem('courtEnv');
                     }
                   }}
                   style={{ padding: '8px 16px', background: '#F59E0B', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
@@ -581,6 +587,8 @@ function App() {
             setCourtName={setCourtName}
             courtType={courtType}
             setCourtType={setCourtType}
+            courtEnv={courtEnv}
+            setCourtEnv={setCourtEnv}
           />
         )}
         {activeTab === 'rankings' && (
@@ -592,6 +600,7 @@ function App() {
             matchOverrides={matchOverrides}
             courtName={courtName}
             courtType={courtType}
+            courtEnv={courtEnv}
           />
         )}
         {activeTab === 'history' && (

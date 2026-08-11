@@ -19,9 +19,11 @@ interface MatchInputProps {
   setCourtName: (name: string) => void;
   courtType: string;
   setCourtType: (type: string) => void;
+  courtEnv: string;
+  setCourtEnv: (env: string) => void;
 }
 
-export default function MatchInput({ allMembers, participatingMembers, bracketOption, matchScores, setMatchScores, matchOverrides, setMatchOverrides, courtName, setCourtName, courtType, setCourtType }: MatchInputProps) {
+export default function MatchInput({ allMembers, participatingMembers, bracketOption, matchScores, setMatchScores, matchOverrides, setMatchOverrides, courtName, setCourtName, courtType, setCourtType, courtEnv, setCourtEnv }: MatchInputProps) {
   
   const [editModes, setEditModes] = useState<Record<string, boolean>>({});
   const [scoreModal, setScoreModal] = useState<{ matchId: string, t1Name: string, t2Name: string } | null>(null);
@@ -89,17 +91,38 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
           {/* 코트 정보 입력 */}
-          <div style={{ display: 'flex', gap: '15px', background: '#EFF6FF', padding: '15px', borderRadius: '8px', border: '1px solid #BFDBFE' }}>
-            <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', gap: '15px', background: '#EFF6FF', padding: '15px', borderRadius: '8px', border: '1px solid #BFDBFE', flexWrap: 'wrap' }}>
+            <div style={{ flex: '1 1 200px' }}>
               <label style={{ display: 'block', fontSize: '0.9rem', color: '#1E3A8A', fontWeight: 'bold', marginBottom: '5px' }}>코트명 입력</label>
-              <input type="text" value={courtName} onChange={e => setCourtName(e.target.value)} placeholder="예: 양재시민의숲 테니스장" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #93C5FD', fontSize: '1rem' }} />
+              <input 
+                type="text" 
+                list="court-list"
+                value={courtName} 
+                onChange={e => setCourtName(e.target.value)} 
+                placeholder="직접 입력 또는 선택" 
+                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #93C5FD', fontSize: '1rem' }} 
+              />
+              <datalist id="court-list">
+                <option value="양재시민의숲 테니스장" />
+                <option value="보라매공원 테니스장" />
+                <option value="올림픽공원 테니스장" />
+                <option value="귀뚜라미 테니스장" />
+                <option value="장충 테니스장" />
+              </datalist>
             </div>
-            <div style={{ width: '150px' }}>
+            <div style={{ width: '120px' }}>
+              <label style={{ display: 'block', fontSize: '0.9rem', color: '#1E3A8A', fontWeight: 'bold', marginBottom: '5px' }}>장소</label>
+              <select value={courtEnv} onChange={e => setCourtEnv(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #93C5FD', fontSize: '1rem' }}>
+                <option value="야외">야외(실외)</option>
+                <option value="실내">실내</option>
+              </select>
+            </div>
+            <div style={{ width: '130px' }}>
               <label style={{ display: 'block', fontSize: '0.9rem', color: '#1E3A8A', fontWeight: 'bold', marginBottom: '5px' }}>코트종류</label>
               <select value={courtType} onChange={e => setCourtType(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #93C5FD', fontSize: '1rem' }}>
+                <option value="인조잔디">인조잔디</option>
                 <option value="하드코트">하드코트</option>
                 <option value="클레이코트">클레이코트</option>
-                <option value="인조잔디">인조잔디</option>
               </select>
             </div>
           </div>

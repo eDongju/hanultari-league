@@ -32,7 +32,7 @@ interface PlayerStats {
   rank: number;
 }
 
-export default function RankingsView({ allMembers, participatingMembers, bracketOption, matchScores, matchOverrides, courtName, courtType }: RankingsViewProps) {
+export default function RankingsView({ allMembers, participatingMembers, bracketOption, matchScores, matchOverrides, courtName, courtType, courtEnv }: RankingsViewProps) {
   const tableRef = useRef<HTMLDivElement>(null);
 
   const handleCapture = async () => {
@@ -191,7 +191,7 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
             한울타리 주말리그 경기결과
           </h3>
           <div style={{ marginLeft: 'auto', fontSize: '0.9rem', color: '#4B5563', fontWeight: 'bold', background: '#F3F4F6', padding: '6px 12px', borderRadius: '4px' }}>
-            {courtName ? `${courtName} - ${courtType}` : courtType}
+            {courtName ? `${courtName} - ${courtType} (${courtEnv})` : `${courtType} (${courtEnv})`}
           </div>
         </div>
 
