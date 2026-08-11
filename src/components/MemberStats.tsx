@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 interface MemberStatsProps {
   allMembers: any[];
@@ -6,7 +6,7 @@ interface MemberStatsProps {
   globalStats: Record<string, any>;
 }
 
-export default function MemberStats({ allMembers, savedSessions, globalStats }: MemberStatsProps) {
+export default function MemberStats({ allMembers, globalStats }: MemberStatsProps) {
   const [sortKey, setSortKey] = useState<string>('attendances');
 
   const memberStatsList = useMemo(() => {
@@ -19,7 +19,7 @@ export default function MemberStats({ allMembers, savedSessions, globalStats }: 
       const winRate = stats.matches > 0 ? (stats.wins / stats.matches) * 100 : 0;
       
       // 베스트 듀오 찾기
-      let bestDuoId = null;
+      let bestDuoId: string | null = null;
       let bestDuoWins = -1;
       Object.entries(stats.duoStats || {}).forEach(([partnerId, dStats]: [string, any]) => {
         if (dStats.wins > bestDuoWins) {
