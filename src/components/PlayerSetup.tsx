@@ -140,7 +140,7 @@ export default function PlayerSetup({ allMembers, participatingMembers, setParti
                       value={m.id}
                       disabled={participatingMembers.some((p, i) => p?.id === m.id && i !== index)}
                     >
-                      {m.name} (League Point: {m.score === '-' ? '0' : m.score})
+                      {m.name}
                     </option>
                   ))}
                 </select>
