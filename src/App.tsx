@@ -74,6 +74,16 @@ function App() {
   const [activeTab, setActiveTab] = useState<'match' | 'members' | 'playerSetup' | 'matchInput' | 'rankings' | 'history'>(() => {
     return (localStorage.getItem('activeTab') as any) || 'playerSetup';
   });
+  const [slideDir, setSlideDir] = useState<'left'|'right'|''>('');
+
+  const handleTabChange = (newTab: any) => {
+    const TABS = ['playerSetup', 'matchInput', 'rankings', 'history', 'members'];
+    const oldIdx = TABS.indexOf(activeTab);
+    const newIdx = TABS.indexOf(newTab);
+    if (newIdx > oldIdx) setSlideDir('left');
+    else if (newIdx < oldIdx) setSlideDir('right');
+    setActiveTab(newTab);
+  };
   
   // 저장된 리그 기록 상태
   const [savedSessions, setSavedSessions] = useState<Record<string, any>>({});
@@ -143,9 +153,11 @@ function App() {
       const currentIndex = TABS.indexOf(activeTab);
       
       if (isLeftSwipe && currentIndex < TABS.length - 1) {
+        setSlideDir('left');
         setActiveTab(TABS[currentIndex + 1] as any);
       }
       if (isRightSwipe && currentIndex > 0) {
+        setSlideDir('right');
         setActiveTab(TABS[currentIndex - 1] as any);
       }
     }
@@ -464,11 +476,11 @@ function App() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginTop: '1rem', alignItems: 'center' }}>
             {/* 새로운 주말리그용 탭 4개 */}
-            <button onClick={() => setActiveTab('playerSetup')} style={{ padding: '0.6rem 1.2rem', fontSize: '1.15rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'playerSetup' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'playerSetup' ? 'white' : '#374151' }}>1. 선수 입력</button>
-            <button onClick={() => setActiveTab('matchInput')} style={{ padding: '0.6rem 1.2rem', fontSize: '1.15rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'matchInput' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'matchInput' ? 'white' : '#374151' }}>2. 대진표 및 결과 입력</button>
-            <button onClick={() => setActiveTab('rankings')} style={{ padding: '0.6rem 1.2rem', fontSize: '1.15rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'rankings' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'rankings' ? 'white' : '#374151' }}>3. 결과 및 순위</button>
-            <button onClick={() => setActiveTab('history')} style={{ padding: '0.6rem 1.2rem', fontSize: '1.15rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'history' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'history' ? 'white' : '#374151' }}>4. 리그결과 (기록)</button>
-            <button onClick={() => setActiveTab('members')} style={{ padding: '0.6rem 1.2rem', fontSize: '1.15rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'members' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'members' ? 'white' : '#374151' }}>5. 한울랭킹 ({allMembers.length}명)</button>
+            <button onClick={() => handleTabChange('playerSetup')} style={{ padding: '0.6rem 1.2rem', fontSize: '1.15rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'playerSetup' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'playerSetup' ? 'white' : '#374151' }}>1. 선수 입력</button>
+            <button onClick={() => handleTabChange('matchInput')} style={{ padding: '0.6rem 1.2rem', fontSize: '1.15rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'matchInput' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'matchInput' ? 'white' : '#374151' }}>2. 대진표 및 결과 입력</button>
+            <button onClick={() => handleTabChange('rankings')} style={{ padding: '0.6rem 1.2rem', fontSize: '1.15rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'rankings' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'rankings' ? 'white' : '#374151' }}>3. 결과 및 순위</button>
+            <button onClick={() => handleTabChange('history')} style={{ padding: '0.6rem 1.2rem', fontSize: '1.15rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'history' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'history' ? 'white' : '#374151' }}>4. 리그결과 (기록)</button>
+            <button onClick={() => handleTabChange('members')} style={{ padding: '0.6rem 1.2rem', fontSize: '1.15rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'members' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'members' ? 'white' : '#374151' }}>5. 한울랭킹 ({allMembers.length}명)</button>
             
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
               {currentSessionId && (
@@ -511,7 +523,8 @@ function App() {
         </div>
 
         {/* 신규 화면 컴포넌트 렌더링 */}
-        {activeTab === 'playerSetup' && (
+        <div key={activeTab} className={slideDir ? (slideDir === 'left' ? 'slide-left' : 'slide-right') : ''} style={{ width: '100%' }}>
+          {activeTab === 'playerSetup' && (
           <PlayerSetup 
             allMembers={allMembers} 
             participatingMembers={participatingMembers} 
@@ -672,6 +685,7 @@ function App() {
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* 회원 상세정보 수정 모달 */}
