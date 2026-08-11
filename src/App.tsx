@@ -608,7 +608,7 @@ function App() {
                     const gStats = globalStats[member.id] || { matches: 0, wins: 0, losses: 0, sessionMatches: 0, sessionWins: 0, sessionLosses: 0 };
                     const winRate = gStats.matches > 0 ? ((gStats.wins / gStats.matches) * 100).toFixed(1) + '%' : '-';
                     const baseLPoint = Number(member.score) || 0;
-                    const roundPoint = (gStats.sessionWins * 2) + (gStats.sessionMatches * 0.5);
+                    const roundPoint = (gStats.sessionWins * 2) + (gStats.sessionMatches * 0.5) + (Number(member.roundPoint) || 0);
                     const gamePoint = Number(member.gamePoint) || 0;
                     const sumPoint = baseLPoint + roundPoint + gamePoint;
                     
@@ -707,7 +707,11 @@ function App() {
                       <input type="number" value={selectedMember.score} onChange={e => setSelectedMember({...selectedMember, score: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px' }} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>GamePoint</label>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>RoundPoint</label>
+                      <input type="number" value={selectedMember.roundPoint || 0} onChange={e => setSelectedMember({...selectedMember, roundPoint: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px' }} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>GansigPoint</label>
                       <input type="number" value={selectedMember.gamePoint || 0} onChange={e => setSelectedMember({...selectedMember, gamePoint: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px' }} />
                     </div>
                   </div>
@@ -723,6 +727,11 @@ function App() {
                   <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>나이</label>
                   <input type="text" value={selectedMember.age} readOnly style={{ width: '100%', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px', background: '#F3F4F6' }} />
                 </div>
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>입회날짜</label>
+                <input type="date" value={selectedMember.joinDate || ''} onChange={e => setSelectedMember({...selectedMember, joinDate: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px' }} />
               </div>
 
               <div style={{ marginBottom: '20px' }}>
