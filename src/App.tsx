@@ -580,6 +580,9 @@ function App() {
                     <th onClick={() => handleSort('name')} style={{ padding: '8px 4px', width: '120px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer' }}>
                       PLAYER <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
+                    <th onClick={() => handleSort('gamePoint')} style={{ padding: '8px 4px', width: '70px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
+                      Gansig.point <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
+                    </th>
                     <th onClick={() => handleSort('score')} style={{ padding: '8px 4px', width: '70px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
                       L.Point <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
@@ -591,9 +594,6 @@ function App() {
                     </th>
                     <th style={{ padding: '8px 4px', width: '50px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
                       전체패
-                    </th>
-                    <th onClick={() => handleSort('gamePoint')} style={{ padding: '8px 4px', width: '70px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
-                      G.Point <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
                     <th onClick={() => handleSort('sumPoint')} style={{ padding: '8px 4px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer', fontWeight: 'bold' }}>
                       SUM <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
@@ -633,6 +633,9 @@ function App() {
                           {member.name}
                         </div>
                       </td>
+                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#4B5563', fontSize: '1rem' }}>
+                        {member.gamePoint === undefined ? '0' : Number(member.gamePoint).toFixed(0)}
+                      </td>
                       <td style={{ padding: '10px 4px', textAlign: 'right', color: '#4B5563', fontSize: '1rem', fontWeight: 'bold' }}>
                         {dynamicLPoint.toFixed(1)}
                       </td>
@@ -644,9 +647,6 @@ function App() {
                       </td>
                       <td style={{ padding: '10px 4px', textAlign: 'right', color: '#EF4444', fontSize: '0.9rem' }}>
                         {gStats.losses}패
-                      </td>
-                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#4B5563', fontSize: '1rem' }}>
-                        {member.gamePoint === undefined ? '0' : Number(member.gamePoint).toFixed(0)}
                       </td>
                       <td style={{ padding: '10px 4px', textAlign: 'right', fontWeight: 'bold', color: '#002865', fontSize: '1.05rem' }}>
                         {((Number(member.gamePoint) || 0) + dynamicLPoint).toFixed(1)}
@@ -697,7 +697,7 @@ function App() {
                       <input type="number" value={selectedMember.score} onChange={e => setSelectedMember({...selectedMember, score: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px' }} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>GamePoint</label>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>GansigPoint</label>
                       <input type="number" value={selectedMember.gamePoint || 0} onChange={e => setSelectedMember({...selectedMember, gamePoint: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px' }} />
                     </div>
                   </div>
