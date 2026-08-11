@@ -90,6 +90,9 @@ function App() {
 
   // 경기 중 선수 교체 오버라이드 상태 { matchId: { 0: memberId, 1: memberId, 2: memberId, 3: memberId } }
   const [matchOverrides, setMatchOverrides] = useState<Record<string, Record<number, string>>>({});
+  
+  const [courtName, setCourtName] = useState<string>('');
+  const [courtType, setCourtType] = useState<string>('하드코트');
 
   const [allMembers, setAllMembers] = useState<Member[]>([]);
 
@@ -136,14 +139,16 @@ function App() {
         participatingMembers,
         bracketOption,
         matchScores,
-        matchOverrides
+        matchOverrides,
+        courtName,
+        courtType
       };
 
       await setDoc(doc(db, 'sessions', idToSave), newSession);
     }, 1500); // 1.5초 디바운스
 
     return () => clearTimeout(timeoutId);
-  }, [participatingMembers, bracketOption, matchScores, matchOverrides, currentSessionDate, currentSessionId]);
+  }, [participatingMembers, bracketOption, matchScores, matchOverrides, currentSessionDate, currentSessionId, courtName, courtType]);
 
   const globalStats = useMemo(() => {
     const stats: Record<string, { matches: number, wins: number, losses: number, sessionMatches: number, sessionWins: number, sessionLosses: number }> = {};
@@ -226,10 +231,12 @@ function App() {
   const loadSession = (session: any) => {
     setCurrentSessionId(session.id);
     setCurrentSessionDate(session.date);
-    setParticipatingMembers(session.participatingMembers);
-    setBracketOption(session.bracketOption);
+    setParticipatingMembers(session.participatingMembers || Array(5).fill(null));
+    setBracketOption(session.bracketOption || '5');
     setMatchScores(session.matchScores || {});
     setMatchOverrides(session.matchOverrides || {});
+    setCourtName(session.courtName || '');
+    setCourtType(session.courtType || '하드코트');
     setActiveTab('rankings'); // 불러오면 결과 화면으로 이동
   };
 
@@ -385,6 +392,8 @@ function App() {
                       setBracketOption('5');
                       setMatchScores({});
                       setMatchOverrides({});
+                      setCourtName('');
+                      setCourtType('하드코트');
                       setActiveTab('playerSetup');
                     }
                   }}
@@ -423,6 +432,10 @@ function App() {
             setMatchScores={setMatchScores}
             matchOverrides={matchOverrides}
             setMatchOverrides={setMatchOverrides}
+            courtName={courtName}
+            setCourtName={setCourtName}
+            courtType={courtType}
+            setCourtType={setCourtType}
           />
         )}
         {activeTab === 'rankings' && (
@@ -432,6 +445,8 @@ function App() {
             bracketOption={bracketOption}
             matchScores={matchScores}
             matchOverrides={matchOverrides}
+            courtName={courtName}
+            courtType={courtType}
           />
         )}
         {activeTab === 'history' && (

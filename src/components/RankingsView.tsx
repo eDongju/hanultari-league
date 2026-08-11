@@ -14,6 +14,8 @@ interface RankingsViewProps {
   bracketOption: string;
   matchScores: Record<string, { t1: string, t2: string }>;
   matchOverrides: Record<string, Record<number, string>>;
+  courtName: string;
+  courtType: string;
 }
 
 interface PlayerStats {
@@ -30,7 +32,7 @@ interface PlayerStats {
   rank: number;
 }
 
-export default function RankingsView({ allMembers, participatingMembers, bracketOption, matchScores, matchOverrides }: RankingsViewProps) {
+export default function RankingsView({ allMembers, participatingMembers, bracketOption, matchScores, matchOverrides, courtName, courtType }: RankingsViewProps) {
   const tableRef = useRef<HTMLDivElement>(null);
 
   const handleCapture = async () => {
@@ -180,9 +182,14 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
       <p style={{ color: '#6B7280', marginBottom: '20px' }}>현재까지 입력된 점수를 바탕으로 실시간 순위가 자동 계산됩니다.</p>
       
       <div ref={tableRef} style={{ background: 'white', padding: '10px' }}>
-        <h3 style={{ textAlign: 'center', color: '#1E3A8A', marginBottom: '20px', display: 'none' }} className="print-title">
-          한울타리 주말리그 경기결과
-        </h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '10px' }}>
+          <h3 style={{ margin: 0, color: '#1E3A8A', display: 'none' }} className="print-title">
+            한울타리 주말리그 경기결과
+          </h3>
+          <div style={{ marginLeft: 'auto', fontSize: '0.9rem', color: '#4B5563', fontWeight: 'bold', background: '#F3F4F6', padding: '6px 12px', borderRadius: '4px' }}>
+            {courtName ? `${courtName} - ${courtType}` : courtType}
+          </div>
+        </div>
 
       {stats.length === 0 ? (
         <p>참가 선수가 없습니다.</p>

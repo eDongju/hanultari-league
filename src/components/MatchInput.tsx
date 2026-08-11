@@ -14,9 +14,13 @@ interface MatchInputProps {
   setMatchScores: (scores: Record<string, { t1: string, t2: string }>) => void;
   matchOverrides: Record<string, Record<number, string>>;
   setMatchOverrides: (overrides: Record<string, Record<number, string>>) => void;
+  courtName: string;
+  setCourtName: (name: string) => void;
+  courtType: string;
+  setCourtType: (type: string) => void;
 }
 
-export default function MatchInput({ allMembers, participatingMembers, bracketOption, matchScores, setMatchScores, matchOverrides, setMatchOverrides }: MatchInputProps) {
+export default function MatchInput({ allMembers, participatingMembers, bracketOption, matchScores, setMatchScores, matchOverrides, setMatchOverrides, courtName, setCourtName, courtType, setCourtType }: MatchInputProps) {
   
   const [editModes, setEditModes] = useState<Record<string, boolean>>({});
   const [scoreModal, setScoreModal] = useState<{ matchId: string, t1Name: string, t2Name: string } | null>(null);
@@ -72,6 +76,22 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
         <p>선택된 대진이 없습니다. 1번 탭에서 인원을 설정해주세요.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          {/* 코트 정보 입력 */}
+          <div style={{ display: 'flex', gap: '15px', background: '#EFF6FF', padding: '15px', borderRadius: '8px', border: '1px solid #BFDBFE' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: '0.9rem', color: '#1E3A8A', fontWeight: 'bold', marginBottom: '5px' }}>코트명 입력</label>
+              <input type="text" value={courtName} onChange={e => setCourtName(e.target.value)} placeholder="예: 양재시민의숲 테니스장" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #93C5FD', fontSize: '1rem' }} />
+            </div>
+            <div style={{ width: '150px' }}>
+              <label style={{ display: 'block', fontSize: '0.9rem', color: '#1E3A8A', fontWeight: 'bold', marginBottom: '5px' }}>코트종류</label>
+              <select value={courtType} onChange={e => setCourtType(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #93C5FD', fontSize: '1rem' }}>
+                <option value="하드코트">하드코트</option>
+                <option value="클레이코트">클레이코트</option>
+                <option value="인조잔디">인조잔디</option>
+              </select>
+            </div>
+          </div>
+
           {currentCombinations.map((matchStr, matchIdx) => {
             const matchesInRound = [];
             for (let i = 0; i < matchStr.length; i += 4) {
