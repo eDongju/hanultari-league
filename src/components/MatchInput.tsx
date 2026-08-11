@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ArrowUpDown } from 'lucide-react';
 import combinations from '../data/combinations.json';
 
 const charToIndex = (c: string) => {
@@ -56,6 +57,17 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
     setEditModes({
       ...editModes,
       [matchId]: !editModes[matchId]
+    });
+  };
+
+  const handleSwapCourt = (matchId: string, pos1: number, pos2: number, id1: string, id2: string) => {
+    setMatchOverrides({
+      ...matchOverrides,
+      [matchId]: {
+        ...(matchOverrides[matchId] || {}),
+        [pos1]: id2,
+        [pos2]: id1
+      }
     });
   };
 
@@ -153,10 +165,13 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                             <PlayerSelect posIdx={1} val={p2Id} />
                           </>
                         ) : (
-                          <>
-                            <span style={{ fontWeight: 'bold', color: '#0369A1', whiteSpace: 'nowrap' }}>{p1NameStr}</span>
-                            <span style={{ fontWeight: 'bold', color: '#0369A1', whiteSpace: 'nowrap' }}>{p2NameStr}</span>
-                          </>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
+                              <span style={{ fontWeight: 'bold', color: '#0369A1', whiteSpace: 'nowrap' }}><span style={{fontSize:'0.7rem', color:'#6B7280', marginRight:'4px'}}>(D)</span>{p1NameStr}</span>
+                              <span style={{ fontWeight: 'bold', color: '#0369A1', whiteSpace: 'nowrap' }}><span style={{fontSize:'0.7rem', color:'#6B7280', marginRight:'4px'}}>(A)</span>{p2NameStr}</span>
+                            </div>
+                            <button onClick={() => handleSwapCourt(matchId, 0, 1, p1Id || '', p2Id || '')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', color: '#9CA3AF' }} title="듀스/애드 변경"><ArrowUpDown size={14} /></button>
+                          </div>
                         )}
                       </div>
                       
@@ -186,10 +201,13 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                             <PlayerSelect posIdx={3} val={p4Id} />
                           </>
                         ) : (
-                          <>
-                            <span style={{ fontWeight: 'bold', color: '#6D28D9', whiteSpace: 'nowrap' }}>{p3NameStr}</span>
-                            <span style={{ fontWeight: 'bold', color: '#6D28D9', whiteSpace: 'nowrap' }}>{p4NameStr}</span>
-                          </>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <button onClick={() => handleSwapCourt(matchId, 2, 3, p3Id || '', p4Id || '')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', color: '#9CA3AF' }} title="듀스/애드 변경"><ArrowUpDown size={14} /></button>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '5px' }}>
+                              <span style={{ fontWeight: 'bold', color: '#6D28D9', whiteSpace: 'nowrap' }}><span style={{fontSize:'0.7rem', color:'#6B7280', marginRight:'4px'}}>(D)</span>{p3NameStr}</span>
+                              <span style={{ fontWeight: 'bold', color: '#6D28D9', whiteSpace: 'nowrap' }}><span style={{fontSize:'0.7rem', color:'#6B7280', marginRight:'4px'}}>(A)</span>{p4NameStr}</span>
+                            </div>
+                          </div>
                         )}
                       </div>
                       

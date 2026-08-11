@@ -9,6 +9,7 @@ import PlayerSetup from './components/PlayerSetup';
 import MatchInput from './components/MatchInput';
 import RankingsView from './components/RankingsView';
 import LeagueHistory from './components/LeagueHistory';
+import MemberStats from './components/MemberStats';
 import combinations from './data/combinations.json';
 
 const charToIndex = (c: string) => {
@@ -71,13 +72,13 @@ const ProfileImage = ({ member, size = 45 }: { member: Member, size?: number }) 
 };
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'match' | 'members' | 'playerSetup' | 'matchInput' | 'rankings' | 'history'>(() => {
+  const [activeTab, setActiveTab] = useState<'match' | 'members' | 'playerSetup' | 'matchInput' | 'rankings' | 'history' | 'stats'>(() => {
     return (localStorage.getItem('activeTab') as any) || 'playerSetup';
   });
   const [slideDir, setSlideDir] = useState<'left'|'right'|''>('');
 
   const handleTabChange = (newTab: any) => {
-    const TABS = ['playerSetup', 'matchInput', 'rankings', 'history', 'members'];
+    const TABS = ['playerSetup', 'matchInput', 'rankings', 'history', 'members', 'stats'];
     const oldIdx = TABS.indexOf(activeTab);
     const newIdx = TABS.indexOf(newTab);
     if (newIdx > oldIdx) setSlideDir('left');
@@ -149,7 +150,7 @@ function App() {
     const isRightSwipe = xDistance < -80;
     
     if (isLeftSwipe || isRightSwipe) {
-      const TABS = ['playerSetup', 'matchInput', 'rankings', 'history', 'members'];
+      const TABS = ['playerSetup', 'matchInput', 'rankings', 'history', 'members', 'stats'];
       const currentIndex = TABS.indexOf(activeTab);
       
       if (isLeftSwipe && currentIndex < TABS.length - 1) {
@@ -233,7 +234,7 @@ function App() {
   }, [participatingMembers, bracketOption, matchScores, matchOverrides, currentSessionDate, currentSessionId, courtName, courtType]);
 
   const globalStats = useMemo(() => {
-    const stats: Record<string, { matches: number, wins: number, losses: number, sessionMatches: number, sessionWins: number, sessionLosses: number }> = {};
+    const stats: Record<string, { matches: number, wins: number, losses: number, sessionMatches: number, sessionWins: number, sessionLosses: number, deuceCount: number, adCount: number, duoStats: Record<string, { wins: number, matches: number }>, attendances: number }> = {};
     allMembers.forEach(m => {
       const bWins = Number((m as any).baseWins) || 0;
       const bLosses = Number((m as any).baseLosses) || 0;
@@ -243,7 +244,11 @@ function App() {
         losses: bLosses,
         sessionMatches: 0,
         sessionWins: 0,
-        sessionLosses: 0
+        sessionLosses: 0,
+        deuceCount: 0,
+        adCount: 0,
+        duoStats: {},
+        attendances: 0
       };
     });
 
@@ -252,6 +257,12 @@ function App() {
       const mScores = session.matchScores || {};
       const mOverrides = session.matchOverrides || {};
       const pMembers = session.participatingMembers || [];
+
+      pMembers.forEach((m: any) => {
+        if (m && m.id && stats[m.id]) {
+          stats[m.id].attendances += 1;
+        }
+      });
 
       currentCombinations.forEach((matchStr, matchIdx) => {
         let matchSubIdx = 0;
@@ -271,6 +282,27 @@ function App() {
               
               const t1Ids = [p1Id, p2Id];
               const t2Ids = [p3Id, p4Id];
+
+              if (p1Id && stats[p1Id]) stats[p1Id].deuceCount += 1;
+              if (p2Id && stats[p2Id]) stats[p2Id].adCount += 1;
+              if (p3Id && stats[p3Id]) stats[p3Id].deuceCount += 1;
+              if (p4Id && stats[p4Id]) stats[p4Id].adCount += 1;
+
+              const updateDuo = (pid1: string, pid2: string, win: boolean) => {
+                if (pid1 && pid2 && stats[pid1] && stats[pid2]) {
+                  if (!stats[pid1].duoStats[pid2]) stats[pid1].duoStats[pid2] = { matches: 0, wins: 0 };
+                  if (!stats[pid2].duoStats[pid1]) stats[pid2].duoStats[pid1] = { matches: 0, wins: 0 };
+                  stats[pid1].duoStats[pid2].matches += 1;
+                  stats[pid2].duoStats[pid1].matches += 1;
+                  if (win) {
+                    stats[pid1].duoStats[pid2].wins += 1;
+                    stats[pid2].duoStats[pid1].wins += 1;
+                  }
+                }
+              };
+
+              updateDuo(p1Id, p2Id, s1 > s2);
+              updateDuo(p3Id, p4Id, s2 > s1);
 
               t1Ids.forEach(pid => {
                 if (pid && stats[pid]) {
@@ -481,6 +513,7 @@ function App() {
             <button onClick={() => handleTabChange('rankings')} style={{ padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'rankings' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'rankings' ? 'white' : '#374151' }}>3. 결과 및 순위</button>
             <button onClick={() => handleTabChange('history')} style={{ padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'history' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'history' ? 'white' : '#374151' }}>4. 리그결과 (기록)</button>
             <button onClick={() => handleTabChange('members')} style={{ padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'members' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'members' ? 'white' : '#374151' }}>5. 한울랭킹 ({allMembers.length}명)</button>
+            <button onClick={() => handleTabChange('stats')} style={{ padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'stats' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'stats' ? 'white' : '#374151' }}>6. 멤버 통계</button>
             
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
               {currentSessionId && (
@@ -564,6 +597,13 @@ function App() {
             savedSessions={savedSessions}
             onLoadSession={loadSession}
             onDeleteSession={deleteSession}
+          />
+        )}
+        {activeTab === 'stats' && (
+          <MemberStats 
+            allMembers={allMembers}
+            savedSessions={savedSessions}
+            globalStats={globalStats}
           />
         )}
 
