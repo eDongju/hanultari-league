@@ -455,7 +455,7 @@ function App() {
         </div>
         <div className="header">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
-            <img src={hanulLogo} alt="Hanul Logo" style={{ height: '50px', borderRadius: '8px', objectFit: 'cover' }} />
+            <img src={hanulLogo} alt="Hanul Logo" style={{ height: '50px', flexShrink: 0, borderRadius: '8px', objectFit: 'cover' }} />
             <h1 style={{ margin: 0 }}>한울타리 주말리그</h1>
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginTop: '1rem', alignItems: 'center' }}>
