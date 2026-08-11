@@ -1,32 +1,50 @@
-# React + TypeScript + Vite
+# 한울타리 주말리그 (Hanultari League Web App)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+한울타리 테니스 클럽의 주말리그 대진표 자동 생성, 결과 기록 및 회원 랭킹(포인트) 관리를 위한 웹 애플리케이션입니다.
 
-Currently, two official plugins are available:
+## 🚀 주요 기능 (v1.6 기준)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### 1. 선수 및 경기 관리
+*   **선수 입력 (1번 탭):** 당일 참석한 회원을 선택하여 참가자 목록을 구성합니다.
+*   **대진표 및 결과 입력 (2번 탭):** 
+    *   선택된 인원수(예: 5인, 10인, 15인 등)에 따라 **대진표가 자동 생성**됩니다.
+    *   경기 스코어를 직관적으로 입력할 수 있습니다.
+    *   **듀스/애드 코트 스왑 기능:** 선수 이름 옆의 ⇄ 버튼을 통해 듀스코트(D)와 애드코트(A)를 손쉽게 변경하여 통계에 정확히 반영할 수 있습니다.
+*   **결과 및 순위 (3번 탭):** 당일 진행된 세션의 경기 결과와 승률, 득실차를 기반으로 한 일일 순위를 보여줍니다.
+*   **리그결과 기록 (4번 탭):** 진행한 리그 세션을 Firebase 데이터베이스에 저장하고, 과거 기록을 불러오거나 삭제할 수 있습니다.
 
-## React Compiler
+### 2. 회원 랭킹 및 프로필 (5번 탭)
+*   **통합 포인트 랭킹:** 
+    *   `L.PT` (League Point): 주말리그 참석 및 승수에 따른 기본 포인트
+    *   `R.PT` (Round Point / 대회왕): 전국 대회 입상 등 외부 대회 포인트
+    *   `G.PT` (Game Point / 간식왕): 커피, 식사 등 간식 찬조 포인트
+    *   세 가지 포인트를 합산한 `SUM`을 기준으로 전체 회원 랭킹을 보여줍니다. (화면 크기에 따라 간격이 유동적으로 조정됩니다.)
+*   **회원 프로필 편집 모달:**
+    *   개별 회원의 정보(입회날짜, 사진, 포인트 등)를 쉽게 수정할 수 있습니다.
+    *   **전국 대회 입상 (R.PT):** 한울타리 페어, 타클럽 페어 등 상세한 점수 산정 가이드(Placeholder) 제공.
+    *   **간식 점수 (G.PT):** 찬조 내역 가이드 제공.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 3. 멤버 통계 (6번 탭)
+*   **누적 통계:** 전체 세션을 기반으로 각 회원의 누적 데이터를 분석합니다.
+    *   **참석 횟수:** 가장 꾸준히 참석한 회원을 확인.
+    *   **승률:** 누적 승률 및 전체 승/패 전적.
+    *   **베스트듀오:** 파트너로 만나 가장 많은 승리를 합작한 선수 정보.
+    *   **대회왕/간식왕:** R.PT와 G.PT 순위.
+    *   **코트 선호도:** 듀스 코트(D)와 애드 코트(A)에서 각각 몇 번 경기를 치렀는지 누적 횟수 제공.
+*   항목별로 정렬(Sort)하여 볼 수 있습니다.
 
-## Expanding the Oxlint configuration
+### 4. UI/UX 개선
+*   **부드러운 화면 전환:** 스마트폰이나 PC에서 탭을 이동하거나 스와이프(밀기) 할 때 부드러운 슬라이드 애니메이션 적용.
+*   **모바일 최적화:** 탭 버튼 글꼴 크기 축소 및 로고 찌그러짐 방지 등 모바일 화면(PWA)에서의 가시성 극대화.
+*   **PWA 지원:** 모바일 기기 홈 화면에 앱처럼 추가하여 오프라인 캐싱 상태로 빠르게 실행 가능.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## 🛠 기술 스택
+*   **Frontend:** React 19, TypeScript, Vite
+*   **Styling:** Vanilla CSS (`index.css`), 모바일 최적화 및 슬라이드 애니메이션
+*   **Database:** Firebase Firestore (실시간 세션 및 회원 정보 동기화)
+*   **Deployment:** GitHub Pages (`npm run deploy`) + PWA (Vite PWA Plugin)
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## 📦 실행 및 배포 가이드
+*   **로컬 실행:** `npm run dev`
+*   **배포 (GitHub Pages):** `npm run deploy` 
+    *   자동으로 코드를 빌드(`npm run build`)하고 `gh-pages` 브랜치로 푸시하여 배포합니다.
