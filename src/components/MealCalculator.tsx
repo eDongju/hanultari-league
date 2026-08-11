@@ -29,6 +29,7 @@ export default function MealCalculator({
   const [selectedSessions, setSelectedSessions] = useState<string[]>(['current']);
   const [eatingMembers, setEatingMembers] = useState<string[]>([]); // id array
   const [totalCost, setTotalCost] = useState<string>('');
+  const [coffeeCost, setCoffeeCost] = useState<string>('');
   const [costGap, setCostGap] = useState<number>(10000); // 엑셀 원본의 갭 설정 기본값 10000원
   
   // 최초 한 번만 디폴트로 모두 식사한다고 설정하기 위한 플래그
@@ -184,10 +185,10 @@ export default function MealCalculator({
     // 밥 먹는 사람들만 추출하여 순위대로 정렬
     const eaters = combinedRankings.filter(p => eatingMembers.includes(p.id));
     const N = eaters.length;
+    const C = parseInt(totalCost) || 0;
+    const coffee = parseInt(coffeeCost) || 0;
     
-    if (N === 0 || !totalCost || parseInt(totalCost) <= 0) return [];
-    
-    const C = parseInt(totalCost);
+    if (N === 0) return { results: [], gap: 0, base: 0 };
     
     // N명이 먹을 때, 1등은 0원. 나머지 N-1명이 낸다.
     // offsets = mealCosts[N][rank] (rank: 1 to N)
@@ -215,7 +216,7 @@ export default function MealCalculator({
       } else {
         const rankRule = (mealCosts as any)[mealRank.toString()] || {};
         const offset = (rankRule[N.toString()] || 0) * gapMultiplier;
-        pay = base + offset;
+        pay = base + offset + coffee;
       }
       
       // 혹시라도 pay가 음수면 0으로 처리
@@ -229,7 +230,8 @@ export default function MealCalculator({
     });
 
     const sumPay = results.reduce((acc, curr) => acc + curr.pay, 0);
-    const gap = C - sumPay;
+    const expectedTotal = C + coffee * (N - 1);
+    const gap = expectedTotal - sumPay;
 
     // 만약 gap이 발생하면? (차액 발생 시 2등에게 얹거나 n빵)
     // 1000원 단위 절사로 인해 보통 양수의 gap이 발생함.
@@ -304,6 +306,19 @@ export default function MealCalculator({
                 value={costGap}
                 onChange={e => setCostGap(parseInt(e.target.value) || 0)}
                 style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #C4B5FD', fontSize: '1.2rem', fontWeight: 'bold', color: '#4C1D95' }}
+              />
+            </div>
+            
+            <div style={{ flex: '1 1 200px', background: '#FEF3C7', padding: '15px', borderRadius: '8px', border: '1px solid #FDE68A' }}>
+              <label style={{ display: 'block', fontSize: '0.9rem', color: '#92400E', fontWeight: 'bold', marginBottom: '10px' }}>
+                인당 커피값 추가 (원)
+              </label>
+              <input 
+                type="number" 
+                placeholder="예: 3000"
+                value={coffeeCost}
+                onChange={e => setCoffeeCost(e.target.value)}
+                style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #FCD34D', fontSize: '1.2rem', fontWeight: 'bold', color: '#92400E' }}
               />
             </div>
           </div>
