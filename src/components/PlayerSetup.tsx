@@ -130,7 +130,7 @@ export default function PlayerSetup({ allMembers, participatingMembers, setParti
                 <select 
                   value={member ? member.id : ""}
                   onChange={(e) => handleSelectMember(index, e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB' }}
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', fontSize: '1.1rem' }}
                 >
                   <option value="">-- 선수를 선택하세요 --</option>
                   {[...allMembers].sort((a, b) => a.name.localeCompare(b.name)).map(m => (
