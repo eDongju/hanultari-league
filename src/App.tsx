@@ -17,7 +17,7 @@ const charToIndex = (c: string) => {
   return c.charCodeAt(0) - 'A'.charCodeAt(0) + 9;
 };
 
-interface Member {
+export interface Member {
   id: string;
   name: string;
   score: number | string;
@@ -33,7 +33,7 @@ interface Member {
   extraInfo?: string;
 }
 
-const ProfileImage = ({ member, size = 45 }: { member: Member, size?: number }) => {
+export const ProfileImage = ({ member, size = 45 }: { member: Member, size?: number }) => {
   const [imgSrc, setImgSrc] = useState<string | null>(member.photoUrl || `/player/${member.name}.png`);
   const [hasError, setHasError] = useState(false);
   const [retryJpg, setRetryJpg] = useState(false);

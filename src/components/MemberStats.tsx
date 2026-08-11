@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { ProfileImage, Member } from '../App';
 
 interface MemberStatsProps {
   allMembers: any[];
@@ -42,6 +43,7 @@ export default function MemberStats({ allMembers, globalStats }: MemberStatsProp
         gPt: Number(m.gamePoint) || 0,
         deuceCount: stats.deuceCount || 0,
         adCount: stats.adCount || 0,
+        original: m as Member,
       };
     }).sort((a, b) => {
       if (sortKey === 'attendances') return b.attendances - a.attendances;
@@ -91,13 +93,7 @@ export default function MemberStats({ allMembers, globalStats }: MemberStatsProp
               <tr key={m.id}>
                 <td>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
-                    <div style={{ width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', background: '#E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {m.photoUrl ? (
-                        <img src={m.photoUrl} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <span style={{ color: '#9CA3AF', fontSize: '0.8rem' }}>No Img</span>
-                      )}
-                    </div>
+                    <ProfileImage member={m.original} size={40} />
                     <span style={{ fontWeight: 'bold', fontSize: '0.9rem', color: '#1F2937' }}>{m.name}</span>
                   </div>
                 </td>
