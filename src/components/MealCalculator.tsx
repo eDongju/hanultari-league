@@ -199,8 +199,8 @@ export default function MealCalculator({
     
     let base = 0;
     if (N > 1) {
-      // 1000원 단위 내림 또는 반올림
-      base = Math.floor((C - sumOffsets) / (N - 1) / 1000) * 1000;
+      // 정확한 기준 금액 계산 (여기서는 절사하지 않음)
+      base = (C - sumOffsets) / (N - 1);
     }
     
     const results = eaters.map((p, idx) => {
@@ -210,7 +210,8 @@ export default function MealCalculator({
         pay = 0;
       } else {
         const offset = (mealRank - (N + 1) / 2) * costGap;
-        pay = base + offset + coffee;
+        // 부족하지 않고 남게 걷기 위해 최종 금액에서 1000원 단위 올림(Math.ceil) 처리
+        pay = Math.ceil((base + offset + coffee) / 1000) * 1000;
       }
       
       // 혹시라도 pay가 음수면 0으로 처리
