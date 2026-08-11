@@ -19,10 +19,12 @@ const charToIndex = (c: string) => {
 interface Member {
   id: string;
   name: string;
-  score: string | number; // LeaguePoint 역할
-  previousScore?: string | number; // 롤백용 이전 점수
-  gamePoint?: string | number; // 새롭게 추가된 GamePoint
+  score: number | string;
+  previousScore?: number | string;
+  gamePoint?: number | string;
+  roundPoint?: number | string;
   birthdate: string;
+  joinDate?: string;
   age: number | string;
   photoUrl: string;
   extraInfo?: string;
