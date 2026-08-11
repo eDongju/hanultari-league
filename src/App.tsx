@@ -573,7 +573,7 @@ function App() {
                     <th onClick={() => handleSort('rank')} style={{ padding: '8px 4px', width: '50px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'center' }}>
                       RANK <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th onClick={() => handleSort('name')} style={{ padding: '8px 4px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer' }}>
+                    <th onClick={() => handleSort('name')} style={{ padding: '8px 4px', width: '120px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer' }}>
                       PLAYER <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
                     <th onClick={() => handleSort('score')} style={{ padding: '8px 4px', width: '70px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
@@ -591,7 +591,7 @@ function App() {
                     <th onClick={() => handleSort('gamePoint')} style={{ padding: '8px 4px', width: '70px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
                       G.Point <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th onClick={() => handleSort('sumPoint')} style={{ padding: '8px 4px', width: '70px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer', fontWeight: 'bold' }}>
+                    <th onClick={() => handleSort('sumPoint')} style={{ padding: '8px 4px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer', fontWeight: 'bold' }}>
                       SUM <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
                   </tr>
