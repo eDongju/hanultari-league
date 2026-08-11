@@ -571,31 +571,31 @@ function App() {
             </div>
             
             <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: '0 0 12px 12px', overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '650px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '550px' }}>
                 <thead style={{ background: '#F9FAFB', borderBottom: '2px solid #E5E7EB' }}>
                   <tr>
-                    <th onClick={() => handleSort('rank')} style={{ padding: '8px 4px', width: '50px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'center' }}>
+                    <th onClick={() => handleSort('rank')} style={{ padding: '8px 4px', width: '8%', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'center' }}>
                       RANK <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th onClick={() => handleSort('name')} style={{ padding: '8px 4px', width: '120px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer' }}>
+                    <th onClick={() => handleSort('name')} style={{ padding: '8px 4px', width: '22%', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer' }}>
                       PLAYER <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th onClick={() => handleSort('gamePoint')} style={{ padding: '8px 4px', width: '70px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
-                      Gansig.point <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
+                    <th onClick={() => handleSort('gamePoint')} style={{ padding: '8px 4px', width: '13%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
+                      Gansig.pt <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th onClick={() => handleSort('score')} style={{ padding: '8px 4px', width: '70px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
+                    <th onClick={() => handleSort('score')} style={{ padding: '8px 4px', width: '13%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
                       L.Point <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th style={{ padding: '8px 4px', width: '60px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
+                    <th style={{ padding: '8px 4px', width: '10%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
                       승률
                     </th>
-                    <th style={{ padding: '8px 4px', width: '50px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
+                    <th style={{ padding: '8px 4px', width: '10%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
                       전체승
                     </th>
-                    <th style={{ padding: '8px 4px', width: '50px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
+                    <th style={{ padding: '8px 4px', width: '10%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
                       전체패
                     </th>
-                    <th onClick={() => handleSort('sumPoint')} style={{ padding: '8px 4px', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer', fontWeight: 'bold' }}>
+                    <th onClick={() => handleSort('sumPoint')} style={{ padding: '8px 4px', width: '14%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer', fontWeight: 'bold' }}>
                       SUM <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
                   </tr>
