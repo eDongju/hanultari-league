@@ -237,7 +237,7 @@ export default function MealCalculator({
       gap,
       base
     };
-  }, [combinedRankings, eatingMembers, totalCost]);
+  }, [combinedRankings, eatingMembers, totalCost, costGap, coffeeCost]);
 
   return (
     <div className="content-card">
