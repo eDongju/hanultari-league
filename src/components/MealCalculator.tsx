@@ -387,13 +387,13 @@ export default function MealCalculator({
                   ))}
                   {resultTable.gap > 0 && (
                     <tr style={{ background: '#FEE2E2' }}>
-                      <td colSpan={3} style={{ textAlign: 'right', fontWeight: 'bold', color: '#991B1B' }}>잔액 (절사로 인한 차액)</td>
+                      <td colSpan={3} style={{ textAlign: 'right', fontWeight: 'bold', color: '#991B1B' }}>식비부족(절사차액)</td>
                       <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#991B1B' }}>{resultTable.gap.toLocaleString()}원</td>
                     </tr>
                   )}
                   {resultTable.gap < 0 && (
                     <tr style={{ background: '#FEF3C7' }}>
-                      <td colSpan={3} style={{ textAlign: 'right', fontWeight: 'bold', color: '#D97706' }}>초과 (절사로 인한 차액)</td>
+                      <td colSpan={3} style={{ textAlign: 'right', fontWeight: 'bold', color: '#D97706' }}>식비초과(절사차액)</td>
                       <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#D97706' }}>{Math.abs(resultTable.gap).toLocaleString()}원</td>
                     </tr>
                   )}
