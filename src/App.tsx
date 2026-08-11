@@ -10,6 +10,7 @@ import MatchInput from './components/MatchInput';
 import RankingsView from './components/RankingsView';
 import LeagueHistory from './components/LeagueHistory';
 import MemberStats from './components/MemberStats';
+import MealCalculator from './components/MealCalculator';
 import combinations from './data/combinations.json';
 
 const charToIndex = (c: string) => {
@@ -72,13 +73,13 @@ export const ProfileImage = ({ member, size = 45 }: { member: Member, size?: num
 };
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'match' | 'members' | 'playerSetup' | 'matchInput' | 'rankings' | 'history' | 'stats'>(() => {
+  const [activeTab, setActiveTab] = useState<'match' | 'members' | 'playerSetup' | 'matchInput' | 'rankings' | 'history' | 'stats' | 'meal'>(() => {
     return (localStorage.getItem('activeTab') as any) || 'playerSetup';
   });
   const [slideDir, setSlideDir] = useState<'left'|'right'|''>('');
 
   const handleTabChange = (newTab: any) => {
-    const TABS = ['playerSetup', 'matchInput', 'rankings', 'history', 'members', 'stats'];
+    const TABS = ['playerSetup', 'matchInput', 'rankings', 'history', 'members', 'stats', 'meal'];
     const oldIdx = TABS.indexOf(activeTab);
     const newIdx = TABS.indexOf(newTab);
     if (newIdx > oldIdx) setSlideDir('left');
@@ -150,7 +151,7 @@ function App() {
     const isRightSwipe = xDistance < -80;
     
     if (isLeftSwipe || isRightSwipe) {
-      const TABS = ['playerSetup', 'matchInput', 'rankings', 'history', 'members', 'stats'];
+      const TABS = ['playerSetup', 'matchInput', 'rankings', 'history', 'members', 'stats', 'meal'];
       const currentIndex = TABS.indexOf(activeTab);
       
       if (isLeftSwipe && currentIndex < TABS.length - 1) {
@@ -514,6 +515,7 @@ function App() {
             <button onClick={() => handleTabChange('history')} style={{ padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'history' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'history' ? 'white' : '#374151' }}>4. 리그결과 (기록)</button>
             <button onClick={() => handleTabChange('members')} style={{ padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'members' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'members' ? 'white' : '#374151' }}>5. 한울랭킹 ({allMembers.length}명)</button>
             <button onClick={() => handleTabChange('stats')} style={{ padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'stats' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'stats' ? 'white' : '#374151' }}>6. 멤버 통계</button>
+            <button onClick={() => handleTabChange('meal')} style={{ padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'meal' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'meal' ? 'white' : '#374151' }}>7. 밥값 정산</button>
             
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
               {currentSessionId && (
@@ -604,6 +606,17 @@ function App() {
             allMembers={allMembers}
             savedSessions={savedSessions}
             globalStats={globalStats}
+          />
+        )}
+        {activeTab === 'meal' && (
+          <MealCalculator 
+            allMembers={allMembers}
+            savedSessions={savedSessions}
+            currentSessionId={currentSessionId}
+            participatingMembers={participatingMembers}
+            matchScores={matchScores}
+            matchOverrides={matchOverrides}
+            bracketOption={bracketOption}
           />
         )}
 
