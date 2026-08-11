@@ -24,6 +24,11 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
   const currentCombinations = (combinations as Record<string, string[]>)[bracketOption] || [];
 
   const handleScoreChange = (matchId: string, team: 't1' | 't2', value: string) => {
+    if (value !== '') {
+      let numValue = parseInt(value, 10);
+      if (numValue > 6) value = "6";
+      if (numValue < 0) value = "0";
+    }
     setMatchScores({
       ...matchScores,
       [matchId]: {
@@ -203,7 +208,8 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
               <div style={{ flex: 1, textAlign: 'center' }}>
                 <div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#0369A1', marginBottom: '15px' }}>{scoreModal.t1Name}</div>
                 <input 
-                  type="number" 
+                  type="number"
+                  min="0" max="6"
                   value={matchScores[scoreModal.matchId]?.t1 || ''} 
                   onChange={(e) => handleScoreChange(scoreModal.matchId, 't1', e.target.value)}
                   style={{ width: '100px', padding: '15px', fontSize: '2.5rem', textAlign: 'center', border: '2px solid #0369A1', borderRadius: '8px' }}
@@ -214,7 +220,8 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
               <div style={{ flex: 1, textAlign: 'center' }}>
                 <div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: '#6D28D9', marginBottom: '15px' }}>{scoreModal.t2Name}</div>
                 <input 
-                  type="number" 
+                  type="number"
+                  min="0" max="6"
                   value={matchScores[scoreModal.matchId]?.t2 || ''} 
                   onChange={(e) => handleScoreChange(scoreModal.matchId, 't2', e.target.value)}
                   style={{ width: '100px', padding: '15px', fontSize: '2.5rem', textAlign: 'center', border: '2px solid #6D28D9', borderRadius: '8px' }}
