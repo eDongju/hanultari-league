@@ -147,11 +147,11 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
       }
     });
 
-    // 3. 정렬 (다승 -> 다득점 -> 나이(연장자 우선)) (경기를 1번이라도 뛴 선수만 포함)
+    // 3. 정렬 (다승 -> 득실차 -> 나이(연장자 우선)) (경기를 1번이라도 뛴 선수만 포함)
     const sortedStats = Object.values(playerStatsMap).filter(p => p.matches > 0).sort((a, b) => {
-      if (a.wins !== b.wins) return b.wins - a.wins;
-      if (a.ptsFor !== b.ptsFor) return b.ptsFor - a.ptsFor;
-      return b.age - a.age; // 나이가 많은 사람이 위로 오도록 내림차순 정렬
+      if (a.wins !== b.wins) return b.wins - a.wins; // 1. 다승(승점)
+      if (a.ptsDiff !== b.ptsDiff) return b.ptsDiff - a.ptsDiff; // 2. 득실차
+      return b.age - a.age; // 3. 나이순(연장자 우선)
     });
 
     // 4. 순위 부여
