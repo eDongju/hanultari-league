@@ -319,7 +319,7 @@ export default function MealCalculator({
           </div>
 
           <div style={{ marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '1rem', marginTop: 0, marginBottom: '10px', color: '#374151' }}>식사 인원 선택 ({eatingMembers.length}명)</h3>
+            <h3 style={{ fontSize: '1rem', marginTop: 0, marginBottom: '10px', color: '#374151' }}>식사 인원 선택 ({resultTable.results.length}명)</h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
               {combinedRankings.map(p => {
                 const isEating = eatingMembers.includes(p.id);
