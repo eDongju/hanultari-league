@@ -27,6 +27,8 @@ interface Member {
   joinDate?: string;
   age: number | string;
   photoUrl: string;
+  nationalPrize?: string;
+  snackScoreText?: string;
   extraInfo?: string;
 }
 
@@ -688,7 +690,7 @@ function App() {
                 * 점수(L.Point)는 리그결과(기록)에 따라 자동으로 갱신됩니다.
               </div>
             </div>
-            <div style={{ padding: '20px' }}>
+            <div style={{ padding: '20px', maxHeight: '75vh', overflowY: 'auto' }}>
               
               <div style={{ display: 'flex', gap: '20px', marginBottom: '15px' }}>
                 <input type="file" id="photo-upload" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoUpload} />
@@ -734,6 +736,16 @@ function App() {
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>입회날짜</label>
                 <input type="date" value={selectedMember.joinDate || ''} onChange={e => setSelectedMember({...selectedMember, joinDate: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px' }} />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>전국 대회 입상</label>
+                <textarea rows={6} value={selectedMember.nationalPrize || ''} onChange={e => setSelectedMember({...selectedMember, nationalPrize: e.target.value})} placeholder="전국 대회 입상 내역 입력..." style={{ width: '100%', padding: '12px', border: '1px solid #D1D5DB', borderRadius: '6px', resize: 'vertical', lineHeight: '1.5' }}></textarea>
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>간식점수</label>
+                <textarea rows={6} value={selectedMember.snackScoreText || ''} onChange={e => setSelectedMember({...selectedMember, snackScoreText: e.target.value})} placeholder="간식 제공 내역 및 점수 입력..." style={{ width: '100%', padding: '12px', border: '1px solid #D1D5DB', borderRadius: '6px', resize: 'vertical', lineHeight: '1.5' }}></textarea>
               </div>
 
               <div style={{ marginBottom: '20px' }}>
