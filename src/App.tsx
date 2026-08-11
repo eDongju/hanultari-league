@@ -4,6 +4,7 @@ import './index.css';
 import membersData from './members.json';
 import { collection, doc, onSnapshot, setDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db } from './firebase';
+import hanulLogo from './assets/hanul_logo.jpg';
 import PlayerSetup from './components/PlayerSetup';
 import MatchInput from './components/MatchInput';
 import RankingsView from './components/RankingsView';
@@ -453,7 +454,10 @@ function App() {
           v1.5 (2026.08.09)
         </div>
         <div className="header">
-          <h1>한울타리 주말리그</h1>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
+            <img src={hanulLogo} alt="Hanul Logo" style={{ height: '50px', borderRadius: '8px', objectFit: 'cover' }} />
+            <h1 style={{ margin: 0 }}>한울타리 주말리그</h1>
+          </div>
           <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginTop: '1rem', alignItems: 'center' }}>
             {/* 새로운 주말리그용 탭 4개 */}
             <button onClick={() => setActiveTab('playerSetup')} style={{ padding: '0.6rem 1.2rem', fontSize: '1.15rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'playerSetup' ? 'var(--primary)' : '#E5E7EB', color: activeTab === 'playerSetup' ? 'white' : '#374151' }}>1. 선수 입력</button>
