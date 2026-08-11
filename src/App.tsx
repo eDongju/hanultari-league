@@ -574,25 +574,28 @@ function App() {
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '550px' }}>
                 <thead style={{ background: '#F9FAFB', borderBottom: '2px solid #E5E7EB' }}>
                   <tr>
-                    <th onClick={() => handleSort('rank')} style={{ padding: '8px 4px', width: '8%', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'center' }}>
+                    <th onClick={() => handleSort('rank')} style={{ padding: '8px 4px', width: '7%', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'center' }}>
                       RANK <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th onClick={() => handleSort('name')} style={{ padding: '8px 4px', width: '22%', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer' }}>
+                    <th onClick={() => handleSort('name')} style={{ padding: '8px 4px', width: '18%', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer' }}>
                       PLAYER <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th onClick={() => handleSort('gamePoint')} style={{ padding: '8px 4px', width: '13%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
-                      Gansig.pt <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
+                    <th onClick={() => handleSort('score')} style={{ padding: '8px 4px', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
+                      L.POINT <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th onClick={() => handleSort('score')} style={{ padding: '8px 4px', width: '13%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
-                      L.Point <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
+                    <th style={{ padding: '8px 4px', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
+                      R.POINT
+                    </th>
+                    <th onClick={() => handleSort('gamePoint')} style={{ padding: '8px 4px', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
+                      G.POINT <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
                     <th style={{ padding: '8px 4px', width: '10%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
                       승률
                     </th>
-                    <th style={{ padding: '8px 4px', width: '10%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
+                    <th style={{ padding: '8px 4px', width: '9%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
                       전체승
                     </th>
-                    <th style={{ padding: '8px 4px', width: '10%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
+                    <th style={{ padding: '8px 4px', width: '9%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
                       전체패
                     </th>
                     <th onClick={() => handleSort('sumPoint')} style={{ padding: '8px 4px', width: '14%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer', fontWeight: 'bold' }}>
@@ -604,7 +607,11 @@ function App() {
                   {sortedMembers.map((member) => {
                     const gStats = globalStats[member.id] || { matches: 0, wins: 0, losses: 0, sessionMatches: 0, sessionWins: 0, sessionLosses: 0 };
                     const winRate = gStats.matches > 0 ? ((gStats.wins / gStats.matches) * 100).toFixed(1) + '%' : '-';
-                    const dynamicLPoint = (Number(member.score) || 0) + (gStats.sessionWins * 2) + (gStats.sessionMatches * 0.5);
+                    const baseLPoint = Number(member.score) || 0;
+                    const roundPoint = (gStats.sessionWins * 2) + (gStats.sessionMatches * 0.5);
+                    const gamePoint = Number(member.gamePoint) || 0;
+                    const sumPoint = baseLPoint + roundPoint + gamePoint;
+                    
                     const rank = member.rank;
                     let baseBg = 'white';
                     let hoverBg = '#F3F4F6';
@@ -633,11 +640,14 @@ function App() {
                           {member.name}
                         </div>
                       </td>
-                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#4B5563', fontSize: '1rem' }}>
-                        {member.gamePoint === undefined ? '0' : Number(member.gamePoint).toFixed(0)}
-                      </td>
                       <td style={{ padding: '10px 4px', textAlign: 'right', color: '#4B5563', fontSize: '1rem', fontWeight: 'bold' }}>
-                        {dynamicLPoint.toFixed(1)}
+                        {baseLPoint.toFixed(1)}
+                      </td>
+                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#8B5CF6', fontSize: '1rem', fontWeight: 'bold' }}>
+                        {roundPoint.toFixed(1)}
+                      </td>
+                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#4B5563', fontSize: '1rem' }}>
+                        {gamePoint.toFixed(0)}
                       </td>
                       <td style={{ padding: '10px 4px', textAlign: 'right', color: '#2563EB', fontSize: '0.9rem', fontWeight: 'bold' }}>
                         {winRate}
@@ -649,7 +659,7 @@ function App() {
                         {gStats.losses}패
                       </td>
                       <td style={{ padding: '10px 4px', textAlign: 'right', fontWeight: 'bold', color: '#002865', fontSize: '1.05rem' }}>
-                        {((Number(member.gamePoint) || 0) + dynamicLPoint).toFixed(1)}
+                        {sumPoint.toFixed(1)}
                       </td>
                     </tr>
                   )})}
@@ -697,7 +707,7 @@ function App() {
                       <input type="number" value={selectedMember.score} onChange={e => setSelectedMember({...selectedMember, score: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px' }} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>GansigPoint</label>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>GamePoint</label>
                       <input type="number" value={selectedMember.gamePoint || 0} onChange={e => setSelectedMember({...selectedMember, gamePoint: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px' }} />
                     </div>
                   </div>
