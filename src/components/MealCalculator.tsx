@@ -193,13 +193,12 @@ export default function MealCalculator({
     // offsets = mealCosts[N][rank] (rank: 1 to N)
     // Base = (C - sum(offsets)) / (N-1)
     
-    const costRule = (mealCosts as any)[N.toString()] || {};
     let sumOffsets = 0;
-    
     const gapMultiplier = costGap / 1000;
     
     for (let i = 1; i <= N; i++) {
-      sumOffsets += (costRule[i.toString()] || 0) * gapMultiplier;
+      const rankRule = (mealCosts as any)[i.toString()] || {};
+      sumOffsets += (rankRule[N.toString()] || 0) * gapMultiplier;
     }
     
     let base = 0;
@@ -214,7 +213,8 @@ export default function MealCalculator({
       if (mealRank === 1) {
         pay = 0;
       } else {
-        const offset = (costRule[mealRank.toString()] || 0) * gapMultiplier;
+        const rankRule = (mealCosts as any)[mealRank.toString()] || {};
+        const offset = (rankRule[N.toString()] || 0) * gapMultiplier;
         pay = base + offset;
       }
       
