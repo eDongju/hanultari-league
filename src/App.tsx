@@ -446,7 +446,7 @@ function App() {
 
   const leagueDate = new Date().toISOString().slice(0, 10);
 
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Member | 'rank' | 'sumPoint'; direction: 'asc' | 'desc' }>({ key: 'rank', direction: 'asc' });
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Member | 'rank' | 'sumPoint' | 'winRate' | 'totalWins' | 'totalLosses'; direction: 'asc' | 'desc' }>({ key: 'rank', direction: 'asc' });
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
 
@@ -490,13 +490,37 @@ function App() {
         return 0;
       }
 
+      if (sortConfig.key === 'winRate') {
+        const statsA = globalStats[a.id] || { matches: 0, wins: 0 };
+        const rateA = statsA.matches > 0 ? (statsA.wins / statsA.matches) : 0;
+        const statsB = globalStats[b.id] || { matches: 0, wins: 0 };
+        const rateB = statsB.matches > 0 ? (statsB.wins / statsB.matches) : 0;
+        if (rateA < rateB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (rateA > rateB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      }
+      if (sortConfig.key === 'totalWins') {
+        const winsA = (globalStats[a.id] || { wins: 0 }).wins;
+        const winsB = (globalStats[b.id] || { wins: 0 }).wins;
+        if (winsA < winsB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (winsA > winsB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      }
+      if (sortConfig.key === 'totalLosses') {
+        const lossesA = (globalStats[a.id] || { losses: 0 }).losses;
+        const lossesB = (globalStats[b.id] || { losses: 0 }).losses;
+        if (lossesA < lossesB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (lossesA > lossesB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      }
+
       if (valA! < valB!) return sortConfig.direction === 'asc' ? -1 : 1;
       if (valA! > valB!) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [allMembers, sortConfig]);
+  }, [allMembers, sortConfig, globalStats]);
 
-  const handleSort = (key: keyof Member | 'rank' | 'sumPoint') => {
+  const handleSort = (key: keyof Member | 'rank' | 'sumPoint' | 'winRate' | 'totalWins' | 'totalLosses') => {
     let direction: 'asc' | 'desc' = 'asc';
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
       direction = 'desc';
@@ -752,14 +776,14 @@ function App() {
                     <th onClick={() => handleSort('gamePoint')} style={{ padding: '8px 4px', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
                       G.PT <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th style={{ padding: '8px 4px', width: '10%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
-                      승률
+                    <th onClick={() => handleSort('winRate')} style={{ padding: '8px 4px', width: '10%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
+                      승률 <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th style={{ padding: '8px 4px', width: '9%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
-                      전체승
+                    <th onClick={() => handleSort('totalWins')} style={{ padding: '8px 4px', width: '9%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
+                      전체승 <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th style={{ padding: '8px 4px', width: '9%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
-                      전체패
+                    <th onClick={() => handleSort('totalLosses')} style={{ padding: '8px 4px', width: '9%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
+                      전체패 <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
                     <th onClick={() => handleSort('sumPoint')} style={{ padding: '8px 4px', width: '14%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer', fontWeight: 'bold' }}>
                       SUM <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
