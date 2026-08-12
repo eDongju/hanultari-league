@@ -21,6 +21,26 @@ export default function LeagueHistory({ savedSessions, onLoadSession, onDeleteSe
 
   const sessionsList = Object.values(savedSessions).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+  // 월별로 세션 그룹화
+  const groupedSessions: Record<string, LeagueSession[]> = {};
+  sessionsList.forEach(session => {
+    let year = '알 수 없음';
+    let month = '';
+    
+    if (session.date && session.date.includes('-')) {
+      const parts = session.date.split('-');
+      if (parts.length >= 2) {
+        year = parts[0];
+        month = parts[1];
+      }
+    }
+    
+    const monthKey = month ? `${year}년 ${month}월` : '기타 날짜';
+    if (!groupedSessions[monthKey]) {
+      groupedSessions[monthKey] = [];
+    }
+    groupedSessions[monthKey].push(session);
+  });
   const handleDeleteConfirm = () => {
     if (passwordInput === '0000') {
       if (deleteModal) onDeleteSession(deleteModal);
@@ -43,49 +63,58 @@ export default function LeagueHistory({ savedSessions, onLoadSession, onDeleteSe
           아직 저장된 리그 결과가 없습니다.
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          {sessionsList.map(session => {
-            let timeString = '';
-            if (session.id.includes('_')) {
-              const timestamp = parseInt(session.id.split('_')[1], 10);
-              if (!isNaN(timestamp)) {
-                const dateObj = new Date(timestamp);
-                const hours = dateObj.getHours().toString().padStart(2, '0');
-                const minutes = dateObj.getMinutes().toString().padStart(2, '0');
-                timeString = ` (${hours}:${minutes})`;
-              }
-            }
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+          {Object.entries(groupedSessions).map(([monthKey, sessions]) => (
+            <div key={monthKey}>
+              <h3 style={{ fontSize: '1.2rem', color: '#4B5563', borderBottom: '2px solid #E5E7EB', paddingBottom: '8px', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {monthKey} <span style={{ fontSize: '0.9rem', color: '#9CA3AF', fontWeight: 'normal', background: '#F3F4F6', padding: '2px 8px', borderRadius: '12px' }}>총 {sessions.length}회</span>
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                {sessions.map(session => {
+                  let timeString = '';
+                  if (session.id.includes('_')) {
+                    const timestamp = parseInt(session.id.split('_')[1], 10);
+                    if (!isNaN(timestamp)) {
+                      const dateObj = new Date(timestamp);
+                      const hours = dateObj.getHours().toString().padStart(2, '0');
+                      const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+                      timeString = ` (${hours}:${minutes})`;
+                    }
+                  }
 
-            return (
-              <div key={session.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px', border: '1px solid #E5E7EB', borderRadius: '8px', background: '#F9FAFB' }}>
-                <div>
-                  <h3 style={{ margin: '0 0 10px 0', color: '#1F2937' }}>{session.date} 리그{timeString}</h3>
-                  <div style={{ color: '#4B5563', fontSize: '0.9rem' }}>
-                    <span style={{ marginRight: '15px' }}><strong>참가 인원:</strong> {session.participatingMembers ? session.participatingMembers.filter(Boolean).length : 0}명</span>
-                    <span><strong>코트 옵션:</strong> {session.bracketOption}</span>
-                  </div>
-                </div>
-                
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button 
-                    onClick={() => onLoadSession(session)}
-                    style={{ padding: '8px 16px', background: '#3B82F6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
-                  >
-                    불러오기 / 수정
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setDeleteModal(session.id);
-                      setPasswordInput('');
-                    }}
-                    style={{ padding: '8px 16px', background: '#EF4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
-                  >
-                    삭제
-                  </button>
-                </div>
+                  return (
+                    <div key={session.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px', border: '1px solid #E5E7EB', borderRadius: '8px', background: '#F9FAFB' }}>
+                      <div>
+                        <h3 style={{ margin: '0 0 10px 0', color: '#1F2937' }}>{session.date} 리그{timeString}</h3>
+                        <div style={{ color: '#4B5563', fontSize: '0.9rem' }}>
+                          <span style={{ marginRight: '15px' }}><strong>참가 인원:</strong> {session.participatingMembers ? session.participatingMembers.filter(Boolean).length : 0}명</span>
+                          <span><strong>코트 옵션:</strong> {session.bracketOption}</span>
+                        </div>
+                      </div>
+                      
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        <button 
+                          onClick={() => onLoadSession(session)}
+                          style={{ padding: '8px 16px', background: '#3B82F6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                        >
+                          불러오기 / 수정
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setDeleteModal(session.id);
+                            setPasswordInput('');
+                          }}
+                          style={{ padding: '8px 16px', background: '#EF4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       )}
 
