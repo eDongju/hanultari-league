@@ -788,7 +788,7 @@ function App() {
                 <thead style={{ background: '#F9FAFB', borderBottom: '2px solid #E5E7EB' }}>
                   <tr>
                     <th onClick={() => handleSort('rank')} className="sticky-th-rank" style={{ background: '#F9FAFB', padding: '8px 2px', width: '40px', minWidth: '40px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'center' }}>
-                      RANK <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
+                      RANK
                     </th>
                     <th onClick={() => handleSort('name')} className="sticky-th-player" style={{ background: '#F9FAFB', padding: '8px 4px', width: '120px', minWidth: '120px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)' }}>
                       PLAYER <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
