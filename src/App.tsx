@@ -383,7 +383,7 @@ function App() {
     // 순위(RANK)는 이제 SumPoint(dynamic L.Point + GamePoint) 기준으로 계산합니다.
     const getSum = (m: Member) => {
       const sStats = globalStats[m.id] || { sessionMatches: 0, sessionWins: 0 };
-      const dynamicLPoint = (Number(m.score) || 0) + (sStats.sessionWins * 2) + (sStats.sessionMatches * 0.5);
+      const dynamicLPoint = (Number(m.score) || 0) + (sStats.sessionWins * 2) + (sStats.sessionMatches * 1);
       return (Number(m.gamePoint) || 0) + dynamicLPoint;
     };
 
@@ -396,9 +396,9 @@ function App() {
 
       if (sortConfig.key === 'score') {
         const sStatsA = globalStats[a.id] || { sessionMatches: 0, sessionWins: 0 };
-        const lPointA = (Number(a.score) || 0) + (sStatsA.sessionWins * 2) + (sStatsA.sessionMatches * 0.5);
+        const lPointA = (Number(a.score) || 0) + (sStatsA.sessionWins * 2) + (sStatsA.sessionMatches * 1);
         const sStatsB = globalStats[b.id] || { sessionMatches: 0, sessionWins: 0 };
-        const lPointB = (Number(b.score) || 0) + (sStatsB.sessionWins * 2) + (sStatsB.sessionMatches * 0.5);
+        const lPointB = (Number(b.score) || 0) + (sStatsB.sessionWins * 2) + (sStatsB.sessionMatches * 1);
         if (lPointA < lPointB) return sortConfig.direction === 'asc' ? -1 : 1;
         if (lPointA > lPointB) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
@@ -686,7 +686,7 @@ function App() {
                   {sortedMembers.map((member) => {
                     const gStats = globalStats[member.id] || { matches: 0, wins: 0, losses: 0, sessionMatches: 0, sessionWins: 0, sessionLosses: 0 };
                     const winRate = gStats.matches > 0 ? ((gStats.wins / gStats.matches) * 100).toFixed(1) + '%' : '-';
-                    const baseLPoint = (gStats.sessionWins * 2) + (gStats.sessionMatches * 0.5) + (Number(member.score) || 0);
+                    const baseLPoint = (gStats.sessionWins * 2) + (gStats.sessionMatches * 1) + (Number(member.score) || 0);
                     const roundPoint = Number(member.roundPoint) || 0;
                     const gamePoint = Number(member.gamePoint) || 0;
                     const sumPoint = baseLPoint + roundPoint + gamePoint;
