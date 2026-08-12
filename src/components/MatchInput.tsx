@@ -154,7 +154,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
             }
 
             return (
-              <div key={matchIdx} style={{ border: '1px solid #E5E7EB', borderRadius: '8px', padding: '15px', overflowX: 'auto' }}>
+              <div key={matchIdx} style={{ border: '1px solid #E5E7EB', borderRadius: '8px', padding: '15px', overflow: 'hidden' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 10px 0' }}>
                   <h4 style={{ margin: 0, color: '#374151' }}>{matchIdx + 1} 경기</h4>
                   {matchesInRound.map((_, idx) => {
@@ -179,7 +179,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                     );
                   })}
                 </div>
-                <div style={{ minWidth: '450px' }}>
+                <div style={{ width: '100%' }}>
                   {matchesInRound.map((mStr, idx) => {
                     const matchId = `${matchIdx}-${idx}`;
                   const p1 = participatingMembers[charToIndex(mStr[0])];
@@ -224,7 +224,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
 
                   return (
                     <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#F9FAFB', padding: '10px', borderRadius: '6px', marginBottom: '10px' }}>
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'flex-end', paddingRight: '15px' }}>
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'flex-end', paddingRight: '5px' }}>
                         {isEditing ? (
                           <>
                             <PlayerSelect posIdx={0} val={p1Id} />
@@ -245,7 +245,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                         <button 
                           onClick={() => setScoreModal({ matchId, t1Name, t2Name })}
                           style={{ 
-                            padding: '8px 16px', 
+                            padding: '8px 12px', 
                             fontSize: '1.2rem', 
                             fontWeight: 'bold', 
                             background: (score.t1 !== '' || score.t2 !== '') ? '#10B981' : '#F3F4F6',
@@ -253,14 +253,15 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                             border: '1px solid #D1D5DB', 
                             borderRadius: '8px', 
                             cursor: 'pointer',
-                            minWidth: '120px'
+                            minWidth: '80px',
+                            whiteSpace: 'nowrap'
                           }}
                         >
                           {score.t1 !== '' || score.t2 !== '' ? `${score.t1} : ${score.t2}` : '점수 입력'}
                         </button>
                       </div>
 
-                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'flex-start', paddingLeft: '15px' }}>
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'flex-start', paddingLeft: '5px' }}>
                         {isEditing ? (
                           <>
                             <PlayerSelect posIdx={2} val={p3Id} />
