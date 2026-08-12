@@ -544,11 +544,13 @@ function App() {
                 <button 
                   onClick={() => {
                     if (window.confirm("현재 진행 상황을 초기화하고 새 리그를 시작하시겠습니까?")) {
-                      setCurrentSessionId(null);
-                      setParticipatingMembers(Array(5).fill(null));
-                      setBracketOption('5');
-                      setMatchScores({});
-                      setMatchOverrides({});
+                      const pwd = window.prompt("새 리그 시작을 위한 암호를 입력해주세요.");
+                      if (pwd === "1982") {
+                        setCurrentSessionId(null);
+                        setParticipatingMembers(Array(5).fill(null));
+                        setBracketOption('5');
+                        setMatchScores({});
+                        setMatchOverrides({});
                       setCourtName('');
                       setCourtType('인조잔디');
                       setCourtEnv('야외');
@@ -567,6 +569,9 @@ function App() {
                       localStorage.removeItem('courtName');
                       localStorage.removeItem('courtType');
                       localStorage.removeItem('courtEnv');
+                      } else if (pwd !== null) {
+                        window.alert("암호가 틀렸습니다.");
+                      }
                     }
                   }}
                   style={{ padding: '8px 16px', background: '#F59E0B', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
