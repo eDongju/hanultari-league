@@ -398,9 +398,23 @@ function App() {
     localStorage.setItem('courtEnv', session.courtEnv || '야외');
   };
 
-  // 리그 삭제 함수
+  // 리그 삭제 함수 (30일 보관을 위한 백업 포함)
   const deleteSession = async (id: string) => {
-    await deleteDoc(doc(db, 'sessions', id));
+    try {
+      const sessionToBackup = savedSessions[id];
+      if (sessionToBackup) {
+        const deletedAt = new Date().toISOString();
+        const expireAt = new Date();
+        expireAt.setDate(expireAt.getDate() + 30); // 30일 후
+
+        await setDoc(doc(db, 'deleted_sessions', id), {
+          ...sessionToBackup,
+          deletedAt,
+          expireAt: expireAt.toISOString()
+        });
+      }
+      
+      await deleteDoc(doc(db, 'sessions', id));
     if (currentSessionId === id) {
       setCurrentSessionId(null);
       setParticipatingMembers(Array(5).fill(null));
@@ -424,6 +438,9 @@ function App() {
       localStorage.removeItem('courtName');
       localStorage.removeItem('courtType');
       localStorage.removeItem('courtEnv');
+    }
+    } catch (err) {
+      console.error('Failed to delete session:', err);
     }
   };
 
@@ -510,11 +527,28 @@ function App() {
   const handleDeleteMember = async (memberId: string, memberName: string) => {
     const pwd = window.prompt(`"${memberName}" 회원을 목록에서 완전히 삭제하시려면 암호(1982)를 입력하세요.`);
     if (pwd === '1982') {
-      await deleteDoc(doc(db, 'members', memberId));
+      try {
+        const memberToBackup = allMembers.find(m => m.id === memberId);
+        if (memberToBackup) {
+          const deletedAt = new Date().toISOString();
+          const expireAt = new Date();
+          expireAt.setDate(expireAt.getDate() + 30);
+          
+          await setDoc(doc(db, 'deleted_members', memberId), {
+            ...memberToBackup,
+            deletedAt,
+            expireAt: expireAt.toISOString()
+          });
+        }
+        await deleteDoc(doc(db, 'members', memberId));
       if (selectedMember && selectedMember.id === memberId) {
         setSelectedMember(null);
       }
-      alert('삭제되었습니다.');
+      alert('삭제되었습니다. (서버의 휴지통에 30일간 보관됩니다.)');
+      } catch (err) {
+        console.error('Failed to delete member:', err);
+        alert('삭제 중 오류가 발생했습니다.');
+      }
     } else if (pwd !== null) {
       alert('암호가 일치하지 않습니다.');
     }
