@@ -803,11 +803,11 @@ function App() {
                     let baseBg = 'white';
                     let hoverBg = '#F3F4F6';
                     if (rank <= 3) {
-                      baseBg = 'rgba(254, 240, 138, 0.4)'; // #FEF08A with opacity
-                      hoverBg = 'rgba(254, 240, 138, 0.7)';
+                      baseBg = '#FFF9D0'; // rgba(254, 240, 138, 0.4) on white
+                      hoverBg = '#FDF39E'; // rgba(254, 240, 138, 0.7) on white
                     } else if (rank <= 10) {
-                      baseBg = 'rgba(219, 234, 254, 0.5)'; // Light blue (#DBEAFE)
-                      hoverBg = 'rgba(219, 234, 254, 0.8)'; // Slightly darker blue on hover
+                      baseBg = '#EDF5FF'; // rgba(219, 234, 254, 0.5) on white
+                      hoverBg = '#E2EDFE'; // rgba(219, 234, 254, 0.8) on white
                     }
 
                     return (
