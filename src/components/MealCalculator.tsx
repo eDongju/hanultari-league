@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import combinations from '../data/combinations.json';
 import { type Member, ProfileImage } from '../App';
 
@@ -25,14 +25,53 @@ export default function MealCalculator({
   matchOverrides,
   bracketOption
 }: MealCalculatorProps) {
-  const [selectedSessions, setSelectedSessions] = useState<string[]>(['current']);
-  const [eatingMembers, setEatingMembers] = useState<string[]>([]); // id array
-  const [totalCost, setTotalCost] = useState<string>('');
-  const [coffeeCost, setCoffeeCost] = useState<string>('');
-  const [costGap, setCostGap] = useState<number>(1000); // 갭 설정 기본값 1000원
+  const [selectedSessions, setSelectedSessions] = useState<string[]>(() => {
+    const saved = localStorage.getItem('meal_selectedSessions');
+    return saved ? JSON.parse(saved) : ['current'];
+  });
+  const [eatingMembers, setEatingMembers] = useState<string[]>(() => {
+    const saved = localStorage.getItem('meal_eatingMembers');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [totalCost, setTotalCost] = useState<string>(() => {
+    return localStorage.getItem('meal_totalCost') || '';
+  });
+  const [coffeeCost, setCoffeeCost] = useState<string>(() => {
+    return localStorage.getItem('meal_coffeeCost') || '';
+  });
+  const [costGap, setCostGap] = useState<number>(() => {
+    const saved = localStorage.getItem('meal_costGap');
+    return saved ? JSON.parse(saved) : 1000;
+  });
   
   // 최초 한 번만 디폴트로 모두 식사한다고 설정하기 위한 플래그
-  const [initializedEaters, setInitializedEaters] = useState(false);
+  const [initializedEaters, setInitializedEaters] = useState(() => {
+    return localStorage.getItem('meal_initializedEaters') === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('meal_selectedSessions', JSON.stringify(selectedSessions));
+  }, [selectedSessions]);
+
+  useEffect(() => {
+    localStorage.setItem('meal_eatingMembers', JSON.stringify(eatingMembers));
+  }, [eatingMembers]);
+
+  useEffect(() => {
+    localStorage.setItem('meal_totalCost', totalCost);
+  }, [totalCost]);
+
+  useEffect(() => {
+    localStorage.setItem('meal_coffeeCost', coffeeCost);
+  }, [coffeeCost]);
+
+  useEffect(() => {
+    localStorage.setItem('meal_costGap', JSON.stringify(costGap));
+  }, [costGap]);
+
+  useEffect(() => {
+    localStorage.setItem('meal_initializedEaters', String(initializedEaters));
+  }, [initializedEaters]);
 
   const currentSessionData = useMemo(() => {
     return {
