@@ -85,6 +85,8 @@ function App() {
     if (newIdx > oldIdx) setSlideDir('left');
     else if (newIdx < oldIdx) setSlideDir('right');
     setActiveTab(newTab);
+    // 안드로이드 뒤로가기 지원을 위해 history 에 탭 상태 기록
+    history.pushState({ tab: newTab }, '', '');
   };
   
   // 저장된 리그 기록 상태
@@ -168,6 +170,30 @@ function App() {
 
   useEffect(() => {
     localStorage.setItem('activeTab', activeTab);
+  }, [activeTab]);
+
+  // 안드로이드 뿔로가기 버튼 처리
+  useEffect(() => {
+    // 최초 마운트 시 초기 history state 설정
+    if (!history.state?.tab) {
+      history.replaceState({ tab: activeTab }, '', '');
+    }
+    const handlePopState = (e: PopStateEvent) => {
+      const TABS = ['playerSetup', 'matchInput', 'rankings', 'history', 'members', 'stats', 'meal'];
+      const prevTab = e.state?.tab;
+      if (prevTab && TABS.includes(prevTab)) {
+        const oldIdx = TABS.indexOf(activeTab);
+        const newIdx = TABS.indexOf(prevTab);
+        if (newIdx > oldIdx) setSlideDir('left');
+        else if (newIdx < oldIdx) setSlideDir('right');
+        setActiveTab(prevTab);
+      } else {
+        // 이전 상태가 없으면 첫 탭으로
+        history.pushState({ tab: activeTab }, '', '');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, [activeTab]);
 
   // 진행 중인 세션이 없을 때는 날짜를 항상 오늘로 유지 (과거 날짜로 새 리그가 생성되는 것 방지)
