@@ -820,9 +820,9 @@ function App() {
                       <td className="sticky-col sticky-td-rank" style={{ background: 'var(--base-bg)', padding: '10px 4px', fontSize: '1.1rem', fontWeight: 'bold', color: '#374151', textAlign: 'center' }}>
                         {member.rank}
                       </td>
-                      <td className="sticky-col sticky-td-player" style={{ background: 'var(--base-bg)', padding: '10px 4px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)' }}>
-                        <ProfileImage member={member} size={40} />
-                        <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#002865' }}>
+                      <td className="sticky-col sticky-td-player" style={{ background: 'var(--base-bg)', padding: '8px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)', minWidth: '60px' }}>
+                        <ProfileImage member={member} size={36} />
+                        <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#002865', textAlign: 'center', whiteSpace: 'nowrap' }}>
                           {member.name}
                         </div>
                       </td>
