@@ -21,6 +21,9 @@ export default function LeagueHistory({ savedSessions, onLoadSession, onDeleteSe
   const [passwordInput, setPasswordInput] = useState('');
   const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>({});
 
+  const today = new Date();
+  const todayStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+
   const toggleMonth = (monthKey: string) => {
     setExpandedMonths(prev => ({ ...prev, [monthKey]: !prev[monthKey] }));
   };
@@ -99,10 +102,17 @@ export default function LeagueHistory({ savedSessions, onLoadSession, onDeleteSe
                     }
                   }
 
+                  const isToday = session.date === todayStr;
+                  const itemBg = isToday ? '#FEF3C7' : '#F9FAFB'; // 노란빛 바탕색
+                  const borderColor = isToday ? '#F59E0B' : '#E5E7EB'; // 짙은 노란빛 테두리
+
                   return (
-                    <div key={session.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px', border: '1px solid #E5E7EB', borderRadius: '8px', background: '#F9FAFB' }}>
+                    <div key={session.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px', border: isToday ? `2px solid ${borderColor}` : `1px solid ${borderColor}`, borderRadius: '8px', background: itemBg }}>
                       <div>
-                        <h3 style={{ margin: '0 0 10px 0', color: '#1F2937' }}>{session.date} 리그{timeString}</h3>
+                        <h3 style={{ margin: '0 0 10px 0', color: '#1F2937' }}>
+                          {session.date} 리그{timeString}
+                          {isToday && <span style={{ fontSize: '0.8rem', background: '#F59E0B', color: 'white', padding: '2px 8px', borderRadius: '12px', marginLeft: '10px', verticalAlign: 'middle', fontWeight: 'bold' }}>오늘</span>}
+                        </h3>
                         <div style={{ color: '#4B5563', fontSize: '0.9rem' }}>
                           <span style={{ marginRight: '15px' }}><strong>참가 인원:</strong> {session.participatingMembers ? session.participatingMembers.filter(Boolean).length : 0}명</span>
                           <span><strong>코트 옵션:</strong> {session.bracketOption}</span>
