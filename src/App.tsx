@@ -208,8 +208,20 @@ function App() {
     };
   }, []);
 
+  // 읽기 전용 모드 판단 (7일 초과)
+  const isReadOnly = useMemo(() => {
+    if (!currentSessionDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const sessionDate = new Date(currentSessionDate);
+    sessionDate.setHours(0, 0, 0, 0);
+    const diffDays = (today.getTime() - sessionDate.getTime()) / (1000 * 3600 * 24);
+    return diffDays > 7;
+  }, [currentSessionDate]);
+
   // 상태 변경 시 자동 저장 로직 (Auto-save)
   useEffect(() => {
+    if (isReadOnly) return;
     if (participatingMembers.filter(Boolean).length === 0) return;
     if (Object.keys(matchScores).length === 0 && Object.keys(matchOverrides).length === 0) {}
 
@@ -608,31 +620,37 @@ function App() {
 
         {/* 신규 화면 컴포넌트 렌더링 */}
         <div key={activeTab} className={slideDir ? (slideDir === 'left' ? 'slide-left' : 'slide-right') : ''} style={{ width: '100%' }}>
-          {activeTab === 'playerSetup' && (
-          <PlayerSetup 
-            allMembers={allMembers} 
-            participatingMembers={participatingMembers} 
-            setParticipatingMembers={setParticipatingMembers}
-            bracketOption={bracketOption}
-            setBracketOption={setBracketOption}
-          />
+        {activeTab === 'playerSetup' && (
+          <div style={isReadOnly ? { pointerEvents: 'none', opacity: 0.8 } : {}}>
+            {isReadOnly && <div style={{ padding: '10px', background: '#FEE2E2', color: '#991B1B', textAlign: 'center', fontWeight: 'bold', marginBottom: '15px', borderRadius: '8px' }}>⚠️ 7일이 지난 리그는 읽기 전용입니다. (수정 불가)</div>}
+            <PlayerSetup 
+              allMembers={allMembers} 
+              participatingMembers={participatingMembers} 
+              setParticipatingMembers={setParticipatingMembers}
+              bracketOption={bracketOption}
+              setBracketOption={setBracketOption}
+            />
+          </div>
         )}
         {activeTab === 'matchInput' && (
-          <MatchInput 
-            allMembers={allMembers}
-            participatingMembers={participatingMembers}
-            bracketOption={bracketOption}
-            matchScores={matchScores}
-            setMatchScores={setMatchScores}
-            matchOverrides={matchOverrides}
-            setMatchOverrides={setMatchOverrides}
-            courtName={courtName}
-            setCourtName={setCourtName}
-            courtType={courtType}
-            setCourtType={setCourtType}
-            courtEnv={courtEnv}
-            setCourtEnv={setCourtEnv}
-          />
+          <div style={isReadOnly ? { pointerEvents: 'none', opacity: 0.8 } : {}}>
+            {isReadOnly && <div style={{ padding: '10px', background: '#FEE2E2', color: '#991B1B', textAlign: 'center', fontWeight: 'bold', marginBottom: '15px', borderRadius: '8px' }}>⚠️ 7일이 지난 리그는 읽기 전용입니다. (수정 불가)</div>}
+            <MatchInput 
+              allMembers={allMembers}
+              participatingMembers={participatingMembers}
+              bracketOption={bracketOption}
+              matchScores={matchScores}
+              setMatchScores={setMatchScores}
+              matchOverrides={matchOverrides}
+              setMatchOverrides={setMatchOverrides}
+              courtName={courtName}
+              setCourtName={setCourtName}
+              courtType={courtType}
+              setCourtType={setCourtType}
+              courtEnv={courtEnv}
+              setCourtEnv={setCourtEnv}
+            />
+          </div>
         )}
         {activeTab === 'rankings' && (
           <RankingsView 
