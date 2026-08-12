@@ -232,15 +232,14 @@ export default function MealCalculator({
       const mealRank = idx + 1;
       let pay = 0;
       if (mealRank === 1) {
+        // 항상 1위만 면제
         pay = 0;
       } else {
         const offset = (mealRank - (N + 1) / 2) * costGap;
-        // 부족하지 않고 남게 걷기 위해 최종 금액에서 1000원 단위 올림(Math.ceil) 처리
-        pay = Math.ceil((base + offset + coffee) / 1000) * 1000;
+        const rawPay = Math.ceil((base + offset + coffee) / 1000) * 1000;
+        // 1위만 면제 원칙: 2위 이하는 최소 1,000원 보장
+        pay = Math.max(1000, rawPay);
       }
-      
-      // 혹시라도 pay가 음수면 0으로 처리
-      if (pay < 0) pay = 0;
       
       return {
         ...p,
