@@ -389,6 +389,30 @@ function App() {
   // 리그 삭제 함수
   const deleteSession = async (id: string) => {
     await deleteDoc(doc(db, 'sessions', id));
+    if (currentSessionId === id) {
+      setCurrentSessionId(null);
+      setParticipatingMembers(Array(5).fill(null));
+      setBracketOption('5');
+      setMatchScores({});
+      setMatchOverrides({});
+      setCourtName('');
+      setCourtType('인조잔디');
+      setCourtEnv('야외');
+      
+      const today = new Date();
+      const todayStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      setCurrentSessionDate(todayStr);
+      
+      localStorage.removeItem('currentSessionId');
+      localStorage.removeItem('currentSessionDate');
+      localStorage.removeItem('participatingMembers');
+      localStorage.removeItem('bracketOption');
+      localStorage.removeItem('matchScores');
+      localStorage.removeItem('matchOverrides');
+      localStorage.removeItem('courtName');
+      localStorage.removeItem('courtType');
+      localStorage.removeItem('courtEnv');
+    }
   };
 
   const leagueDate = new Date().toISOString().slice(0, 10);
