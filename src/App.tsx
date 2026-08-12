@@ -543,6 +543,10 @@ function App() {
                       setCourtEnv('야외');
                       setActiveTab('playerSetup');
                       
+                      const today = new Date();
+                      const todayStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                      setCurrentSessionDate(todayStr);
+                      
                       localStorage.removeItem('currentSessionId');
                       localStorage.removeItem('currentSessionDate');
                       localStorage.removeItem('participatingMembers');
