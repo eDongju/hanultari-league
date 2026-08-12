@@ -686,8 +686,8 @@ function App() {
                   {sortedMembers.map((member) => {
                     const gStats = globalStats[member.id] || { matches: 0, wins: 0, losses: 0, sessionMatches: 0, sessionWins: 0, sessionLosses: 0 };
                     const winRate = gStats.matches > 0 ? ((gStats.wins / gStats.matches) * 100).toFixed(1) + '%' : '-';
-                    const baseLPoint = Number(member.score) || 0;
-                    const roundPoint = (gStats.sessionWins * 2) + (gStats.sessionMatches * 0.5) + (Number(member.roundPoint) || 0);
+                    const baseLPoint = (gStats.sessionWins * 2) + (gStats.sessionMatches * 0.5) + (Number(member.score) || 0);
+                    const roundPoint = Number(member.roundPoint) || 0;
                     const gamePoint = Number(member.gamePoint) || 0;
                     const sumPoint = baseLPoint + roundPoint + gamePoint;
                     
