@@ -822,7 +822,7 @@ function App() {
                       </td>
                       <td className="sticky-col sticky-td-player" style={{ background: 'var(--base-bg)', padding: '8px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)', minWidth: '60px' }}>
                         <ProfileImage member={member} size={36} />
-                        <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#002865', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontSize: '0.825rem', fontWeight: 'bold', color: '#002865', textAlign: 'center', whiteSpace: 'nowrap' }}>
                           {member.name}
                         </div>
                       </td>
