@@ -88,7 +88,7 @@ export default function MealCalculator({
       id,
       date: s.date || '날짜없음',
       label: `저장된 리그: ${s.date || id} (${(s.participatingMembers||[]).filter((m:any)=>m).length}인)`
-    })).sort((a, b) => b.date.localeCompare(a.date));
+    })).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
     return list;
   }, [savedSessions]);
 
