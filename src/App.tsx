@@ -557,9 +557,6 @@ function App() {
       onTouchEnd={onTouchEndFn}
     >
       <div className="card" style={{ position: 'relative' }}>
-        <div style={{ position: 'fixed', bottom: '15px', right: '20px', fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 'bold', zIndex: 1000, background: 'rgba(255, 255, 255, 0.8)', padding: '2px 8px', borderRadius: '4px' }}>
-          v1.6 (2026.08.11)
-        </div>
         <div className="header">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
             <img src={hanulLogo} alt="Hanul Logo" style={{ height: '50px', flexShrink: 0, borderRadius: '8px', objectFit: 'cover' }} />
@@ -805,6 +802,9 @@ function App() {
             </div>
           </div>
         )}
+        </div>
+        <div style={{ textAlign: 'right', marginTop: '20px', fontSize: '0.75rem', color: '#9CA3AF', fontWeight: 'bold' }}>
+          v1.7 (2026.08.12)
         </div>
       </div>
 
