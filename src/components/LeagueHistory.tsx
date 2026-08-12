@@ -132,7 +132,8 @@ export default function LeagueHistory({ savedSessions, onLoadSession, onDeleteSe
               </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
