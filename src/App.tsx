@@ -516,7 +516,7 @@ function App() {
         <div className="header">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
             <img src={hanulLogo} alt="Hanul Logo" style={{ height: '50px', flexShrink: 0, borderRadius: '8px', objectFit: 'cover' }} />
-            <h1 style={{ margin: 0 }}>한울타리 주말리그</h1>
+            <h1 style={{ margin: 0, color: '#1E3A8A' }}>한울타리 주말리그</h1>
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginTop: '1rem', alignItems: 'center' }}>
             {/* 새로운 주말리그용 탭 4개 */}
@@ -559,12 +559,6 @@ function App() {
                   새 리그 시작
                 </button>
               )}
-              <input 
-                type="date" 
-                value={currentSessionDate}
-                onChange={(e) => setCurrentSessionDate(e.target.value)}
-                style={{ padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB' }}
-              />
             </div>
             
           </div>
