@@ -170,6 +170,17 @@ function App() {
     localStorage.setItem('activeTab', activeTab);
   }, [activeTab]);
 
+  // 진행 중인 세션이 없을 때는 날짜를 항상 오늘로 유지 (과거 날짜로 새 리그가 생성되는 것 방지)
+  useEffect(() => {
+    if (!currentSessionId) {
+      const today = new Date();
+      const todayStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      if (currentSessionDate !== todayStr) {
+        setCurrentSessionDate(todayStr);
+      }
+    }
+  }, [currentSessionId, currentSessionDate]);
+
   const [allMembers, setAllMembers] = useState<Member[]>([]);
 
   useEffect(() => {
