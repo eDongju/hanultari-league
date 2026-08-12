@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { ArrowUpDown } from 'lucide-react';
 import { ProfileImage, type Member } from '../App';
 
 interface MemberStatsProps {
@@ -27,7 +28,7 @@ export default function MemberStats({ allMembers, globalStats }: MemberStatsProp
       onMouseOver={(e) => e.currentTarget.style.background = '#F3F4F6'}
       onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
     >
-      {label} {sortKey === key ? (sortDirection === 'desc' ? '↓' : '↑') : ''}
+      {label} <ArrowUpDown size={12} style={{ display: 'inline', marginLeft: '4px', color: sortKey === key ? '#2563EB' : '#9CA3AF' }} />
     </th>
   );
 
