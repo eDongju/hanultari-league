@@ -691,26 +691,23 @@ function App() {
         )}
 
         {activeTab === 'members' && (
-          <div style={{ padding: '0' }}>
-            <div style={{ background: '#002865', color: 'white', padding: '2rem', borderRadius: '12px 12px 0 0', marginBottom: '0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h2 style={{ fontSize: '2rem', margin: '0 0 10px 0', textTransform: 'uppercase', letterSpacing: '2px' }}>Singles Rankings</h2>
-                <p style={{ color: '#93C5FD', margin: 0 }}>Hanultari Official Rankings • {leagueDate}</p>
+          <div className="content-card">
+            <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Award size={24} /> 한울랭킹
               </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button 
-                  onClick={handleAddNewMember}
-                  style={{ 
-                    background: '#10B981', color: 'white', border: 'none', padding: '0.75rem 1.5rem', 
-                    borderRadius: '8px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'
-                  }}>
-                  <Plus size={18} />
-                  신규 회원 추가
-                </button>
-              </div>
-            </div>
+              <button 
+                onClick={handleAddNewMember}
+                style={{ 
+                  background: '#10B981', color: 'white', border: 'none', padding: '0.5rem 1rem', 
+                  borderRadius: '6px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '0.9rem'
+                }}>
+                <Plus size={16} /> 신규 회원 추가
+              </button>
+            </h2>
+            <p style={{ color: '#6B7280', margin: '0 0 15px 0', fontSize: '0.9rem' }}>Hanultari Official Rankings • {leagueDate}</p>
             
-            <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: '0 0 12px 12px', overflowX: 'auto' }}>
+            <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: '8px', overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '550px' }}>
                 <thead style={{ background: '#F9FAFB', borderBottom: '2px solid #E5E7EB' }}>
                   <tr>
