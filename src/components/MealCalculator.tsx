@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { Utensils } from 'lucide-react';
 import combinations from '../data/combinations.json';
 import { type Member, ProfileImage } from '../App';
 
@@ -280,8 +281,8 @@ export default function MealCalculator({
 
   return (
     <div className="content-card">
-      <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px' }}>
-        7. 밥값 정산
+      <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Utensils size={24} /> 밥값 정산
       </h2>
       <p style={{ color: '#6B7280', fontSize: '0.9rem', marginBottom: '20px' }}>
         경기가 끝난 후 식사 비용을 등수에 따라 차등 계산합니다. 1등은 식사비가 면제되며, 식사하지 않은 인원은 제외할 수 있습니다. 계산할 리그(세션)를 복수 선택하여 합산할 수 있습니다.

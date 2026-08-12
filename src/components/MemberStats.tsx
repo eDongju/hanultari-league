@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ArrowUpDown } from 'lucide-react';
+import { ArrowUpDown, BarChart2 } from 'lucide-react';
 import { ProfileImage, type Member } from '../App';
 
 interface MemberStatsProps {
@@ -83,7 +83,9 @@ export default function MemberStats({ allMembers, globalStats }: MemberStatsProp
   return (
     <div className="content-card">
       <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        6. 멤버 통계
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <BarChart2 size={24} /> 멤버 통계
+        </div>
       </h2>
 
       <div className="table-wrapper">

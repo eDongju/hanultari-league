@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { ChevronDown, ChevronRight, List } from 'lucide-react';
 
 interface LeagueSession {
   id: string;
@@ -48,7 +48,7 @@ export default function LeagueHistory({ savedSessions, onLoadSession, onDeleteSe
     groupedSessions[monthKey].push(session);
   });
   const handleDeleteConfirm = () => {
-    if (passwordInput === '0000') {
+    if (passwordInput === '1982') {
       if (deleteModal) onDeleteSession(deleteModal);
       setDeleteModal(null);
       setPasswordInput('');
@@ -59,8 +59,8 @@ export default function LeagueHistory({ savedSessions, onLoadSession, onDeleteSe
 
   return (
     <div className="content-card">
-      <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px' }}>
-        4. 리그 결과 (기록 보관함)
+      <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <List size={24} /> 리그 목록
       </h2>
       <p style={{ color: '#6B7280', marginBottom: '20px' }}>저장된 과거의 주말리그 경기 결과들을 확인하고 수정할 수 있습니다.</p>
 

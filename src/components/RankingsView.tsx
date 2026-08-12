@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import combinations from '../data/combinations.json';
 import html2canvas from 'html2canvas';
-import { Camera } from 'lucide-react';
+import { Camera, Medal } from 'lucide-react';
 
 const charToIndex = (c: string) => {
   if (c >= '1' && c <= '9') return parseInt(c) - 1;
@@ -174,8 +174,8 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
   return (
     <div className="content-card" style={{ position: 'relative' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', marginBottom: '10px' }}>
-        <h2 style={{ color: '#1E3A8A', margin: 0 }}>
-          3. 경기 결과 및 순위
+        <h2 style={{ color: '#1E3A8A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Medal size={24} /> 리그 순위
         </h2>
         <div style={{ display: 'flex', gap: '10px' }}>
 

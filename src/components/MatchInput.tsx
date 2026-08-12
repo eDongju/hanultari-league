@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowUpDown } from 'lucide-react';
+import { ArrowUpDown, Edit } from 'lucide-react';
 import combinations from '../data/combinations.json';
 
 const charToIndex = (c: string) => {
@@ -82,8 +82,8 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
 
   return (
     <div className="content-card">
-      <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px' }}>
-        2. 대진표 및 경기 결과 입력
+      <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Edit size={24} /> 결과 입력
       </h2>
       
       <div style={{ marginBottom: '20px', background: '#F3F4F6', padding: '15px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

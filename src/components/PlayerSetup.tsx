@@ -1,4 +1,5 @@
 import React from 'react';
+import { Users } from 'lucide-react';
 import combinations from '../data/combinations.json';
 
 interface PlayerSetupProps {
@@ -77,8 +78,8 @@ export default function PlayerSetup({ allMembers, participatingMembers, setParti
 
   return (
     <div className="content-card">
-      <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px' }}>
-        1. 주말리그 선수 입력
+      <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Users size={24} /> 참가선수 설정
       </h2>
       
       <div style={{ marginBottom: '20px', background: '#F3F4F6', padding: '15px', borderRadius: '8px' }}>
