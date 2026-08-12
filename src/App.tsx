@@ -461,8 +461,8 @@ function App() {
   };
 
   const handleDeleteMember = async (memberId: string, memberName: string) => {
-    const pwd = window.prompt(`"${memberName}" 회원을 목록에서 완전히 삭제하시려면 암호(0000)를 입력하세요.`);
-    if (pwd === '0000') {
+    const pwd = window.prompt(`"${memberName}" 회원을 목록에서 완전히 삭제하시려면 암호(1982)를 입력하세요.`);
+    if (pwd === '1982') {
       await deleteDoc(doc(db, 'members', memberId));
       if (selectedMember && selectedMember.id === memberId) {
         setSelectedMember(null);
