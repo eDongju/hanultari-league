@@ -525,21 +525,11 @@ function App() {
           v1.6 (2026.08.11)
         </div>
         <div className="header">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', position: 'relative', width: '100%' }}>
             <img src={hanulLogo} alt="Hanul Logo" style={{ height: '50px', flexShrink: 0, borderRadius: '8px', objectFit: 'cover' }} />
             <h1 style={{ margin: 0, color: '#1E3A8A' }}>한울타리 주말리그</h1>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginTop: '1rem', alignItems: 'center' }}>
-            {/* 새로운 주말리그용 탭 4개 */}
-            <button onClick={() => handleTabChange('playerSetup')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'playerSetup' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'playerSetup' ? 'white' : '#2563EB' }}><Users size={18} /> 참가선수</button>
-            <button onClick={() => handleTabChange('matchInput')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'matchInput' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'matchInput' ? 'white' : '#2563EB' }}><Edit size={18} /> 결과입력</button>
-            <button onClick={() => handleTabChange('rankings')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'rankings' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'rankings' ? 'white' : '#2563EB' }}><Medal size={18} /> 리그순위</button>
-            <button onClick={() => handleTabChange('history')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'history' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'history' ? 'white' : '#2563EB' }}><List size={18} /> 리그목록</button>
-            <button onClick={() => handleTabChange('members')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'members' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'members' ? 'white' : '#2563EB' }}><Award size={18} /> 한울랭킹</button>
-            <button onClick={() => handleTabChange('stats')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'stats' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'stats' ? 'white' : '#2563EB' }}><BarChart2 size={18} /> 멤버통계</button>
-            <button onClick={() => handleTabChange('meal')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'meal' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'meal' ? 'white' : '#2563EB' }}><Utensils size={18} /> 밥값정산</button>
-            
-            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
+
+            <div style={{ position: 'absolute', right: '0', top: '50%', transform: 'translateY(-50%)' }}>
               {currentSessionId && (
                 <button 
                   onClick={() => {
@@ -569,11 +559,24 @@ function App() {
                       localStorage.removeItem('courtEnv');
                     }
                   }}
-                  style={{ padding: '8px 16px', background: '#F59E0B', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                  style={{ padding: '8px 16px', background: '#F59E0B', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
                 >
                   새 리그 시작
                 </button>
               )}
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginTop: '1rem', alignItems: 'center' }}>
+            {/* 새로운 주말리그용 탭 4개 */}
+            <button onClick={() => handleTabChange('playerSetup')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'playerSetup' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'playerSetup' ? 'white' : '#2563EB' }}><Users size={18} /> 참가선수</button>
+            <button onClick={() => handleTabChange('matchInput')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'matchInput' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'matchInput' ? 'white' : '#2563EB' }}><Edit size={18} /> 결과입력</button>
+            <button onClick={() => handleTabChange('rankings')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'rankings' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'rankings' ? 'white' : '#2563EB' }}><Medal size={18} /> 리그순위</button>
+            <button onClick={() => handleTabChange('history')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'history' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'history' ? 'white' : '#2563EB' }}><List size={18} /> 리그목록</button>
+            <button onClick={() => handleTabChange('members')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'members' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'members' ? 'white' : '#2563EB' }}><Award size={18} /> 한울랭킹</button>
+            <button onClick={() => handleTabChange('stats')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'stats' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'stats' ? 'white' : '#2563EB' }}><BarChart2 size={18} /> 멤버통계</button>
+            <button onClick={() => handleTabChange('meal')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'meal' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'meal' ? 'white' : '#2563EB' }}><Utensils size={18} /> 밥값정산</button>
+            
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
             </div>
             
           </div>

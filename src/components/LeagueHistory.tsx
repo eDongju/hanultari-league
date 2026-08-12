@@ -28,7 +28,15 @@ export default function LeagueHistory({ savedSessions, onLoadSession, onDeleteSe
     setExpandedMonths(prev => ({ ...prev, [monthKey]: !prev[monthKey] }));
   };
 
-  const sessionsList = Object.values(savedSessions).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const sessionsList = Object.entries(savedSessions)
+    .map(([id, session]) => ({ id, ...(session as any) }))
+    .sort((a, b) => {
+      const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (dateDiff !== 0) return dateDiff;
+      const aTime = a.id && a.id.includes('_') ? parseInt(a.id.split('_')[1], 10) : 0;
+      const bTime = b.id && b.id.includes('_') ? parseInt(b.id.split('_')[1], 10) : 0;
+      return bTime - aTime;
+    });
 
   // 월별로 세션 그룹화
   const groupedSessions: Record<string, LeagueSession[]> = {};
