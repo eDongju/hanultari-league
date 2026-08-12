@@ -9,6 +9,27 @@ interface MemberStatsProps {
 
 export default function MemberStats({ allMembers, globalStats }: MemberStatsProps) {
   const [sortKey, setSortKey] = useState<string>('attendances');
+  const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
+
+  const handleSort = (key: string) => {
+    if (sortKey === key) {
+      setSortDirection(prev => prev === 'desc' ? 'asc' : 'desc');
+    } else {
+      setSortKey(key);
+      setSortDirection('desc');
+    }
+  };
+
+  const renderHeader = (label: string, key: string, width?: string) => (
+    <th 
+      onClick={() => handleSort(key)} 
+      style={{ cursor: 'pointer', userSelect: 'none', width: width || 'auto', transition: 'background 0.2s' }}
+      onMouseOver={(e) => e.currentTarget.style.background = '#F3F4F6'}
+      onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+    >
+      {label} {sortKey === key ? (sortDirection === 'desc' ? '↓' : '↑') : ''}
+    </th>
+  );
 
   const memberStatsList = useMemo(() => {
     return allMembers.map(m => {
@@ -46,32 +67,22 @@ export default function MemberStats({ allMembers, globalStats }: MemberStatsProp
         original: m as Member,
       };
     }).sort((a, b) => {
-      if (sortKey === 'attendances') return b.attendances - a.attendances;
-      if (sortKey === 'winRate') return b.winRate - a.winRate || b.matches - a.matches;
-      if (sortKey === 'rPt') return b.rPt - a.rPt;
-      if (sortKey === 'gPt') return b.gPt - a.gPt;
-      if (sortKey === 'deuceCount') return b.deuceCount - a.deuceCount;
-      if (sortKey === 'adCount') return b.adCount - a.adCount;
-      return 0;
+      let result = 0;
+      if (sortKey === 'attendances') result = b.attendances - a.attendances;
+      else if (sortKey === 'winRate') result = b.winRate - a.winRate || b.matches - a.matches;
+      else if (sortKey === 'rPt') result = b.rPt - a.rPt;
+      else if (sortKey === 'gPt') result = b.gPt - a.gPt;
+      else if (sortKey === 'deuceCount') result = b.deuceCount - a.deuceCount;
+      else if (sortKey === 'adCount') result = b.adCount - a.adCount;
+      
+      return sortDirection === 'asc' ? -result : result;
     });
-  }, [allMembers, globalStats, sortKey]);
+  }, [allMembers, globalStats, sortKey, sortDirection]);
 
   return (
     <div className="content-card">
       <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         6. 멤버 통계
-        <select 
-          value={sortKey} 
-          onChange={e => setSortKey(e.target.value)}
-          style={{ fontSize: '0.9rem', padding: '5px 10px', borderRadius: '6px', border: '1px solid #D1D5DB' }}
-        >
-          <option value="attendances">참석순</option>
-          <option value="winRate">승률순</option>
-          <option value="rPt">대회왕 (R.PT)순</option>
-          <option value="gPt">간식왕 (G.PT)순</option>
-          <option value="deuceCount">듀스코트순</option>
-          <option value="adCount">애드코트순</option>
-        </select>
       </h2>
 
       <div className="table-wrapper">
@@ -79,13 +90,13 @@ export default function MemberStats({ allMembers, globalStats }: MemberStatsProp
           <thead>
             <tr>
               <th style={{ width: '60px' }}>선수</th>
-              <th>참석</th>
-              <th>승률</th>
+              {renderHeader('참석', 'attendances')}
+              {renderHeader('승률', 'winRate')}
               <th>베스트듀오</th>
-              <th>대회(R.PT)</th>
-              <th>간식(G.PT)</th>
-              <th>듀스(D)</th>
-              <th>애드(A)</th>
+              {renderHeader('대회(R.PT)', 'rPt')}
+              {renderHeader('간식(G.PT)', 'gPt')}
+              {renderHeader('듀스(D)', 'deuceCount')}
+              {renderHeader('애드(A)', 'adCount')}
             </tr>
           </thead>
           <tbody>
