@@ -46,18 +46,45 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
         windowWidth: document.documentElement.scrollWidth,
         windowHeight: document.documentElement.scrollHeight
       });
-      const image = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = image;
-      
       const today = new Date();
       const dateStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      const filename = `한울타리_경기결과_${dateStr}.png`;
+
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          alert('이미지 생성에 실패했습니다.');
+          return;
+        }
+
+        // 1. 모바일 및 iOS PWA 환경을 위한 Web Share API 시도
+        if (navigator.share && navigator.canShare) {
+          const file = new File([blob], filename, { type: 'image/png' });
+          if (navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({
+                files: [file],
+                title: '한울타리 주말리그 결과',
+              });
+              return; // 성공 시 종료
+            } catch (err) {
+              console.log('Share API cancelled or failed:', err);
+              // 실패 시 아래 fallback으로 이동
+            }
+          }
+        }
+
+        // 2. 데스크톱 등 Share API 미지원 환경을 위한 일반 다운로드 (Fallback)
+        const image = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = image;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(image);
+      }, 'image/png');
       
-      link.download = `한울타리_경기결과_${dateStr}.png`;
-      link.click();
     } catch (err) {
       console.error('Failed to capture image', err);
-      alert('이미지 저장에 실패했습니다.');
+      alert('이미지 저장 중 오류가 발생했습니다.');
     }
   };
   
