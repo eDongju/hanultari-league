@@ -155,7 +155,30 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
 
             return (
               <div key={matchIdx} style={{ border: '1px solid #E5E7EB', borderRadius: '8px', padding: '15px', overflowX: 'auto' }}>
-                <h4 style={{ margin: '0 0 10px 0', color: '#374151' }}>{matchIdx + 1} 경기</h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 10px 0' }}>
+                  <h4 style={{ margin: 0, color: '#374151' }}>{matchIdx + 1} 경기</h4>
+                  {matchesInRound.map((_, idx) => {
+                    const matchId = `${matchIdx}-${idx}`;
+                    const isEditing = editModes[matchId];
+                    return (
+                      <button 
+                        key={matchId}
+                        onClick={() => toggleEditMode(matchId)}
+                        style={{ 
+                          padding: '2px 8px', 
+                          fontSize: '0.8rem', 
+                          background: isEditing ? '#EF4444' : '#E5E7EB', 
+                          color: isEditing ? 'white' : '#4B5563', 
+                          border: 'none', 
+                          borderRadius: '4px', 
+                          cursor: 'pointer' 
+                        }}
+                      >
+                        {isEditing ? '완료' : (matchesInRound.length > 1 ? `${idx + 1}코트 선수수정` : '선수수정')}
+                      </button>
+                    );
+                  })}
+                </div>
                 <div style={{ minWidth: '450px' }}>
                   {matchesInRound.map((mStr, idx) => {
                     const matchId = `${matchIdx}-${idx}`;
@@ -247,29 +270,12 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                             <button onClick={() => handleSwapCourt(matchId, 2, 3, p3Id || '', p4Id || '')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', color: '#9CA3AF' }} title="듀스/애드 변경"><ArrowUpDown size={14} /></button>
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '5px' }}>
-                              <span style={{ fontWeight: 'bold', color: '#6D28D9', whiteSpace: 'nowrap' }}><span style={{color:'#6B7280', marginRight:'4px'}}>(D)</span>{p3NameStr}</span>
-                              <span style={{ fontWeight: 'bold', color: '#6D28D9', whiteSpace: 'nowrap' }}><span style={{color:'#6B7280', marginRight:'4px'}}>(A)</span>{p4NameStr}</span>
+                              <span style={{ fontWeight: 'bold', color: '#6D28D9', whiteSpace: 'nowrap' }}>{p3NameStr}<span style={{color:'#6B7280', marginLeft:'4px'}}>(D)</span></span>
+                              <span style={{ fontWeight: 'bold', color: '#6D28D9', whiteSpace: 'nowrap' }}>{p4NameStr}<span style={{color:'#6B7280', marginLeft:'4px'}}>(A)</span></span>
                             </div>
                           </div>
                         )}
                       </div>
-                      
-                      {/* 수정 버튼 */}
-                      <button 
-                        onClick={() => toggleEditMode(matchId)}
-                        style={{ 
-                          marginLeft: '15px', 
-                          padding: '4px 8px', 
-                          fontSize: '0.8rem', 
-                          background: isEditing ? '#EF4444' : '#E5E7EB', 
-                          color: isEditing ? 'white' : '#4B5563', 
-                          border: 'none', 
-                          borderRadius: '4px', 
-                          cursor: 'pointer' 
-                        }}
-                      >
-                        {isEditing ? '완료' : '선수수정'}
-                      </button>
                     </div>
                   );
                 })}
