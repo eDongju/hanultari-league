@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 interface LeagueSession {
   id: string;
@@ -18,6 +19,11 @@ interface LeagueHistoryProps {
 export default function LeagueHistory({ savedSessions, onLoadSession, onDeleteSession }: LeagueHistoryProps) {
   const [deleteModal, setDeleteModal] = useState<string | null>(null);
   const [passwordInput, setPasswordInput] = useState('');
+  const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>({});
+
+  const toggleMonth = (monthKey: string) => {
+    setExpandedMonths(prev => ({ ...prev, [monthKey]: !prev[monthKey] }));
+  };
 
   const sessionsList = Object.values(savedSessions).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -63,13 +69,24 @@ export default function LeagueHistory({ savedSessions, onLoadSession, onDeleteSe
           아직 저장된 리그 결과가 없습니다.
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-          {Object.entries(groupedSessions).map(([monthKey, sessions]) => (
-            <div key={monthKey}>
-              <h3 style={{ fontSize: '1.2rem', color: '#4B5563', borderBottom: '2px solid #E5E7EB', paddingBottom: '8px', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {monthKey} <span style={{ fontSize: '0.9rem', color: '#9CA3AF', fontWeight: 'normal', background: '#F3F4F6', padding: '2px 8px', borderRadius: '12px' }}>총 {sessions.length}회</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          {Object.entries(groupedSessions).map(([monthKey, sessions], index) => {
+            const isExpanded = expandedMonths[monthKey] ?? (index === 0);
+            return (
+            <div key={monthKey} style={{ background: 'white', borderRadius: '8px', border: '1px solid #E5E7EB', overflow: 'hidden' }}>
+              <h3 
+                onClick={() => toggleMonth(monthKey)}
+                style={{ cursor: 'pointer', margin: 0, padding: '15px 20px', fontSize: '1.2rem', color: '#1F2937', background: '#F9FAFB', borderBottom: isExpanded ? '1px solid #E5E7EB' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'background 0.2s' }}
+                onMouseOver={e => e.currentTarget.style.background = '#F3F4F6'}
+                onMouseOut={e => e.currentTarget.style.background = '#F9FAFB'}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {monthKey} <span style={{ fontSize: '0.9rem', color: '#6B7280', fontWeight: 'normal', background: '#E5E7EB', padding: '2px 8px', borderRadius: '12px' }}>총 {sessions.length}회</span>
+                </div>
+                {isExpanded ? <ChevronDown size={20} color="#6B7280" /> : <ChevronRight size={20} color="#6B7280" />}
               </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              {isExpanded && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', padding: '20px' }}>
                 {sessions.map(session => {
                   let timeString = '';
                   if (session.id.includes('_')) {
@@ -113,6 +130,7 @@ export default function LeagueHistory({ savedSessions, onLoadSession, onDeleteSe
                   );
                 })}
               </div>
+              )}
             </div>
           ))}
         </div>
