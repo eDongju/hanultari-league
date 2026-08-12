@@ -679,7 +679,6 @@ function App() {
           <MealCalculator 
             allMembers={allMembers}
             savedSessions={savedSessions}
-            currentSessionId={currentSessionId}
           />
         )}
 

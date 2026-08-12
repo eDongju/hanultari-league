@@ -6,7 +6,6 @@ import { type Member } from '../App';
 interface MealCalculatorProps {
   allMembers: Member[];
   savedSessions: Record<string, any>;
-  currentSessionId: string | null;
 }
 
 const charToIndex = (c: string) => {
@@ -16,8 +15,7 @@ const charToIndex = (c: string) => {
 
 export default function MealCalculator({ 
   allMembers, 
-  savedSessions,
-  currentSessionId
+  savedSessions
 }: MealCalculatorProps) {
   const [selectedSessions, setSelectedSessions] = useState<string[]>(() => {
     const saved = localStorage.getItem('meal_selectedSessions');
