@@ -680,10 +680,6 @@ function App() {
             allMembers={allMembers}
             savedSessions={savedSessions}
             currentSessionId={currentSessionId}
-            participatingMembers={participatingMembers}
-            matchScores={matchScores}
-            matchOverrides={matchOverrides}
-            bracketOption={bracketOption}
           />
         )}
 

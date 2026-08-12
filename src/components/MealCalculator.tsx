@@ -7,10 +7,6 @@ interface MealCalculatorProps {
   allMembers: Member[];
   savedSessions: Record<string, any>;
   currentSessionId: string | null;
-  participatingMembers: (Member | null)[];
-  matchScores: Record<string, any>;
-  matchOverrides: Record<string, any>;
-  bracketOption: string;
 }
 
 const charToIndex = (c: string) => {
@@ -20,11 +16,8 @@ const charToIndex = (c: string) => {
 
 export default function MealCalculator({ 
   allMembers, 
-  savedSessions, 
-  participatingMembers,
-  matchScores,
-  matchOverrides,
-  bracketOption
+  savedSessions,
+  currentSessionId
 }: MealCalculatorProps) {
   const [selectedSessions, setSelectedSessions] = useState<string[]>(() => {
     const saved = localStorage.getItem('meal_selectedSessions');
