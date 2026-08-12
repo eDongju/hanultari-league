@@ -154,10 +154,11 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
             }
 
             return (
-              <div key={matchIdx} style={{ border: '1px solid #E5E7EB', borderRadius: '8px', padding: '15px' }}>
+              <div key={matchIdx} style={{ border: '1px solid #E5E7EB', borderRadius: '8px', padding: '15px', overflowX: 'auto' }}>
                 <h4 style={{ margin: '0 0 10px 0', color: '#374151' }}>{matchIdx + 1} 경기</h4>
-                {matchesInRound.map((mStr, idx) => {
-                  const matchId = `${matchIdx}-${idx}`;
+                <div style={{ minWidth: '450px' }}>
+                  {matchesInRound.map((mStr, idx) => {
+                    const matchId = `${matchIdx}-${idx}`;
                   const p1 = participatingMembers[charToIndex(mStr[0])];
                   const p2 = participatingMembers[charToIndex(mStr[1])];
                   const p3 = participatingMembers[charToIndex(mStr[2])];
@@ -272,6 +273,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                     </div>
                   );
                 })}
+                </div>
               </div>
             );
           })}
