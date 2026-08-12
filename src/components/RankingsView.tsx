@@ -252,42 +252,42 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
       {stats.length === 0 ? (
         <p>참가 선수가 없습니다.</p>
       ) : (
-        <div className="ranking-scroll-container" style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', minWidth: '400px' }}>
+        <div className="ranking-scroll-container" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
             <thead style={{ background: '#F3F4F6', borderBottom: '2px solid #E5E7EB' }}>
               <tr>
-                <th style={{ padding: '12px 10px' }}>순위</th>
-                <th style={{ padding: '12px 10px', textAlign: 'left' }}>이름</th>
-                <th style={{ padding: '12px 10px' }}>경기수</th>
-                <th style={{ padding: '12px 10px' }}>승</th>
-                <th style={{ padding: '12px 10px' }}>패</th>
-                <th style={{ padding: '12px 10px' }}>득점</th>
-                <th style={{ padding: '12px 10px' }}>실점</th>
-                <th style={{ padding: '12px 10px' }}>득실차</th>
+                <th style={{ padding: '8px 5px', whiteSpace: 'nowrap' }}>순위</th>
+                <th style={{ padding: '8px 5px', textAlign: 'left', whiteSpace: 'nowrap' }}>이름</th>
+                <th style={{ padding: '8px 5px', whiteSpace: 'nowrap' }}>경기수</th>
+                <th style={{ padding: '8px 5px', whiteSpace: 'nowrap' }}>승</th>
+                <th style={{ padding: '8px 5px', whiteSpace: 'nowrap' }}>패</th>
+                <th style={{ padding: '8px 5px', whiteSpace: 'nowrap' }}>득점</th>
+                <th style={{ padding: '8px 5px', whiteSpace: 'nowrap' }}>실점</th>
+                <th style={{ padding: '8px 5px', whiteSpace: 'nowrap' }}>득실차</th>
               </tr>
             </thead>
             <tbody>
               {stats.map((p) => (
                 <tr key={p.id} style={{ borderBottom: '1px solid #E5E7EB' }}>
-                  <td style={{ padding: '12px 10px', fontWeight: 'bold' }}>
+                  <td style={{ padding: '8px 5px', fontWeight: 'bold' }}>
                     <span style={{ 
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                       background: p.rank === 1 ? '#FBBF24' : p.rank === 2 ? '#9CA3AF' : p.rank === 3 ? '#D97706' : 'transparent',
                       color: p.rank <= 3 ? 'white' : '#374151',
-                      borderRadius: '50%', width: '28px', height: '28px'
+                      borderRadius: '50%', width: '24px', height: '24px', fontSize: '0.85rem'
                     }}>
                       {p.rank}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 10px', textAlign: 'left', fontWeight: 'bold', color: '#1E3A8A' }}>
+                  <td style={{ padding: '8px 5px', textAlign: 'left', fontWeight: 'bold', color: '#1E3A8A', whiteSpace: 'nowrap' }}>
                     {p.name}
                   </td>
-                  <td style={{ padding: '12px 10px' }}>{p.matches}</td>
-                  <td style={{ padding: '12px 10px', color: '#0369A1', fontWeight: 'bold' }}>{p.wins}</td>
-                  <td style={{ padding: '12px 10px', color: '#6D28D9', fontWeight: 'bold' }}>{p.losses}</td>
-                  <td style={{ padding: '12px 10px' }}>{p.ptsFor}</td>
-                  <td style={{ padding: '12px 10px' }}>{p.ptsAgainst}</td>
-                  <td style={{ padding: '12px 10px', fontWeight: 'bold', color: p.ptsDiff > 0 ? '#10B981' : p.ptsDiff < 0 ? '#EF4444' : '#6B7280' }}>
+                  <td style={{ padding: '8px 5px' }}>{p.matches}</td>
+                  <td style={{ padding: '8px 5px', color: '#0369A1', fontWeight: 'bold' }}>{p.wins}</td>
+                  <td style={{ padding: '8px 5px', color: '#6D28D9', fontWeight: 'bold' }}>{p.losses}</td>
+                  <td style={{ padding: '8px 5px' }}>{p.ptsFor}</td>
+                  <td style={{ padding: '8px 5px' }}>{p.ptsAgainst}</td>
+                  <td style={{ padding: '8px 5px', fontWeight: 'bold', color: p.ptsDiff > 0 ? '#10B981' : p.ptsDiff < 0 ? '#EF4444' : '#6B7280' }}>
                     {p.ptsDiff > 0 ? `+${p.ptsDiff}` : p.ptsDiff}
                   </td>
                 </tr>
