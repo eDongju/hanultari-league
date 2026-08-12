@@ -564,7 +564,6 @@ function App() {
             <button onClick={() => handleTabChange('meal')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'meal' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'meal' ? 'white' : '#2563EB' }}><Utensils size={18} /> 밥값정산</button>
             
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {currentSessionId && (
                 <button 
                   onClick={() => {
                     if (window.confirm("현재 진행 상황을 초기화하고 새 리그를 시작하시겠습니까?")) {
@@ -602,7 +601,6 @@ function App() {
                 >
                   새 리그 시작
                 </button>
-              )}
             </div>
             
           </div>

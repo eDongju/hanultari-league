@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Utensils } from 'lucide-react';
 import combinations from '../data/combinations.json';
-import { type Member, ProfileImage } from '../App';
+import { type Member } from '../App';
 
 interface MealCalculatorProps {
   allMembers: Member[];
@@ -398,30 +398,27 @@ export default function MealCalculator({
               </div>
               <table style={{ margin: 0 }}>
                 <thead>
-                  <tr style={{ background: '#F3F4F6' }}>
-                    <th style={{ width: '60px', textAlign: 'center' }}>식사순위</th>
-                    <th>선수</th>
-                    <th>경기성적</th>
-                    <th style={{ textAlign: 'right' }}>납부 금액</th>
+                  <tr style={{ background: '#F3F4F6', fontSize: '0.9rem' }}>
+                    <th style={{ width: '45px', textAlign: 'center', padding: '8px 4px' }}>순위</th>
+                    <th style={{ padding: '8px 4px' }}>선수</th>
+                    <th style={{ padding: '8px 4px' }}>성적</th>
+                    <th style={{ textAlign: 'right', padding: '8px 4px' }}>납부액</th>
                   </tr>
                 </thead>
                 <tbody>
                   {resultTable.results.map((r) => (
                     <tr key={r.id} style={{ background: r.pay === 0 ? '#FEF3C7' : 'white' }}>
-                      <td style={{ textAlign: 'center', fontWeight: 'bold', color: r.mealRank === 1 ? '#D97706' : '#4B5563' }}>
+                      <td style={{ textAlign: 'center', fontWeight: 'bold', color: r.mealRank === 1 ? '#D97706' : '#4B5563', padding: '10px 4px', fontSize: '0.95rem' }}>
                         {r.mealRank}위
                       </td>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <ProfileImage member={r.memberObj} size={35} />
-                          <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#1F2937' }}>{r.name}</span>
-                        </div>
+                      <td style={{ padding: '10px 4px' }}>
+                        <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#1F2937' }}>{r.name}</span>
                       </td>
-                      <td style={{ fontSize: '0.85rem', color: '#6B7280' }}>
-                        {r.wins}승 {r.losses}패 (득실 {r.ptsDiff > 0 ? `+${r.ptsDiff}` : r.ptsDiff})
+                      <td style={{ fontSize: '0.8rem', color: '#6B7280', padding: '10px 4px', whiteSpace: 'nowrap' }}>
+                        {r.wins}승{r.losses}패 ({r.ptsDiff > 0 ? '+' : ''}{r.ptsDiff})
                       </td>
-                      <td style={{ textAlign: 'right', fontWeight: 'bold', fontSize: '1.1rem', color: r.pay === 0 ? '#10B981' : '#EF4444' }}>
-                        {r.pay === 0 ? '면제 🥳' : `${r.pay.toLocaleString()}원`}
+                      <td style={{ textAlign: 'right', fontWeight: 'bold', fontSize: '1.05rem', color: r.pay === 0 ? '#10B981' : '#EF4444', padding: '10px 4px', whiteSpace: 'nowrap' }}>
+                        {r.pay === 0 ? '면제 🎉' : `${r.pay.toLocaleString()}원`}
                       </td>
                     </tr>
                   ))}
