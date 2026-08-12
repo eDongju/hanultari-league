@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { ChevronDown, ChevronRight, List } from 'lucide-react';
 
 interface LeagueSession {
