@@ -140,9 +140,9 @@ export default function LeagueHistory({ savedSessions, onLoadSession, onDeleteSe
       {/* 암호 확인 팝업 모달 */}
       {deleteModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', textAlign: 'center' }}>
-            <h2 style={{ marginBottom: '20px', fontSize: '1.5rem', color: '#1F2937' }}>기록 삭제</h2>
-            <p style={{ color: '#4B5563', marginBottom: '20px' }}>정말로 이 기록을 삭제하시겠습니까?<br/>삭제를 원하시면 암호를 입력해주세요.</p>
+          <div style={{ background: 'white', padding: '20px', borderRadius: '12px', width: '90%', maxWidth: '300px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', textAlign: 'center' }}>
+            <h2 style={{ marginBottom: '15px', fontSize: '1.2rem', color: '#1F2937' }}>기록 삭제</h2>
+            <p style={{ color: '#4B5563', marginBottom: '15px', fontSize: '0.9rem' }}>정말로 이 기록을 삭제하시겠습니까?<br/>삭제를 원하시면 암호를 입력해주세요.</p>
             
             <input 
               type="password" 
@@ -152,22 +152,22 @@ export default function LeagueHistory({ savedSessions, onLoadSession, onDeleteSe
                 if (e.key === 'Enter') handleDeleteConfirm();
               }}
               placeholder="암호 4자리"
-              style={{ width: '150px', padding: '15px', fontSize: '1.5rem', textAlign: 'center', border: '2px solid #EF4444', borderRadius: '8px', marginBottom: '30px', letterSpacing: '5px' }}
+              style={{ width: '120px', padding: '10px', fontSize: '1rem', textAlign: 'center', border: '2px solid #EF4444', borderRadius: '8px', marginBottom: '20px', letterSpacing: '3px' }}
               autoFocus
             />
 
-            <div style={{ display: 'flex', gap: '15px' }}>
+            <div style={{ display: 'flex', gap: '10px' }}>
               <button 
                 onClick={() => setDeleteModal(null)}
-                style={{ flex: 1, padding: '12px', fontSize: '1.1rem', background: '#E5E7EB', color: '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                style={{ flex: 1, padding: '10px', fontSize: '0.9rem', background: '#E5E7EB', color: '#374151', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
               >
                 취소
               </button>
               <button 
                 onClick={handleDeleteConfirm}
-                style={{ flex: 1, padding: '12px', fontSize: '1.1rem', background: '#EF4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                style={{ flex: 1, padding: '10px', fontSize: '0.9rem', background: '#EF4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
               >
-                삭제 확인
+                삭제하기
               </button>
             </div>
           </div>
