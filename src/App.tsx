@@ -761,7 +761,7 @@ function App() {
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '550px' }}>
                 <thead style={{ background: '#F9FAFB', borderBottom: '2px solid #E5E7EB' }}>
                   <tr>
-                    <th onClick={() => handleSort('rank')} className="sticky-th-rank" style={{ background: '#F9FAFB', padding: '8px 4px', width: '50px', minWidth: '50px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'center' }}>
+                    <th onClick={() => handleSort('rank')} className="sticky-th-rank" style={{ background: '#F9FAFB', padding: '8px 2px', width: '40px', minWidth: '40px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'center' }}>
                       RANK <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
                     <th onClick={() => handleSort('name')} className="sticky-th-player" style={{ background: '#F9FAFB', padding: '8px 4px', width: '120px', minWidth: '120px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)' }}>
@@ -817,13 +817,15 @@ function App() {
                       onClick={() => setSelectedMember(member)}
                       style={{ borderBottom: '1px solid #E5E7EB', transition: 'background 0.2s', cursor: 'pointer', background: 'var(--base-bg)', '--base-bg': baseBg, '--hover-bg': hoverBg } as any}
                     >
-                      <td className="sticky-col sticky-td-rank" style={{ background: 'var(--base-bg)', padding: '10px 4px', fontSize: '1.1rem', fontWeight: 'bold', color: '#374151', textAlign: 'center' }}>
+                      <td className="sticky-col sticky-td-rank" style={{ background: 'var(--base-bg)', padding: '10px 2px', fontSize: '1.1rem', fontWeight: 'bold', color: '#374151', textAlign: 'center', width: '40px', minWidth: '40px' }}>
                         {member.rank}
                       </td>
-                      <td className="sticky-col sticky-td-player" style={{ background: 'var(--base-bg)', padding: '8px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)', minWidth: '60px' }}>
-                        <ProfileImage member={member} size={36} />
-                        <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#002865', textAlign: 'center', whiteSpace: 'nowrap' }}>
-                          {member.name}
+                      <td className="sticky-col sticky-td-player" style={{ background: 'var(--base-bg)', padding: '8px 4px', boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)', minWidth: '60px', textAlign: 'center', verticalAlign: 'middle' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                          <ProfileImage member={member} size={36} />
+                          <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#002865', whiteSpace: 'nowrap' }}>
+                            {member.name}
+                          </div>
                         </div>
                       </td>
                       <td style={{ padding: '10px 4px', textAlign: 'right', color: '#4B5563', fontSize: '1rem', fontWeight: 'bold' }}>
