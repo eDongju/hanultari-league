@@ -28,7 +28,12 @@ export default function MealCalculator({
 }: MealCalculatorProps) {
   const [selectedSessions, setSelectedSessions] = useState<string[]>(() => {
     const saved = localStorage.getItem('meal_selectedSessions');
-    return saved ? JSON.parse(saved) : ['current'];
+    if (saved) {
+      const parsed = JSON.parse(saved).filter((id: string) => id !== 'current');
+      if (parsed.length > 0) return parsed;
+    }
+    const newest = Object.keys(savedSessions).sort((a, b) => b.localeCompare(a)).slice(0, 1);
+    return newest;
   });
   const [eatingMembers, setEatingMembers] = useState<string[]>(() => {
     const saved = localStorage.getItem('meal_eatingMembers');
@@ -74,15 +79,7 @@ export default function MealCalculator({
     localStorage.setItem('meal_initializedEaters', String(initializedEaters));
   }, [initializedEaters]);
 
-  const currentSessionData = useMemo(() => {
-    return {
-      date: new Date().toISOString().split('T')[0],
-      participatingMembers,
-      bracketOption,
-      matchScores,
-      matchOverrides
-    };
-  }, [participatingMembers, bracketOption, matchScores, matchOverrides]);
+
 
   const allAvailableSessions = useMemo(() => {
     const list = Object.entries(savedSessions).map(([id, s]) => ({
@@ -189,12 +186,9 @@ export default function MealCalculator({
       });
     };
 
-    if (selectedSessions.includes('current')) {
-      processSession(currentSessionData);
-    }
-    selectedSessions.forEach(id => {
-      if (id !== 'current' && savedSessions[id]) processSession(savedSessions[id]);
-    });
+      selectedSessions.forEach(id => {
+        if (savedSessions[id]) processSession(savedSessions[id]);
+      });
 
     const sortedStats = Object.values(playerStatsMap).filter(p => p.matches > 0).sort((a, b) => {
       if (a.wins !== b.wins) return b.wins - a.wins;
@@ -204,7 +198,7 @@ export default function MealCalculator({
     });
 
     return sortedStats;
-  }, [selectedSessions, currentSessionData, savedSessions, allMembers]);
+  }, [selectedSessions, savedSessions, allMembers]);
 
   // 첫 렌더링 시, 또는 세션이 변경되어 참가자가 바뀌었을 때 먹는 사람 목록 초기화
   if (!initializedEaters && combinedRankings.length > 0) {
@@ -292,15 +286,7 @@ export default function MealCalculator({
       <div style={{ marginBottom: '20px', background: '#F9FAFB', padding: '15px', borderRadius: '8px' }}>
         <h3 style={{ fontSize: '1rem', marginTop: 0, marginBottom: '10px', color: '#374151' }}>계산에 포함할 리그 선택</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-            <input 
-              type="checkbox" 
-              checked={selectedSessions.includes('current')} 
-              onChange={() => handleSessionToggle('current')}
-            />
-            <span style={{ fontWeight: 'bold', color: '#2563EB' }}>현재 진행/입력 중인 리그 (미저장 데이터 포함)</span>
-          </label>
-          
+
           {allAvailableSessions.map(s => (
             <label key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
               <input 
