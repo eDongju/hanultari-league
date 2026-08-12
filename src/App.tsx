@@ -761,10 +761,10 @@ function App() {
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '550px' }}>
                 <thead style={{ background: '#F9FAFB', borderBottom: '2px solid #E5E7EB' }}>
                   <tr>
-                    <th onClick={() => handleSort('rank')} style={{ padding: '8px 4px', width: '7%', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'center' }}>
+                    <th onClick={() => handleSort('rank')} style={{ position: 'sticky', left: 0, zIndex: 10, background: '#F9FAFB', padding: '8px 4px', width: '50px', minWidth: '50px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'center' }}>
                       RANK <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th onClick={() => handleSort('name')} style={{ padding: '8px 4px', width: '18%', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer' }}>
+                    <th onClick={() => handleSort('name')} style={{ position: 'sticky', left: '50px', zIndex: 10, background: '#F9FAFB', padding: '8px 4px', width: '120px', minWidth: '120px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)' }}>
                       PLAYER <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
                     <th onClick={() => handleSort('score')} style={{ padding: '8px 4px', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
@@ -818,10 +818,10 @@ function App() {
                       onMouseOver={e => e.currentTarget.style.background = hoverBg} 
                       onMouseOut={e => e.currentTarget.style.background = baseBg}
                     >
-                      <td style={{ padding: '10px 4px', fontSize: '1.1rem', fontWeight: 'bold', color: '#374151', textAlign: 'center' }}>
+                      <td style={{ position: 'sticky', left: 0, zIndex: 1, background: 'inherit', padding: '10px 4px', fontSize: '1.1rem', fontWeight: 'bold', color: '#374151', textAlign: 'center' }}>
                         {member.rank}
                       </td>
-                      <td style={{ padding: '10px 4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <td style={{ position: 'sticky', left: '50px', zIndex: 1, background: 'inherit', padding: '10px 4px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)' }}>
                         <ProfileImage member={member} size={40} />
                         <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#002865' }}>
                           {member.name}
