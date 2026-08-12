@@ -301,6 +301,7 @@ export default function MealCalculator({
               </label>
               <input 
                 type="number" 
+                step="1000"
                 placeholder="예: 120000"
                 value={totalCost}
                 onChange={e => setTotalCost(e.target.value)}
@@ -314,6 +315,7 @@ export default function MealCalculator({
               </label>
               <input 
                 type="number" 
+                step="1000"
                 placeholder="예: 1000"
                 value={costGap}
                 onChange={e => setCostGap(parseInt(e.target.value) || 0)}
@@ -327,6 +329,7 @@ export default function MealCalculator({
               </label>
               <input 
                 type="number" 
+                step="1000"
                 placeholder="예: 3000"
                 value={coffeeCost}
                 onChange={e => setCoffeeCost(e.target.value)}
