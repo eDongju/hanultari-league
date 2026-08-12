@@ -157,7 +157,7 @@ tr:hover td {
   padding: 20px;
   background: white;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: clip;
 }
 
 @media (max-width: 768px) {
