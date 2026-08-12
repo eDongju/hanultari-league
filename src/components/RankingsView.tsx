@@ -38,14 +38,29 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
 
   const handleCapture = async () => {
     if (!tableRef.current) return;
+    
+    // 캡처 전 모바일 가로 스크롤 이슈를 피하기 위해 일시적으로 스크롤 컨테이너 해제
+    const scrollContainer = tableRef.current.querySelector('.ranking-scroll-container') as HTMLElement;
+    let originalOverflow = '';
+    if (scrollContainer) {
+      originalOverflow = scrollContainer.style.overflowX;
+      scrollContainer.style.overflowX = 'visible';
+    }
+
     try {
       const canvas = await html2canvas(tableRef.current, {
         scale: 2,
         backgroundColor: '#ffffff',
+        // 모바일 스크롤 위치에 따른 캡처 오류 방지
+        scrollX: -window.scrollX,
         scrollY: -window.scrollY,
         windowWidth: document.documentElement.scrollWidth,
         windowHeight: document.documentElement.scrollHeight
       });
+      
+      if (scrollContainer) {
+        scrollContainer.style.overflowX = originalOverflow;
+      }
       const today = new Date();
       const dateStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
       const filename = `한울타리_경기결과_${dateStr}.png`;
@@ -84,6 +99,10 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
       
     } catch (err) {
       console.error('Failed to capture image', err);
+      // 에러 발생 시에도 복구
+      if (scrollContainer) {
+        scrollContainer.style.overflowX = originalOverflow;
+      }
       alert('이미지 저장 중 오류가 발생했습니다.');
     }
   };
@@ -233,8 +252,8 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
       {stats.length === 0 ? (
         <p>참가 선수가 없습니다.</p>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
+        <div className="ranking-scroll-container" style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', minWidth: '400px' }}>
             <thead style={{ background: '#F3F4F6', borderBottom: '2px solid #E5E7EB' }}>
               <tr>
                 <th style={{ padding: '12px 10px' }}>순위</th>
