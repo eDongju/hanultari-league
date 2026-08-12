@@ -28,7 +28,14 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
   const [editModes, setEditModes] = useState<Record<string, boolean>>({});
   const [scoreModal, setScoreModal] = useState<{ matchId: string, t1Name: string, t2Name: string } | null>(null);
   
-  const currentCombinations = (combinations as Record<string, string[]>)[bracketOption] || [];
+  let currentCombinations = [...((combinations as Record<string, string[]>)[bracketOption] || [])];
+  const maxMatchIdx = Math.max(-1, ...Object.keys(matchScores).map(k => parseInt(k.split('-')[0], 10)));
+  if (maxMatchIdx >= currentCombinations.length) {
+    const padCount = maxMatchIdx - currentCombinations.length + 1;
+    for (let i = 0; i < padCount; i++) {
+      currentCombinations.push("1234");
+    }
+  }
 
   const handleScoreChange = (matchId: string, team: 't1' | 't2', value: string) => {
     if (value !== '') {

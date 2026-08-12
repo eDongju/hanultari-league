@@ -94,7 +94,14 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
     });
 
     // 2. 점수 합산
-    const currentCombinations = (combinations as Record<string, string[]>)[bracketOption] || [];
+    let currentCombinations = [...((combinations as Record<string, string[]>)[bracketOption] || [])];
+    const maxMatchIdx = Math.max(-1, ...Object.keys(matchScores).map(k => parseInt(k.split('-')[0], 10)));
+    if (maxMatchIdx >= currentCombinations.length) {
+      const padCount = maxMatchIdx - currentCombinations.length + 1;
+      for (let i = 0; i < padCount; i++) {
+        currentCombinations.push("1234");
+      }
+    }
     currentCombinations.forEach((matchStr, matchIdx) => {
       let matchSubIdx = 0;
       for (let i = 0; i < matchStr.length; i += 4) {

@@ -256,8 +256,15 @@ function App() {
     });
 
     Object.values(savedSessions).forEach((session: any) => {
-      const currentCombinations = (combinations as Record<string, string[]>)[session.bracketOption] || [];
       const mScores = session.matchScores || {};
+      let currentCombinations = [...((combinations as Record<string, string[]>)[session.bracketOption] || [])];
+      const maxMatchIdx = Math.max(-1, ...Object.keys(mScores).map(k => parseInt(k.split('-')[0], 10)));
+      if (maxMatchIdx >= currentCombinations.length) {
+        const padCount = maxMatchIdx - currentCombinations.length + 1;
+        for (let i = 0; i < padCount; i++) {
+          currentCombinations.push("1234");
+        }
+      }
       const mOverrides = session.matchOverrides || {};
       const pMembers = session.participatingMembers || [];
 
