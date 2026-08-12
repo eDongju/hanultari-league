@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --primary: #4F46E5;
   --primary-hover: #4338CA;
   --bg-gradient-start: #F9FAFB;
@@ -199,4 +199,12 @@ html, body, #root {
 
 .slide-right {
   animation: slideInRight 0.3s forwards cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Ranking row hover */
+.ranking-row:hover {
+  background: var(--hover-bg) !important;
+}
+.ranking-row:hover .sticky-col {
+  background: var(--hover-bg) !important;
 }

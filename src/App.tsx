@@ -813,15 +813,14 @@ function App() {
                     return (
                       <tr 
                       key={member.id} 
+                      className="ranking-row"
                       onClick={() => setSelectedMember(member)}
-                      style={{ borderBottom: '1px solid #E5E7EB', transition: 'background 0.2s', cursor: 'pointer', background: baseBg }} 
-                      onMouseOver={e => e.currentTarget.style.background = hoverBg} 
-                      onMouseOut={e => e.currentTarget.style.background = baseBg}
+                      style={{ borderBottom: '1px solid #E5E7EB', transition: 'background 0.2s', cursor: 'pointer', background: 'var(--base-bg)', '--base-bg': baseBg, '--hover-bg': hoverBg } as any}
                     >
-                      <td style={{ position: 'sticky', left: 0, zIndex: 1, background: 'inherit', padding: '10px 4px', fontSize: '1.1rem', fontWeight: 'bold', color: '#374151', textAlign: 'center' }}>
+                      <td className="sticky-col" style={{ position: 'sticky', left: 0, zIndex: 1, background: 'var(--base-bg)', padding: '10px 4px', fontSize: '1.1rem', fontWeight: 'bold', color: '#374151', textAlign: 'center' }}>
                         {member.rank}
                       </td>
-                      <td style={{ position: 'sticky', left: '50px', zIndex: 1, background: 'inherit', padding: '10px 4px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)' }}>
+                      <td className="sticky-col" style={{ position: 'sticky', left: '50px', zIndex: 1, background: 'var(--base-bg)', padding: '10px 4px', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)' }}>
                         <ProfileImage member={member} size={40} />
                         <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#002865' }}>
                           {member.name}
