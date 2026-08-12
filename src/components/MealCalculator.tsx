@@ -299,42 +299,54 @@ export default function MealCalculator({
               <label style={{ display: 'block', fontSize: '0.9rem', color: '#1E3A8A', fontWeight: 'bold', marginBottom: '10px' }}>
                 총 식비 입력 (원)
               </label>
-              <input 
-                type="number" 
-                step="1000"
-                placeholder="예: 120000"
-                value={totalCost}
-                onChange={e => setTotalCost(e.target.value)}
-                style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #93C5FD', fontSize: '1.2rem', fontWeight: 'bold' }}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <button onClick={() => setTotalCost(String(Math.max(0, (parseInt(totalCost) || 0) - 1000)))} style={{ padding: '10px 15px', fontSize: '1.2rem', fontWeight: 'bold', background: '#DBEAFE', border: 'none', borderRadius: '6px', color: '#1E3A8A', cursor: 'pointer' }}>-</button>
+                <input 
+                  type="number" 
+                  step="1000"
+                  placeholder="예: 120000"
+                  value={totalCost}
+                  onChange={e => setTotalCost(e.target.value)}
+                  style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '6px', border: '1px solid #93C5FD', fontSize: '1.2rem', fontWeight: 'bold', textAlign: 'center' }}
+                />
+                <button onClick={() => setTotalCost(String((parseInt(totalCost) || 0) + 1000))} style={{ padding: '10px 15px', fontSize: '1.2rem', fontWeight: 'bold', background: '#DBEAFE', border: 'none', borderRadius: '6px', color: '#1E3A8A', cursor: 'pointer' }}>+</button>
+              </div>
             </div>
             
             <div style={{ flex: '1 1 200px', background: '#F5F3FF', padding: '15px', borderRadius: '8px', border: '1px solid #DDD6FE' }}>
               <label style={{ display: 'block', fontSize: '0.9rem', color: '#4C1D95', fontWeight: 'bold', marginBottom: '10px' }}>
                 순위별 갭(Gap) 설정 (원)
               </label>
-              <input 
-                type="number" 
-                step="1000"
-                placeholder="예: 1000"
-                value={costGap}
-                onChange={e => setCostGap(parseInt(e.target.value) || 0)}
-                style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #C4B5FD', fontSize: '1.2rem', fontWeight: 'bold', color: '#4C1D95' }}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <button onClick={() => setCostGap(Math.max(0, costGap - 1000))} style={{ padding: '10px 15px', fontSize: '1.2rem', fontWeight: 'bold', background: '#EDE9FE', border: 'none', borderRadius: '6px', color: '#4C1D95', cursor: 'pointer' }}>-</button>
+                <input 
+                  type="number" 
+                  step="1000"
+                  placeholder="예: 1000"
+                  value={costGap}
+                  onChange={e => setCostGap(parseInt(e.target.value) || 0)}
+                  style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '6px', border: '1px solid #C4B5FD', fontSize: '1.2rem', fontWeight: 'bold', color: '#4C1D95', textAlign: 'center' }}
+                />
+                <button onClick={() => setCostGap(costGap + 1000)} style={{ padding: '10px 15px', fontSize: '1.2rem', fontWeight: 'bold', background: '#EDE9FE', border: 'none', borderRadius: '6px', color: '#4C1D95', cursor: 'pointer' }}>+</button>
+              </div>
             </div>
             
             <div style={{ flex: '1 1 200px', background: '#FEF3C7', padding: '15px', borderRadius: '8px', border: '1px solid #FDE68A' }}>
               <label style={{ display: 'block', fontSize: '0.9rem', color: '#92400E', fontWeight: 'bold', marginBottom: '10px' }}>
                 인당 커피값 추가 (원)
               </label>
-              <input 
-                type="number" 
-                step="1000"
-                placeholder="예: 3000"
-                value={coffeeCost}
-                onChange={e => setCoffeeCost(e.target.value)}
-                style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #FCD34D', fontSize: '1.2rem', fontWeight: 'bold', color: '#92400E' }}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <button onClick={() => setCoffeeCost(String(Math.max(0, (parseInt(coffeeCost) || 0) - 1000)))} style={{ padding: '10px 15px', fontSize: '1.2rem', fontWeight: 'bold', background: '#FEF3C7', border: 'none', borderRadius: '6px', color: '#92400E', cursor: 'pointer' }}>-</button>
+                <input 
+                  type="number" 
+                  step="1000"
+                  placeholder="예: 3000"
+                  value={coffeeCost}
+                  onChange={e => setCoffeeCost(e.target.value)}
+                  style={{ flex: 1, minWidth: 0, padding: '12px', borderRadius: '6px', border: '1px solid #FCD34D', fontSize: '1.2rem', fontWeight: 'bold', color: '#92400E', textAlign: 'center' }}
+                />
+                <button onClick={() => setCoffeeCost(String((parseInt(coffeeCost) || 0) + 1000))} style={{ padding: '10px 15px', fontSize: '1.2rem', fontWeight: 'bold', background: '#FEF3C7', border: 'none', borderRadius: '6px', color: '#92400E', cursor: 'pointer' }}>+</button>
+              </div>
             </div>
           </div>
 
