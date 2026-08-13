@@ -153,6 +153,21 @@ tr:hover td {
   gap: 10px;
 }
 
+/* 탭 메뉴 네비게이션 - 카드 padding을 음수 마진으로 상쇄하여 컨텐츠와 좌우 끝 정렬 */
+.tab-nav {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 1rem;
+  align-items: center;
+  /* 카드 padding(2rem)을 상쇄해 좌우 끝을 컨텐츠 영역과 맞춤 */
+  margin-left: -2rem;
+  margin-right: -2rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
 .content-card {
   padding: 20px;
   background: white;
@@ -171,7 +186,15 @@ tr:hover td {
     font-size: 2.0rem;
   }
   .new-league-wrapper {
-    margin-right: 5px;
+    margin-right: 0;
+  }
+  /* 모바일: 카드 padding(5px)을 상쇄 */
+  .tab-nav {
+    margin-left: -5px;
+    margin-right: -5px;
+    padding-left: 5px;
+    padding-right: 5px;
+    gap: 6px;
   }
   .content-card {
     padding: 5px;

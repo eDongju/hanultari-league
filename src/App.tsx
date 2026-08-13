@@ -74,7 +74,7 @@ export const ProfileImage = ({ member, size = 45 }: { member: Member, size?: num
 
 function App() {
   const [activeTab, setActiveTab] = useState<'match' | 'members' | 'playerSetup' | 'matchInput' | 'rankings' | 'history' | 'stats' | 'meal'>(() => {
-    return (localStorage.getItem('activeTab') as any) || 'playerSetup';
+    return (localStorage.getItem('activeTab') as any) || 'members';
   });
   const [slideDir, setSlideDir] = useState<'left'|'right'|''>('');
 
@@ -615,14 +615,20 @@ function App() {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 150;
-        const MAX_HEIGHT = 150;
-        canvas.width = MAX_WIDTH;
-        canvas.height = MAX_HEIGHT;
+        const SIZE = 300; // 고해상도로 저장
+        canvas.width = SIZE;
+        canvas.height = SIZE;
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          ctx.drawImage(img, 0, 0, MAX_WIDTH, MAX_HEIGHT);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          // cover-crop: 비율 유지하면서 정사각형으로 자르기
+          const scale = Math.max(SIZE / img.width, SIZE / img.height);
+          const scaledW = img.width * scale;
+          const scaledH = img.height * scale;
+          // 가로: 중앙 정렬, 세로: 인물(얼굴) 상단 중심 (상단에서 20% 위치)
+          const offsetX = (SIZE - scaledW) / 2;
+          const offsetY = -(scaledH - SIZE) * 0.2;
+          ctx.drawImage(img, offsetX, offsetY, scaledW, scaledH);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
           setSelectedMember({ ...selectedMember, photoUrl: dataUrl });
         }
       };
@@ -646,7 +652,7 @@ function App() {
             <img src={hanulLogo} alt="Hanul Logo" style={{ height: '50px', flexShrink: 0, borderRadius: '8px', objectFit: 'cover' }} />
             <h1 style={{ margin: 0, color: '#1E3A8A' }}>한울타리 주말리그</h1>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '10px', marginTop: '1rem', alignItems: 'center' }}>
+          <div className="tab-nav">
             {/* 새로운 주말리그용 탭 4개 */}
             <button onClick={() => handleTabChange('playerSetup')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'playerSetup' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'playerSetup' ? 'white' : '#2563EB' }}><Users size={18} /> 참가선수</button>
             <button onClick={() => handleTabChange('matchInput')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'matchInput' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'matchInput' ? 'white' : '#2563EB' }}><Edit size={18} /> 결과입력</button>
@@ -848,7 +854,7 @@ function App() {
                       </td>
                       <td className="sticky-col sticky-td-player" style={{ background: 'var(--base-bg)', padding: '8px 4px', boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)', minWidth: '60px', textAlign: 'center', verticalAlign: 'middle' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                          <ProfileImage member={member} size={36} />
+                          <ProfileImage member={member} size={44} />
                           <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#002865', whiteSpace: 'nowrap' }}>
                             {member.name}
                           </div>
@@ -906,50 +912,50 @@ function App() {
             </div>
             <div style={{ padding: '20px', maxHeight: '75vh', overflowY: 'auto' }}>
               
-              <div style={{ display: 'flex', gap: '20px', marginBottom: '15px' }}>
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '15px' }}>
                 <input type="file" id="photo-upload" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoUpload} />
                 <div 
                   onClick={() => document.getElementById('photo-upload')?.click()}
-                  style={{ position: 'relative', cursor: 'pointer', width: '110px', height: '110px' }}
+                  style={{ position: 'relative', cursor: 'pointer', width: '90px', height: '90px', flexShrink: 0 }}
                 >
-                  <ProfileImage member={selectedMember} size={110} />
-                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '0.7rem', textAlign: 'center', padding: '4px 0', borderBottomLeftRadius: '55px', borderBottomRightRadius: '55px' }}>사진 등록</div>
+                  <ProfileImage member={selectedMember} size={90} />
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.5)', color: 'white', fontSize: '0.65rem', textAlign: 'center', padding: '3px 0', borderBottomLeftRadius: '45px', borderBottomRightRadius: '45px' }}>사진 등록</div>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>이름</label>
-                  <input type="text" value={selectedMember.name} onChange={e => setSelectedMember({...selectedMember, name: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px', marginBottom: '10px' }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#6B7280', marginBottom: '4px' }}>이름</label>
+                  <input type="text" value={selectedMember.name} onChange={e => setSelectedMember({...selectedMember, name: e.target.value})} style={{ width: '100%', padding: '6px 8px', border: '1px solid #D1D5DB', borderRadius: '6px', marginBottom: '8px', fontSize: '0.9rem' }} />
                   
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>LeaguePoint</label>
-                      <input type="number" value={selectedMember.score} onChange={e => setSelectedMember({...selectedMember, score: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px' }} />
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <label style={{ display: 'block', fontSize: '0.72rem', color: '#6B7280', marginBottom: '3px' }}>L.Point</label>
+                      <input type="number" readOnly value={(() => { const s = globalStats[selectedMember.id] || { sessionWins: 0, sessionMatches: 0 }; return (Number(selectedMember.score) || 0) + s.sessionWins * 2 + s.sessionMatches; })()} style={{ width: '100%', padding: '6px 4px', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.9rem', background: '#F3F4F6' }} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>RoundPoint</label>
-                      <input type="number" value={selectedMember.roundPoint || 0} onChange={e => setSelectedMember({...selectedMember, roundPoint: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px' }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <label style={{ display: 'block', fontSize: '0.72rem', color: '#6B7280', marginBottom: '3px' }}>R.Point</label>
+                      <input type="number" value={selectedMember.roundPoint || 0} onChange={e => setSelectedMember({...selectedMember, roundPoint: e.target.value})} style={{ width: '100%', padding: '6px 4px', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.9rem' }} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>GansigPoint</label>
-                      <input type="number" value={selectedMember.gamePoint || 0} onChange={e => setSelectedMember({...selectedMember, gamePoint: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px' }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <label style={{ display: 'block', fontSize: '0.72rem', color: '#6B7280', marginBottom: '3px' }}>G.Point</label>
+                      <input type="number" value={selectedMember.gamePoint || 0} onChange={e => setSelectedMember({...selectedMember, gamePoint: e.target.value})} style={{ width: '100%', padding: '6px 4px', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.9rem' }} />
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>생년월일</label>
-                  <input type="date" value={selectedMember.birthdate !== '-' ? selectedMember.birthdate : ''} onChange={e => setSelectedMember({...selectedMember, birthdate: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px' }} />
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#6B7280', marginBottom: '4px' }}>생년월일</label>
+                  <input type="date" value={selectedMember.birthdate !== '-' ? selectedMember.birthdate : ''} onChange={e => setSelectedMember({...selectedMember, birthdate: e.target.value})} style={{ display: 'block', width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.85rem' }} />
                 </div>
-                <div style={{ width: '80px' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>나이</label>
-                  <input type="text" value={selectedMember.age} readOnly style={{ width: '100%', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px', background: '#F3F4F6' }} />
+                <div style={{ width: '60px', flexShrink: 0 }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#6B7280', marginBottom: '4px' }}>나이</label>
+                  <input type="text" value={selectedMember.age} readOnly style={{ display: 'block', width: '100%', boxSizing: 'border-box', padding: '8px 4px', border: '1px solid #D1D5DB', borderRadius: '6px', background: '#F3F4F6', textAlign: 'center', fontSize: '0.9rem' }} />
                 </div>
               </div>
 
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>입회날짜</label>
-                <input type="date" value={selectedMember.joinDate || ''} onChange={e => setSelectedMember({...selectedMember, joinDate: e.target.value})} style={{ width: '100%', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px' }} />
+                <label style={{ display: 'block', fontSize: '0.8rem', color: '#6B7280', marginBottom: '4px' }}>입회날짜</label>
+                <input type="date" value={selectedMember.joinDate || ''} onChange={e => setSelectedMember({...selectedMember, joinDate: e.target.value})} style={{ display: 'block', width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.9rem' }} />
               </div>
 
               <div style={{ marginBottom: '15px' }}>
