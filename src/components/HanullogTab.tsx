@@ -69,6 +69,13 @@ const HanullogTab = () => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {posts.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#6B7280', background: 'white', borderRadius: '12px', border: '1px solid #E5E7EB' }}>
+            <Calendar size={40} color="#D1D5DB" style={{ marginBottom: '10px' }} />
+            <p style={{ margin: 0, fontWeight: 'bold', fontSize: '1.1rem' }}>아직 등록된 매거진이 없습니다.</p>
+            <p style={{ margin: '8px 0 0 0', fontSize: '0.9rem' }}>매일 새벽 5시에 AI 코치가 첫 글을 발행할 예정입니다!<br/>(또는 GitHub Actions에서 수동으로 발행을 눌러주세요)</p>
+          </div>
+        )}
         {posts.map((post) => {
           const dateObj = new Date(post.date);
           const formattedDate = `${dateObj.getFullYear()}.${String(dateObj.getMonth() + 1).padStart(2, '0')}.${String(dateObj.getDate()).padStart(2, '0')}`;
