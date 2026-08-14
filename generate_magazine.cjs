@@ -27,21 +27,41 @@ async function generateDailyPost() {
     
     // 3. AI 호출 로직
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    // 모든 환경과 API 키에서 가장 넓게 지원되는 기본 모델 (gemini-pro) 사용
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     
-    const finalPrompt = promptTemplate + `\n\n오늘의 요일은 ${todayStr}입니다. 이 요일에 맞는 주제로 글을 작성해 주세요.`;
-    const result = await model.generateContent(finalPrompt);
-    const response = await result.response;
-    let text = response.text();
-    
-    // JSON 파싱 (마크다운 백틱 등 제거 처리)
-    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const postData = JSON.parse(text);
-
-    console.log("✅ 생성된 데이터:", postData);
-
-    // 4. Firebase Firestore 업로드 로직
+    // 2026년 기준 최신 모델 명칭으로 재시도 (혹은 사용 가능한 모델 자동 감지)
+    // 에러 원인 파악을 위해 먼저 사용 가능한 모델 리스트를 출력합니다.
+    console.log("🔍 사용 가능한 AI 모델 목록을 조회 중입니다...");
+    const modelRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`);
+    const modelData = await modelRes.json();
+    if (modelData.models) {
+      const availableModels = modelData.models
+        .filter(m => m.supportedGenerationMethods.includes("generateContent"))
+        .map(m => m.name.replace("models/", ""));
+      console.log("✅ 현재 API 키로 사용 가능한 모델 목록:", availableModels);
+      
+      // 목록 중 가장 적절한 모델 자동 선택 (gemini-2.0, 1.5-flash, 1.5-pro 등)
+      let selectedModel = "gemini-1.5-flash"; // 기본값
+      if (availableModels.length > 0) {
+        // flash 계열 우선, 없으면 첫번째 모델 사용
+        const flashModel = availableModels.find(m => m.includes("flash"));
+        selectedModel = flashModel || availableModels[0];
+      }
+      console.log(`🤖 자동 선택된 모델: ${selectedModel} (이 모델로 생성을 시도합니다)`);
+      
+      const model = genAI.getGenerativeModel({ model: selectedModel });
+      const finalPrompt = promptTemplate + `\n\n오늘의 요일은 ${todayStr}입니다. 이 요일에 맞는 주제로 글을 작성해 주세요.`;
+      
+      const result = await model.generateContent(finalPrompt);
+      const response = await result.response;
+      let text = response.text();
+      
+      // JSON 파싱 (마크다운 백틱 등 제거 처리)
+      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      const postData = JSON.parse(text);
+  
+      console.log("✅ 생성된 데이터:", postData);
+  
+      // 4. Firebase Firestore 업로드 로직
     // GitHub Actions에서는 환경 변수 JSON 문자열로 파싱, 로컬에서는 키 파일 사용 가능
     let serviceAccount;
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
