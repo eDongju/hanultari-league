@@ -40,7 +40,7 @@ async function generateDailyPost() {
       console.log("✅ 현재 API 키로 사용 가능한 모델 목록:", availableModels);
       
       // 사용 가능한 모델들을 순회하며 성공할 때까지 시도합니다.
-      let finalResponse = null;
+      let postData = null;
       let selectedModelName = "";
 
       for (const m of availableModels) {
@@ -50,26 +50,38 @@ async function generateDailyPost() {
           const finalPrompt = promptTemplate + `\n\n오늘의 요일은 ${todayStr}입니다. 이 요일에 맞는 주제로 글을 작성해 주세요.`;
           
           const result = await model.generateContent(finalPrompt);
-          finalResponse = await result.response;
+          const response = await result.response;
+          let text = response.text();
+          
+          // JSON 파싱 시도 (마크다운 백틱 및 불필요한 텍스트 제거)
+          const firstBrace = text.indexOf('{');
+          const lastBrace = text.lastIndexOf('}');
+          
+          if (firstBrace === -1 || lastBrace === -1) {
+            throw new Error("JSON 형식을 찾을 수 없습니다.");
+          }
+          
+          const jsonStr = text.substring(firstBrace, lastBrace + 1);
+          postData = JSON.parse(jsonStr);
           selectedModelName = m;
-          console.log(`✅ 모델 ${m} (으)로 생성 성공!`);
-          break; // 성공하면 루프 종료
+          
+          // 필수 필드 검증
+          if (!postData.title || !postData.content) {
+            throw new Error("필수 JSON 필드(title, content)가 누락되었습니다.");
+          }
+          
+          console.log(`✅ 모델 ${m} (으)로 생성 및 JSON 파싱 완벽 성공!`);
+          break; // 완벽하게 성공하면 루프 종료
         } catch (err) {
-          console.warn(`⚠️ 모델 ${m} 실패:`, err.message);
+          console.warn(`⚠️ 모델 ${m} 실패 (원인: ${err.message}) - 다음 모델로 넘어갑니다.`);
         }
       }
 
-      if (!finalResponse) {
-        throw new Error("사용 가능한 모든 모델에서 텍스트 생성을 실패했습니다.");
+      if (!postData) {
+        throw new Error("사용 가능한 모든 모델에서 유효한 JSON 생성을 실패했습니다.");
       }
-      
-      let text = finalResponse.text();
-      
-      // JSON 파싱 (마크다운 백틱 등 제거 처리)
-      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      const postData = JSON.parse(text);
   
-      console.log("✅ 생성된 데이터:", postData);
+      console.log("✅ 최종 생성된 데이터:", postData);
   
       // 4. Firebase Firestore 업로드 로직
     // GitHub Actions에서는 환경 변수 JSON 문자열로 파싱, 로컬에서는 키 파일 사용 가능
