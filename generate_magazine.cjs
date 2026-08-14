@@ -11,6 +11,10 @@ async function generateDailyPost() {
   console.log("🚀 AI 테니스 매거진 포스트 생성 시작...");
   
   try {
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY 환경 변수가 없습니다. GitHub Secrets 설정을 확인해주세요.");
+    }
+
     // 1. 프롬프트 템플릿 읽기
     const promptTemplate = fs.readFileSync(PROMPT_FILE, 'utf-8');
     
