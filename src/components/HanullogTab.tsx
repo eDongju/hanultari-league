@@ -1,14 +1,65 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar } from 'lucide-react';
-import samplePosts from '../../sample_posts.json';
+import { Calendar, Heart, MessageCircle, Send } from 'lucide-react';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { db } from '../../firebase';
 
 const HanullogTab = () => {
   const [posts, setPosts] = useState<any[]>([]);
+  // 로컬 상태로 좋아요와 댓글 임시 관리 (추후 Firebase 연동)
+  const [likes, setLikes] = useState<Record<string, number>>({});
+  const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
+  const [comments, setComments] = useState<Record<string, {text: string, date: string}[]>>({});
+  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    // 임시로 로컬 JSON 데이터를 로드. 추후 Firebase Firestore 연동 필요
-    setPosts(samplePosts);
+    // Firebase Firestore에서 실시간으로 글 목록 가져오기 (최신순 정렬)
+    const q = query(collection(db, 'hanullog'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedPosts: any[] = [];
+      const initialLikes: Record<string, number> = {};
+      const initialComments: Record<string, {text: string, date: string}[]> = {};
+      
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        fetchedPosts.push({ id: doc.id, ...data });
+        
+        // 좋아요/댓글 상태가 DB에 있으면 사용하고, 없으면 빈 값으로 렌더링
+        initialLikes[doc.id] = data.likes || 0;
+        initialComments[doc.id] = data.comments || [];
+      });
+      
+      setPosts(fetchedPosts);
+      setLikes(initialLikes);
+      setComments(initialComments);
+    });
+
+    return () => unsubscribe();
   }, []);
+
+  const handleLike = (id: string) => {
+    if (likedPosts[id]) {
+      setLikes(prev => ({ ...prev, [id]: prev[id] - 1 }));
+      setLikedPosts(prev => ({ ...prev, [id]: false }));
+    } else {
+      setLikes(prev => ({ ...prev, [id]: prev[id] + 1 }));
+      setLikedPosts(prev => ({ ...prev, [id]: true }));
+    }
+  };
+
+  const handleCommentChange = (id: string, value: string) => {
+    setCommentInputs(prev => ({ ...prev, [id]: value }));
+  };
+
+  const submitComment = (id: string) => {
+    const text = commentInputs[id];
+    if (!text || text.trim() === '') return;
+    
+    setComments(prev => ({
+      ...prev,
+      [id]: [...(prev[id] || []), { text: text.trim(), date: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) }]
+    }));
+    setCommentInputs(prev => ({ ...prev, [id]: '' }));
+  };
 
   return (
     <div style={{ padding: '10px 0' }}>
@@ -30,10 +81,12 @@ const HanullogTab = () => {
               boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
               border: '1px solid #E5E7EB'
             }}>
+              {/* 본문 타이틀 영역 */}
               <h3 style={{ margin: '0 0 10px 0', fontSize: '1.1rem', color: '#111827', lineHeight: '1.4' }}>
                 {post.title}
               </h3>
               
+              {/* 태그 및 날짜 영역 */}
               <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
                 {post.tags.map((tag: string, idx: number) => (
                   <span key={idx} style={{ 
@@ -56,16 +109,14 @@ const HanullogTab = () => {
                 </span>
               </div>
 
+              {/* 본문 콘텐츠 영역 */}
               <div style={{ 
                 color: '#4B5563', 
                 fontSize: '0.95rem', 
                 lineHeight: '1.6',
-                whiteSpace: 'pre-wrap'
+                whiteSpace: 'pre-wrap',
+                marginBottom: '10px'
               }}>
-                {/* 
-                  본문에 포함된 💡 아이콘 부분이나 특정 텍스트 등을 강조 처리하기 위한 간단한 렌더링.
-                  추후 Markdown 파서를 쓰면 더 좋습니다.
-                */}
                 {post.content.split('\n').map((line: string, i: number) => {
                   if (line.startsWith('**') && line.endsWith('**')) {
                     return <strong key={i} style={{ display: 'block', marginTop: '10px', color: '#1E3A8A' }}>{line.replace(/\*\*/g, '')}</strong>;
@@ -83,6 +134,55 @@ const HanullogTab = () => {
                   return <React.Fragment key={i}>{line}<br/></React.Fragment>;
                 })}
               </div>
+
+              {/* 구분선 */}
+              <hr style={{ border: 'none', borderTop: '1px solid #E5E7EB', margin: '16px 0' }} />
+
+              {/* 인터랙션 버튼 (좋아요/댓글) 영역 */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '16px' }}>
+                <button 
+                  onClick={() => handleLike(post.id)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', color: likedPosts[post.id] ? '#EF4444' : '#6B7280', fontWeight: 'bold', padding: 0 }}
+                >
+                  <Heart size={22} fill={likedPosts[post.id] ? '#EF4444' : 'none'} color={likedPosts[post.id] ? '#EF4444' : '#6B7280'} />
+                  좋아요 {likes[post.id] || 0}
+                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#6B7280', fontWeight: 'bold' }}>
+                  <MessageCircle size={22} />
+                  댓글 {(comments[post.id] || []).length}
+                </div>
+              </div>
+
+              {/* 댓글 리스트 출력 영역 */}
+              {(comments[post.id] && comments[post.id].length > 0) && (
+                <div style={{ background: '#F9FAFB', borderRadius: '8px', padding: '12px', marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {comments[post.id].map((c, idx) => (
+                    <div key={idx} style={{ fontSize: '0.9rem', color: '#374151' }}>
+                      <strong style={{ color: '#1E3A8A' }}>회원:</strong> {c.text} 
+                      <span style={{ fontSize: '0.75rem', color: '#9CA3AF', marginLeft: '6px' }}>{c.date}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* 댓글 입력 폼 */}
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input 
+                  type="text" 
+                  placeholder="응원이나 질문을 남겨보세요..." 
+                  value={commentInputs[post.id] || ''}
+                  onChange={(e) => handleCommentChange(post.id, e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && submitComment(post.id)}
+                  style={{ flex: 1, padding: '10px 14px', borderRadius: '24px', border: '1px solid #D1D5DB', fontSize: '0.95rem', outline: 'none', background: '#F3F4F6' }}
+                />
+                <button 
+                  onClick={() => submitComment(post.id)}
+                  style={{ background: '#2563EB', color: 'white', border: 'none', borderRadius: '50%', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+                >
+                  <Send size={18} />
+                </button>
+              </div>
+
             </div>
           );
         })}

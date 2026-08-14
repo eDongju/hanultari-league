@@ -1,0 +1,30 @@
+name: Daily Hanullog Magazine Generator
+
+on:
+  schedule:
+    # 매일 새벽 5시 KST (UTC 기준 전날 오후 8시)
+    - cron: '0 20 * * *'
+  workflow_dispatch: # 원할 때 수동으로도 실행할 수 있도록 버튼 추가
+
+jobs:
+  generate-post:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 레포지토리 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 환경 세팅
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 필수 패키지 설치
+        run: npm install @google/generative-ai firebase-admin
+
+      - name: AI 매거진 생성 스크립트 실행
+        env:
+          # GitHub Secrets에 등록된 키를 환경 변수로 주입
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node generate_magazine.cjs
