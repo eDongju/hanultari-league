@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Camera, Plus, Trash2, ArrowUpDown, X, User, Users, Edit, Medal, List, Award, BarChart2, Utensils } from 'lucide-react';
+import { Camera, Plus, Trash2, ArrowUpDown, X, User, Users, Edit, Medal, List, Award, BarChart2, Utensils, BookOpen } from 'lucide-react';
 import './index.css';
 import membersData from './members.json';
 import { collection, doc, onSnapshot, setDoc, deleteDoc, writeBatch } from 'firebase/firestore';
@@ -11,6 +11,7 @@ import RankingsView from './components/RankingsView';
 import LeagueHistory from './components/LeagueHistory';
 import MemberStats from './components/MemberStats';
 import MealCalculator from './components/MealCalculator';
+import HanullogTab from './components/HanullogTab';
 import combinations from './data/combinations.json';
 
 const charToIndex = (c: string) => {
@@ -73,13 +74,13 @@ export const ProfileImage = ({ member, size = 45 }: { member: Member, size?: num
 };
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'match' | 'members' | 'playerSetup' | 'matchInput' | 'rankings' | 'history' | 'stats' | 'meal'>(() => {
+  const [activeTab, setActiveTab] = useState<'hanullog' | 'match' | 'members' | 'playerSetup' | 'matchInput' | 'rankings' | 'history' | 'stats' | 'meal'>(() => {
     return (localStorage.getItem('activeTab') as any) || 'members';
   });
   const [slideDir, setSlideDir] = useState<'left'|'right'|''>('');
 
   const handleTabChange = (newTab: any) => {
-    const TABS = ['playerSetup', 'matchInput', 'rankings', 'history', 'members', 'stats', 'meal'];
+    const TABS = ['hanullog', 'playerSetup', 'matchInput', 'rankings', 'history', 'members', 'stats', 'meal'];
     const oldIdx = TABS.indexOf(activeTab);
     const newIdx = TABS.indexOf(newTab);
     if (newIdx > oldIdx) setSlideDir('left');
@@ -154,7 +155,7 @@ function App() {
     const isRightSwipe = xDistance < -80;
     
     if (isLeftSwipe || isRightSwipe) {
-      const TABS = ['playerSetup', 'matchInput', 'rankings', 'history', 'members', 'stats', 'meal'];
+      const TABS = ['hanullog', 'playerSetup', 'matchInput', 'rankings', 'history', 'members', 'stats', 'meal'];
       const currentIndex = TABS.indexOf(activeTab);
       
       if (isLeftSwipe && currentIndex < TABS.length - 1) {
@@ -654,6 +655,7 @@ function App() {
           </div>
           <div className="tab-nav">
             {/* 새로운 주말리그용 탭 4개 */}
+            <button onClick={() => handleTabChange('hanullog')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'hanullog' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'hanullog' ? 'white' : '#2563EB' }}><BookOpen size={18} /> 한울로그</button>
             <button onClick={() => handleTabChange('playerSetup')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'playerSetup' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'playerSetup' ? 'white' : '#2563EB' }}><Users size={18} /> 참가선수</button>
             <button onClick={() => handleTabChange('matchInput')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'matchInput' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'matchInput' ? 'white' : '#2563EB' }}><Edit size={18} /> 결과입력</button>
             <button onClick={() => handleTabChange('rankings')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'rankings' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'rankings' ? 'white' : '#2563EB' }}><Medal size={18} /> 리그순위</button>
@@ -707,6 +709,9 @@ function App() {
 
         {/* 신규 화면 컴포넌트 렌더링 */}
         <div key={activeTab} className={slideDir ? (slideDir === 'left' ? 'slide-left' : 'slide-right') : ''} style={{ width: '100%' }}>
+        {activeTab === 'hanullog' && (
+          <HanullogTab />
+        )}
         {activeTab === 'playerSetup' && (
           <div style={isReadOnly ? { pointerEvents: 'none', opacity: 0.8 } : {}}>
             {isReadOnly && <div style={{ padding: '10px', background: '#FEE2E2', color: '#991B1B', textAlign: 'center', fontWeight: 'bold', marginBottom: '15px', borderRadius: '8px' }}>⚠️ 7일이 지난 리그는 읽기 전용입니다. (수정 불가)</div>}
