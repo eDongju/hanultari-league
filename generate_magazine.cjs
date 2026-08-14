@@ -27,8 +27,8 @@ async function generateDailyPost() {
     
     // 3. AI 호출 로직
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    // 가장 안정적인 gemini-1.5-pro 모델 사용 (flash 버전 접근 불가 에러 대응)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    // 모든 환경과 API 키에서 가장 넓게 지원되는 기본 모델 (gemini-pro) 사용
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     
     const finalPrompt = promptTemplate + `\n\n오늘의 요일은 ${todayStr}입니다. 이 요일에 맞는 주제로 글을 작성해 주세요.`;
     const result = await model.generateContent(finalPrompt);
