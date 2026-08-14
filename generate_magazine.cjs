@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const { initializeApp, cert } = require('firebase-admin/app');
+const { initializeApp, cert, getApps } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 require('dotenv').config(); // 로컬 테스트 시 .env 파일 사용
 
@@ -94,7 +94,7 @@ async function generateDailyPost() {
     }
     
     // 이미 초기화된 앱이 없을 때만 초기화
-    if (!require('firebase-admin').apps.length) {
+    if (!getApps().length) {
       initializeApp({ credential: cert(serviceAccount) });
     }
     const db = getFirestore();
