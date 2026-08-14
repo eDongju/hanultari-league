@@ -17,10 +17,10 @@ jobs:
       - name: Node.js 환경 세팅
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: 필수 패키지 설치
-        run: npm install @google/generative-ai firebase-admin
+        run: npm install @google/generative-ai firebase-admin dotenv
 
       - name: AI 매거진 생성 스크립트 실행
         env:
