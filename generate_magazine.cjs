@@ -39,21 +39,31 @@ async function generateDailyPost() {
         .map(m => m.name.replace("models/", ""));
       console.log("✅ 현재 API 키로 사용 가능한 모델 목록:", availableModels);
       
-      // 목록 중 가장 적절한 모델 자동 선택 (gemini-2.0, 1.5-flash, 1.5-pro 등)
-      let selectedModel = "gemini-1.5-flash"; // 기본값
-      if (availableModels.length > 0) {
-        // flash 계열 우선, 없으면 첫번째 모델 사용
-        const flashModel = availableModels.find(m => m.includes("flash"));
-        selectedModel = flashModel || availableModels[0];
+      // 사용 가능한 모델들을 순회하며 성공할 때까지 시도합니다.
+      let finalResponse = null;
+      let selectedModelName = "";
+
+      for (const m of availableModels) {
+        try {
+          console.log(`🤖 모델 시도 중: ${m}...`);
+          const model = genAI.getGenerativeModel({ model: m });
+          const finalPrompt = promptTemplate + `\n\n오늘의 요일은 ${todayStr}입니다. 이 요일에 맞는 주제로 글을 작성해 주세요.`;
+          
+          const result = await model.generateContent(finalPrompt);
+          finalResponse = await result.response;
+          selectedModelName = m;
+          console.log(`✅ 모델 ${m} (으)로 생성 성공!`);
+          break; // 성공하면 루프 종료
+        } catch (err) {
+          console.warn(`⚠️ 모델 ${m} 실패:`, err.message);
+        }
       }
-      console.log(`🤖 자동 선택된 모델: ${selectedModel} (이 모델로 생성을 시도합니다)`);
+
+      if (!finalResponse) {
+        throw new Error("사용 가능한 모든 모델에서 텍스트 생성을 실패했습니다.");
+      }
       
-      const model = genAI.getGenerativeModel({ model: selectedModel });
-      const finalPrompt = promptTemplate + `\n\n오늘의 요일은 ${todayStr}입니다. 이 요일에 맞는 주제로 글을 작성해 주세요.`;
-      
-      const result = await model.generateContent(finalPrompt);
-      const response = await result.response;
-      let text = response.text();
+      let text = finalResponse.text();
       
       // JSON 파싱 (마크다운 백틱 등 제거 처리)
       text = text.replace(/```json/g, '').replace(/```/g, '').trim();
