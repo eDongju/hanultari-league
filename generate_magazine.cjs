@@ -84,7 +84,9 @@ async function generateDailyPost() {
       createdAt: new Date(),
     });
     
-    console.log("✅ Firebase 업로드 완료!");
+    console.log("✅ Firebase 업로드 완료!");    } else {
+      throw new Error("모델 목록을 불러오지 못했습니다. API 키가 유효한지 확인해주세요.");
+    }
 
   } catch (error) {
     console.error("❌ 포스트 생성 실패:", error);
