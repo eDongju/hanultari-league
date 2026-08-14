@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Heart, MessageCircle, Send } from 'lucide-react';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { db } from '../firebase';
 
 const HanullogTab = () => {
   const [posts, setPosts] = useState<any[]>([]);
