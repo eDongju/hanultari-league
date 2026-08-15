@@ -227,11 +227,9 @@ function App() {
       if (!snapshot.empty) {
         setAllMembers(snapshot.docs.map(doc => doc.data() as Member));
       } else {
+        // 일시적인 네트워크 오류 등으로 snapshot이 비어있을 때 DB 전체가 초기화되는 대참사 방지
         const defaultMembers = membersData as any;
         setAllMembers(defaultMembers);
-        const batch = writeBatch(db);
-        defaultMembers.forEach((m: Member) => batch.set(doc(db, 'members', m.id), m));
-        batch.commit();
       }
     });
 
