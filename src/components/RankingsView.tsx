@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react';
 import combinations from '../data/combinations.json';
 import html2canvas from 'html2canvas';
 import { Camera, Medal } from 'lucide-react';
+import hanulLogo from '../assets/hanul_logo.jpg';
 
 const charToIndex = (c: string) => {
   if (c >= '1' && c <= '9') return parseInt(c) - 1;
@@ -47,6 +48,11 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
       scrollContainer.style.overflowX = 'visible';
     }
 
+    const printTitle = tableRef.current.querySelector('.print-title') as HTMLElement;
+    if (printTitle) {
+      printTitle.style.display = 'flex';
+    }
+
     try {
       const canvas = await html2canvas(tableRef.current, {
         scale: 2,
@@ -58,6 +64,9 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
         windowHeight: document.documentElement.scrollHeight
       });
       
+      if (printTitle) {
+        printTitle.style.display = 'none';
+      }
       if (scrollContainer) {
         scrollContainer.style.overflowX = originalOverflow;
       }
@@ -100,6 +109,9 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
     } catch (err) {
       console.error('Failed to capture image', err);
       // 에러 발생 시에도 복구
+      if (printTitle) {
+        printTitle.style.display = 'none';
+      }
       if (scrollContainer) {
         scrollContainer.style.overflowX = originalOverflow;
       }
@@ -240,12 +252,15 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
       <p style={{ color: '#6B7280', marginBottom: '20px' }}>현재까지 입력된 점수를 바탕으로 실시간 순위가 자동 계산됩니다.</p>
       
       <div ref={tableRef} style={{ background: 'white', padding: '10px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '10px' }}>
-          <h3 style={{ margin: 0, color: '#1E3A8A', display: 'none' }} className="print-title">
-            한울타리 주말리그 경기결과
-          </h3>
-          <div style={{ marginLeft: 'auto', fontSize: '0.9rem', color: '#4B5563', fontWeight: 'bold', background: '#F3F4F6', padding: '6px 12px', borderRadius: '4px' }}>
-            {courtName ? `${courtName} - ${courtType} (${courtEnv})` : `${courtType} (${courtEnv})`}
+        <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '10px' }}>
+          <div className="print-title" style={{ display: 'none', alignItems: 'center', justifyContent: 'center', gap: '15px', padding: '15px 0 25px 0' }}>
+            <img src={hanulLogo} alt="Hanul Logo" style={{ height: '50px', flexShrink: 0, borderRadius: '8px', objectFit: 'cover' }} />
+            <h1 style={{ margin: 0, color: '#1E3A8A', fontSize: '2.4rem', fontWeight: '800' }}>한울타리 주말리그</h1>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ fontSize: '0.9rem', color: '#4B5563', fontWeight: 'bold', background: '#F3F4F6', padding: '6px 12px', borderRadius: '4px' }}>
+              {courtName ? `${courtName} - ${courtType} (${courtEnv})` : `${courtType} (${courtEnv})`}
+            </div>
           </div>
         </div>
 
