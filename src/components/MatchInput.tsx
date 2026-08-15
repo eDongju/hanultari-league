@@ -386,7 +386,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
           <select 
             value={pointMemberId} 
             onChange={e => setPointMemberId(e.target.value)}
-            style={{ padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', flex: 1, minWidth: '120px' }}
+            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', flex: 1, minWidth: '120px', fontSize: '1rem' }}
           >
             <option value="">선수 선택</option>
             {participatingMembers.filter(Boolean).map(m => (
@@ -396,7 +396,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
           <select
             value={pointType}
             onChange={e => setPointType(e.target.value)}
-            style={{ padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', width: '100px' }}
+            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', width: '110px', fontSize: '1rem' }}
           >
             <option value="R">R.Point</option>
             <option value="G">G.Point</option>
@@ -405,18 +405,18 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
             type="number"
             value={pointAmount}
             onChange={e => setPointAmount(e.target.value)}
-            style={{ padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', width: '70px', textAlign: 'center' }}
+            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', width: '70px', textAlign: 'center', fontSize: '1rem' }}
           />
           <input
             type="text"
             placeholder="내역 (예: 화성배 우승, 커피)"
             value={pointDesc}
             onChange={e => setPointDesc(e.target.value)}
-            style={{ padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', flex: 2, minWidth: '150px' }}
+            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', flex: 2, minWidth: '150px', fontSize: '1rem' }}
           />
           <button 
             onClick={handleAddPoint}
-            style={{ padding: '8px 15px', background: '#10B981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+            style={{ padding: '10px 18px', background: '#10B981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' }}
           >
             부여
           </button>
