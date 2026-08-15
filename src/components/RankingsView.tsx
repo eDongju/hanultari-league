@@ -53,6 +53,11 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
       printTitle.style.display = 'flex';
     }
 
+    const printMatches = tableRef.current.querySelector('.print-matches') as HTMLElement;
+    if (printMatches) {
+      printMatches.style.display = 'block';
+    }
+
     try {
       const canvas = await html2canvas(tableRef.current, {
         scale: 2,
@@ -66,6 +71,9 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
       
       if (printTitle) {
         printTitle.style.display = 'none';
+      }
+      if (printMatches) {
+        printMatches.style.display = 'none';
       }
       if (scrollContainer) {
         scrollContainer.style.overflowX = originalOverflow;
@@ -111,6 +119,9 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
       // 에러 발생 시에도 복구
       if (printTitle) {
         printTitle.style.display = 'none';
+      }
+      if (printMatches) {
+        printMatches.style.display = 'none';
       }
       if (scrollContainer) {
         scrollContainer.style.overflowX = originalOverflow;
@@ -311,6 +322,90 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
           </table>
         </div>
       )}
+
+      {/* 캡처용 경기 결과 요약 (평소엔 숨김, 캡처 시에만 표시) */}
+      <div className="print-matches" style={{ display: 'none', marginTop: '30px' }}>
+        <h3 style={{ borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', color: '#1E3A8A' }}>경기 결과 요약</h3>
+        
+        {(() => {
+          let currentCombinations = [...((combinations as Record<string, string[]>)[bracketOption] || [])];
+          const maxMatchIdx = Math.max(-1, ...Object.keys(matchScores).map(k => parseInt(k.split('-')[0], 10)));
+          if (maxMatchIdx >= currentCombinations.length) {
+            const padCount = maxMatchIdx - currentCombinations.length + 1;
+            for (let i = 0; i < padCount; i++) {
+              currentCombinations.push("1234");
+            }
+          }
+
+          return currentCombinations.map((matchStr, matchIdx) => {
+            const matchesInRound = [];
+            for (let i = 0; i < matchStr.length; i += 4) {
+              const sub = matchStr.slice(i, i + 4);
+              if (sub.length === 4) matchesInRound.push(sub);
+            }
+
+            const hasAnyScore = matchesInRound.some((_, idx) => {
+              const matchId = `${matchIdx}-${idx}`;
+              const s = matchScores[matchId];
+              return s && (s.t1 !== '' || s.t2 !== '');
+            });
+            if (!hasAnyScore) return null;
+
+            return (
+              <div key={matchIdx} style={{ marginBottom: '15px' }}>
+                <h4 style={{ margin: '0 0 8px 0', color: '#374151', fontSize: '1.1rem' }}>{matchIdx + 1} 경기</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {matchesInRound.map((mStr, idx) => {
+                    const matchId = `${matchIdx}-${idx}`;
+                    const score = matchScores[matchId] || { t1: '', t2: '' };
+                    if (score.t1 === '' && score.t2 === '') return null;
+
+                    const p1 = participatingMembers[charToIndex(mStr[0])];
+                    const p2 = participatingMembers[charToIndex(mStr[1])];
+                    const p3 = participatingMembers[charToIndex(mStr[2])];
+                    const p4 = participatingMembers[charToIndex(mStr[3])];
+                    
+                    const p1Id = matchOverrides[matchId]?.[0] || p1?.id;
+                    const p2Id = matchOverrides[matchId]?.[1] || p2?.id;
+                    const p3Id = matchOverrides[matchId]?.[2] || p3?.id;
+                    const p4Id = matchOverrides[matchId]?.[3] || p4?.id;
+
+                    const getPlayerName = (pId: string | undefined, fallbackStr: string) => {
+                      const member = allMembers.find(m => m.id === pId);
+                      return member ? member.name : fallbackStr;
+                    };
+
+                    const p1NameStr = getPlayerName(p1Id, p1 ? p1.name : `선수${charToIndex(mStr[0]) + 1}`);
+                    const p2NameStr = getPlayerName(p2Id, p2 ? p2.name : `선수${charToIndex(mStr[1]) + 1}`);
+                    const p3NameStr = getPlayerName(p3Id, p3 ? p3.name : `선수${charToIndex(mStr[2]) + 1}`);
+                    const p4NameStr = getPlayerName(p4Id, p4 ? p4.name : `선수${charToIndex(mStr[3]) + 1}`);
+
+                    const s1 = parseInt(score.t1) || 0;
+                    const s2 = parseInt(score.t2) || 0;
+
+                    return (
+                      <div key={idx} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#F9FAFB', padding: '8px', borderRadius: '6px', border: '1px solid #E5E7EB' }}>
+                        <div style={{ flex: 1, textAlign: 'right', fontWeight: 'bold', color: '#0369A1' }}>
+                          {p1NameStr}, {p2NameStr}
+                        </div>
+                        <div style={{ padding: '0 15px', fontWeight: 'bold', fontSize: '1.2rem', color: '#1F2937' }}>
+                          <span style={{ color: s1 > s2 ? '#10B981' : '#4B5563' }}>{score.t1}</span>
+                          <span style={{ margin: '0 8px', color: '#9CA3AF' }}>:</span>
+                          <span style={{ color: s2 > s1 ? '#10B981' : '#4B5563' }}>{score.t2}</span>
+                        </div>
+                        <div style={{ flex: 1, textAlign: 'left', fontWeight: 'bold', color: '#6D28D9' }}>
+                          {p3NameStr}, {p4NameStr}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          });
+        })()}
+      </div>
+
       </div>
     </div>
   );
