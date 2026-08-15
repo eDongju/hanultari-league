@@ -21,9 +21,10 @@ interface MatchInputProps {
   setCourtType: (type: string) => void;
   courtEnv: string;
   setCourtEnv: (env: string) => void;
+  forceSave?: () => void;
 }
 
-export default function MatchInput({ allMembers, participatingMembers, bracketOption, matchScores, setMatchScores, matchOverrides, setMatchOverrides, courtName, setCourtName, courtType, setCourtType, courtEnv, setCourtEnv }: MatchInputProps) {
+export default function MatchInput({ allMembers, participatingMembers, bracketOption, matchScores, setMatchScores, matchOverrides, setMatchOverrides, courtName, setCourtName, courtType, setCourtType, courtEnv, setCourtEnv, forceSave }: MatchInputProps) {
   
   const [editModes, setEditModes] = useState<Record<string, boolean>>({});
   const [scoreModal, setScoreModal] = useState<{ matchId: string, t1Name: string, t2Name: string } | null>(null);
@@ -326,7 +327,10 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                 닫기
               </button>
               <button 
-                onClick={() => setScoreModal(null)}
+                onClick={() => {
+                  setScoreModal(null);
+                  if (forceSave) forceSave();
+                }}
                 style={{ flex: 1, padding: '15px', fontSize: '1.2rem', background: '#10B981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
               >
                 저장 완료

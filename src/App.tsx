@@ -262,41 +262,48 @@ function App() {
     return diffDays > 7;
   }, [currentSessionDate]);
 
-  // 상태 변경 시 자동 저장 로직 (Auto-save)
-  useEffect(() => {
+  const forceSaveSession = async () => {
     if (isReadOnly) return;
     if (participatingMembers.filter(Boolean).length === 0) return;
-    if (Object.keys(matchScores).length === 0 && Object.keys(matchOverrides).length === 0) {}
 
-    const timeoutId = setTimeout(async () => {
-      let idToSave = currentSessionId;
-      if (!idToSave) {
-        idToSave = `${currentSessionDate}_${Date.now()}`;
-        setCurrentSessionId(idToSave);
-      }
-      
-      const newSession = {
-        id: idToSave,
-        date: currentSessionDate,
-        participatingMembers,
-        bracketOption,
-        matchScores,
-        matchOverrides,
-        courtName,
-        courtType
-      };
+    let idToSave = currentSessionId;
+    if (!idToSave) {
+      idToSave = `${currentSessionDate}_${Date.now()}`;
+      setCurrentSessionId(idToSave);
+    }
+    
+    const newSession = {
+      id: idToSave,
+      date: currentSessionDate,
+      participatingMembers,
+      bracketOption,
+      matchScores,
+      matchOverrides,
+      courtName,
+      courtType
+    };
 
-      localStorage.setItem('currentSessionId', idToSave);
-      localStorage.setItem('currentSessionDate', currentSessionDate);
-      localStorage.setItem('participatingMembers', JSON.stringify(participatingMembers));
-      localStorage.setItem('bracketOption', bracketOption);
-      localStorage.setItem('matchScores', JSON.stringify(matchScores));
-      localStorage.setItem('matchOverrides', JSON.stringify(matchOverrides));
-      localStorage.setItem('courtName', courtName);
-      localStorage.setItem('courtType', courtType);
-      localStorage.setItem('courtEnv', courtEnv);
+    localStorage.setItem('currentSessionId', idToSave);
+    localStorage.setItem('currentSessionDate', currentSessionDate);
+    localStorage.setItem('participatingMembers', JSON.stringify(participatingMembers));
+    localStorage.setItem('bracketOption', bracketOption);
+    localStorage.setItem('matchScores', JSON.stringify(matchScores));
+    localStorage.setItem('matchOverrides', JSON.stringify(matchOverrides));
+    localStorage.setItem('courtName', courtName);
+    localStorage.setItem('courtType', courtType);
+    localStorage.setItem('courtEnv', courtEnv);
 
+    try {
       await setDoc(doc(db, 'sessions', idToSave), newSession);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // 상태 변경 시 자동 저장 로직 (Auto-save)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      forceSaveSession();
     }, 1500); // 1.5초 디바운스
 
     return () => clearTimeout(timeoutId);
@@ -757,6 +764,7 @@ function App() {
               setCourtType={setCourtType}
               courtEnv={courtEnv}
               setCourtEnv={setCourtEnv}
+              forceSave={forceSaveSession}
             />
           </div>
         )}
