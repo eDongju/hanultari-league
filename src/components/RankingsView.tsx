@@ -58,17 +58,22 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
       printMatches.style.display = 'block';
     }
 
+    const originalScrollX = window.scrollX;
+    const originalScrollY = window.scrollY;
+    window.scrollTo(0, 0);
+
+    const originalWidth = tableRef.current.style.width;
+    tableRef.current.style.width = 'max-content';
+
     try {
       const canvas = await html2canvas(tableRef.current, {
         scale: 2,
-        backgroundColor: '#ffffff',
-        // 모바일 스크롤 위치에 따른 캡처 오류 방지
-        scrollX: -window.scrollX,
-        scrollY: -window.scrollY,
-        windowWidth: document.documentElement.scrollWidth,
-        windowHeight: document.documentElement.scrollHeight
+        backgroundColor: '#ffffff'
       });
       
+      tableRef.current.style.width = originalWidth;
+      window.scrollTo(originalScrollX, originalScrollY);
+
       if (printTitle) {
         printTitle.style.display = 'none';
       }
@@ -117,6 +122,9 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
     } catch (err) {
       console.error('Failed to capture image', err);
       // 에러 발생 시에도 복구
+      tableRef.current.style.width = originalWidth;
+      window.scrollTo(originalScrollX, originalScrollY);
+
       if (printTitle) {
         printTitle.style.display = 'none';
       }
@@ -354,7 +362,7 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
             return (
               <div key={matchIdx} style={{ marginBottom: '15px' }}>
                 <h4 style={{ margin: '0 0 8px 0', color: '#374151', fontSize: '1.1rem' }}>{matchIdx + 1} 경기</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                   {matchesInRound.map((mStr, idx) => {
                     const matchId = `${matchIdx}-${idx}`;
                     const score = matchScores[matchId] || { t1: '', t2: '' };
@@ -384,8 +392,8 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
                     const s2 = parseInt(score.t2) || 0;
 
                     return (
-                      <div key={idx} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#F9FAFB', padding: '8px', borderRadius: '6px', border: '1px solid #E5E7EB' }}>
-                        <div style={{ flex: 1, textAlign: 'right', fontWeight: 'bold', color: '#0369A1' }}>
+                      <div key={idx} style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', background: '#F9FAFB', padding: '8px 20px', borderRadius: '6px', border: '1px solid #E5E7EB', margin: '0 auto' }}>
+                        <div style={{ textAlign: 'right', fontWeight: 'bold', color: '#0369A1' }}>
                           {p1NameStr}, {p2NameStr}
                         </div>
                         <div style={{ padding: '0 15px', fontWeight: 'bold', fontSize: '1.2rem', color: '#1F2937' }}>
@@ -393,7 +401,7 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
                           <span style={{ margin: '0 8px', color: '#9CA3AF' }}>:</span>
                           <span style={{ color: s2 > s1 ? '#10B981' : '#4B5563' }}>{score.t2}</span>
                         </div>
-                        <div style={{ flex: 1, textAlign: 'left', fontWeight: 'bold', color: '#6D28D9' }}>
+                        <div style={{ textAlign: 'left', fontWeight: 'bold', color: '#6D28D9' }}>
                           {p3NameStr}, {p4NameStr}
                         </div>
                       </div>
