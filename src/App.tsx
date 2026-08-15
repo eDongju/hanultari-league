@@ -158,10 +158,16 @@ function App() {
     if (target.closest('table') || target.closest('select') || target.closest('input')) return;
 
     const xDistance = touchStartPos.current.x - touchEndPos.current.x;
-    const yDistance = Math.abs(touchStartPos.current.y - touchEndPos.current.y);
+    const yDistanceRaw = touchStartPos.current.y - touchEndPos.current.y;
+    const yDistance = Math.abs(yDistanceRaw);
     
-    // 상하 스크롤 중이면 무시
-    if (yDistance > Math.abs(xDistance)) return;
+    // 상하 스크롤 중이면 무시하되, 맨 위에서 아래로 크게 당기면 새로고침
+    if (yDistance > Math.abs(xDistance)) {
+      if (window.scrollY <= 0 && yDistanceRaw < -120) {
+        window.location.reload();
+      }
+      return;
+    }
 
     const isLeftSwipe = xDistance > 80;
     const isRightSwipe = xDistance < -80;
