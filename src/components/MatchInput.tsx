@@ -34,7 +34,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
   const [scoreModal, setScoreModal] = useState<{ matchId: string, t1Name: string, t2Name: string } | null>(null);
 
   const [pointMemberId, setPointMemberId] = useState('');
-  const [pointType, setPointType] = useState('R');
+  const [pointType, setPointType] = useState('G');
   const [pointAmount, setPointAmount] = useState('1');
   const [pointDesc, setPointDesc] = useState('');
   
@@ -127,7 +127,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
         [fieldToUpdate]: increment(amount)
       });
       
-      const member = participatingMembers.find(m => m && m.id === pointMemberId);
+      const member = allMembers.find(m => m && m.id === pointMemberId);
       const newEntry = {
         id: Date.now().toString(),
         memberId: pointMemberId,
@@ -389,7 +389,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
             style={{ padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', flex: 1, minWidth: '120px', fontSize: '1rem' }}
           >
             <option value="">선수 선택</option>
-            {participatingMembers.filter(Boolean).map(m => (
+            {allMembers.filter(Boolean).map(m => (
               <option key={m.id} value={m.id}>{m.name}</option>
             ))}
           </select>
@@ -398,8 +398,8 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
             onChange={e => setPointType(e.target.value)}
             style={{ padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', width: '110px', fontSize: '1rem' }}
           >
-            <option value="R">R.Point</option>
             <option value="G">G.Point</option>
+            <option value="R">R.Point</option>
           </select>
           <input
             type="number"
