@@ -138,6 +138,20 @@ function App() {
   const [courtType, setCourtType] = useState<string>(() => localStorage.getItem('courtType') || '인조잔디');
   const [courtEnv, setCourtEnv] = useState<string>(() => localStorage.getItem('courtEnv') || '야외');
 
+  type PointHistoryEntry = {
+    id: string;
+    memberId: string;
+    memberName: string;
+    type: 'R' | 'G';
+    amount: number;
+    timestamp: number;
+  };
+
+  const [pointHistory, setPointHistory] = useState<PointHistoryEntry[]>(() => {
+    const saved = localStorage.getItem('pointHistory');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const touchStartPos = useRef<{x: number, y: number} | null>(null);
   const touchEndPos = useRef<{x: number, y: number} | null>(null);
 
@@ -280,7 +294,8 @@ function App() {
       matchScores,
       matchOverrides,
       courtName,
-      courtType
+      courtType,
+      pointHistory
     };
 
     localStorage.setItem('currentSessionId', idToSave);
@@ -292,6 +307,7 @@ function App() {
     localStorage.setItem('courtName', courtName);
     localStorage.setItem('courtType', courtType);
     localStorage.setItem('courtEnv', courtEnv);
+    localStorage.setItem('pointHistory', JSON.stringify(pointHistory));
 
     try {
       await setDoc(doc(db, 'sessions', idToSave), newSession);
@@ -307,7 +323,7 @@ function App() {
     }, 1500); // 1.5초 디바운스
 
     return () => clearTimeout(timeoutId);
-  }, [participatingMembers, bracketOption, matchScores, matchOverrides, currentSessionDate, currentSessionId, courtName, courtType, courtEnv]);
+  }, [participatingMembers, bracketOption, matchScores, matchOverrides, currentSessionDate, currentSessionId, courtName, courtType, courtEnv, pointHistory]);
 
   const globalStats = useMemo(() => {
     const stats: Record<string, { matches: number, wins: number, losses: number, sessionMatches: number, sessionWins: number, sessionLosses: number, deuceCount: number, adCount: number, duoStats: Record<string, { wins: number, matches: number }>, attendances: number }> = {};
@@ -435,6 +451,7 @@ function App() {
     setCourtName(session.courtName || '');
     setCourtType(session.courtType || '인조잔디');
     setCourtEnv(session.courtEnv || '야외');
+    setPointHistory(session.pointHistory || []);
     setActiveTab('rankings'); // 불러오면 결과 화면으로 이동
 
     localStorage.setItem('currentSessionId', session.id);
@@ -474,6 +491,7 @@ function App() {
       setCourtName('');
       setCourtType('인조잔디');
       setCourtEnv('야외');
+      setPointHistory([]);
       
       const today = new Date();
       const todayStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
@@ -701,6 +719,7 @@ function App() {
                       setCourtName('');
                       setCourtType('인조잔디');
                       setCourtEnv('야외');
+                      setPointHistory([]);
                       setActiveTab('playerSetup');
                       
                       const today = new Date();
@@ -764,6 +783,8 @@ function App() {
               setCourtType={setCourtType}
               courtEnv={courtEnv}
               setCourtEnv={setCourtEnv}
+              pointHistory={pointHistory}
+              setPointHistory={setPointHistory}
               forceSave={forceSaveSession}
             />
           </div>

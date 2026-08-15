@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { ArrowUpDown, Edit, CheckCircle } from 'lucide-react';
+import { ArrowUpDown, Edit, CheckCircle, Trash2 } from 'lucide-react';
+import { doc, updateDoc, increment } from 'firebase/firestore';
+import { db } from '../firebase';
 import combinations from '../data/combinations.json';
 
 const charToIndex = (c: string) => {
@@ -21,13 +23,19 @@ interface MatchInputProps {
   setCourtType: (type: string) => void;
   courtEnv: string;
   setCourtEnv: (env: string) => void;
+  pointHistory?: any[];
+  setPointHistory?: (history: any[]) => void;
   forceSave?: () => void;
 }
 
-export default function MatchInput({ allMembers, participatingMembers, bracketOption, matchScores, setMatchScores, matchOverrides, setMatchOverrides, courtName, setCourtName, courtType, setCourtType, courtEnv, setCourtEnv, forceSave }: MatchInputProps) {
+export default function MatchInput({ allMembers, participatingMembers, bracketOption, matchScores, setMatchScores, matchOverrides, setMatchOverrides, courtName, setCourtName, courtType, setCourtType, courtEnv, setCourtEnv, pointHistory, setPointHistory, forceSave }: MatchInputProps) {
   
   const [editModes, setEditModes] = useState<Record<string, boolean>>({});
   const [scoreModal, setScoreModal] = useState<{ matchId: string, t1Name: string, t2Name: string } | null>(null);
+
+  const [pointMemberId, setPointMemberId] = useState('');
+  const [pointType, setPointType] = useState('R');
+  const [pointAmount, setPointAmount] = useState('1');
   
   let currentCombinations = [...((combinations as Record<string, string[]>)[bracketOption] || [])];
   const maxMatchIdx = Math.max(-1, ...Object.keys(matchScores).map(k => parseInt(k.split('-')[0], 10)));
@@ -103,6 +111,52 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
     } else {
       alert('모든 경기 결과가 정상적으로 입력되었습니다. 수고하셨습니다!');
       if (forceSave) forceSave();
+    }
+  };
+
+  const handleAddPoint = async () => {
+    if (!pointMemberId || !pointHistory || !setPointHistory) return;
+    const amount = parseInt(pointAmount) || 1;
+    
+    const memberRef = doc(db, 'members', pointMemberId);
+    const fieldToUpdate = pointType === 'R' ? 'roundPoint' : 'gamePoint';
+    
+    try {
+      await updateDoc(memberRef, {
+        [fieldToUpdate]: increment(amount)
+      });
+      
+      const member = participatingMembers.find(m => m && m.id === pointMemberId);
+      const newEntry = {
+        id: Date.now().toString(),
+        memberId: pointMemberId,
+        memberName: member ? member.name : '',
+        type: pointType,
+        amount,
+        timestamp: Date.now()
+      };
+      setPointHistory([...pointHistory, newEntry]);
+      
+      setPointMemberId('');
+      setPointAmount('1');
+    } catch (e) {
+      alert('포인트 저장에 실패했습니다.');
+    }
+  };
+
+  const handleRemovePoint = async (entry: any) => {
+    if (!pointHistory || !setPointHistory) return;
+    const memberRef = doc(db, 'members', entry.memberId);
+    const fieldToUpdate = entry.type === 'R' ? 'roundPoint' : 'gamePoint';
+    
+    try {
+      await updateDoc(memberRef, {
+        [fieldToUpdate]: increment(-entry.amount)
+      });
+      
+      setPointHistory(pointHistory.filter(h => h.id !== entry.id));
+    } catch (e) {
+      alert('포인트 취소에 실패했습니다.');
     }
   };
 
@@ -321,6 +375,57 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
           })}
         </div>
       )}
+
+      {/* 포인트 부여 미니 입력창 */}
+      <div style={{ marginTop: '30px', padding: '15px', background: '#F9FAFB', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
+        <h3 style={{ margin: '0 0 15px 0', color: '#1F2937', fontSize: '1.1rem' }}>🎁 일일 포인트 추가</h3>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <select 
+            value={pointMemberId} 
+            onChange={e => setPointMemberId(e.target.value)}
+            style={{ padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', flex: 1, minWidth: '120px' }}
+          >
+            <option value="">선수 선택</option>
+            {participatingMembers.filter(Boolean).map(m => (
+              <option key={m.id} value={m.id}>{m.name}</option>
+            ))}
+          </select>
+          <select
+            value={pointType}
+            onChange={e => setPointType(e.target.value)}
+            style={{ padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', width: '100px' }}
+          >
+            <option value="R">R.Point</option>
+            <option value="G">G.Point</option>
+          </select>
+          <input
+            type="number"
+            value={pointAmount}
+            onChange={e => setPointAmount(e.target.value)}
+            style={{ padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', width: '70px', textAlign: 'center' }}
+          />
+          <button 
+            onClick={handleAddPoint}
+            style={{ padding: '8px 15px', background: '#10B981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            부여
+          </button>
+        </div>
+        
+        {pointHistory && pointHistory.length > 0 && (
+          <div style={{ marginTop: '15px' }}>
+            <h4 style={{ margin: '0 0 8px 0', fontSize: '0.9rem', color: '#6B7280' }}>오늘 부여 내역</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              {pointHistory.map(entry => (
+                <li key={entry.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '8px 12px', borderRadius: '6px', border: '1px solid #E5E7EB', fontSize: '0.9rem' }}>
+                  <span><strong style={{ color: '#111827' }}>{entry.memberName}</strong> ({entry.type}.Point) <span style={{ color: entry.amount > 0 ? '#10B981' : '#EF4444' }}>{entry.amount > 0 ? `+${entry.amount}` : entry.amount}</span></span>
+                  <button onClick={() => handleRemovePoint(entry)} style={{ background: 'transparent', border: 'none', color: '#EF4444', cursor: 'pointer', padding: '2px' }} title="취소"><Trash2 size={16} /></button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
 
       {/* 팝업 모달 */}
       {scoreModal && (
