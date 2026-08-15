@@ -8,6 +8,7 @@ interface LeagueSession {
   bracketOption: string;
   matchScores: Record<string, { t1: string, t2: string }>;
   matchOverrides: Record<string, Record<number, string>>;
+  pointHistory?: any[];
 }
 
 interface LeagueHistoryProps {
@@ -121,10 +122,23 @@ export default function LeagueHistory({ savedSessions, onLoadSession, onDeleteSe
                           {session.date} 리그{timeString}
                           {isToday && <span style={{ fontSize: '0.8rem', background: '#F59E0B', color: 'white', padding: '2px 8px', borderRadius: '12px', marginLeft: '10px', verticalAlign: 'middle', fontWeight: 'bold' }}>오늘</span>}
                         </h3>
-                        <div style={{ color: '#4B5563', fontSize: '0.9rem' }}>
+                        <div style={{ color: '#4B5563', fontSize: '0.9rem', marginBottom: session.pointHistory && session.pointHistory.length > 0 ? '10px' : '0' }}>
                           <span style={{ marginRight: '15px' }}><strong>참가 인원:</strong> {session.participatingMembers ? session.participatingMembers.filter(Boolean).length : 0}명</span>
                           <span><strong>코트 옵션:</strong> {session.bracketOption}</span>
                         </div>
+                        {session.pointHistory && session.pointHistory.length > 0 && (
+                          <div style={{ fontSize: '0.85rem', background: '#EFF6FF', padding: '8px', borderRadius: '6px', border: '1px solid #BFDBFE' }}>
+                            <strong style={{ color: '#1E3A8A', display: 'block', marginBottom: '4px' }}>포인트 부여 내역:</strong>
+                            <ul style={{ margin: 0, paddingLeft: '20px', color: '#374151', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              {session.pointHistory.map((entry: any, idx: number) => (
+                                <li key={idx}>
+                                  <strong>{entry.memberName}</strong> ({entry.type}.Point) <span style={{ color: entry.amount > 0 ? '#10B981' : '#EF4444' }}>{entry.amount > 0 ? `+${entry.amount}` : entry.amount}</span>
+                                  {entry.description && <span style={{ color: '#6B7280', marginLeft: '4px' }}>- {entry.description}</span>}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                       
                       <div style={{ display: 'flex', gap: '10px' }}>
