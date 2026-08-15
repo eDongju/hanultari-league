@@ -36,19 +36,31 @@ export interface Member {
 }
 
 export const ProfileImage = ({ member, size = 45 }: { member: Member, size?: number }) => {
-  const [imgSrc, setImgSrc] = useState<string | null>(member.photoUrl || `/player/${member.name}.png`);
+  const baseUrl = import.meta.env.BASE_URL;
+  const defaultPng = `${baseUrl}player/${member.name}.png`;
+  const defaultJpg = `${baseUrl}player/${member.name}.jpg`;
+  
+  let initialUrl = member.photoUrl;
+  if (initialUrl && initialUrl.startsWith('/player/')) {
+    initialUrl = baseUrl + 'player/' + initialUrl.split('/player/')[1];
+  }
+  
+  const [imgSrc, setImgSrc] = useState<string | null>(initialUrl || defaultPng);
   const [hasError, setHasError] = useState(false);
   const [retryJpg, setRetryJpg] = useState(false);
 
   useEffect(() => {
-    setImgSrc(member.photoUrl || `/player/${member.name}.png`);
+    setImgSrc(initialUrl || defaultPng);
     setHasError(false);
     setRetryJpg(false);
-  }, [member.photoUrl, member.name]);
+  }, [initialUrl, defaultPng]);
 
   const handleError = () => {
-    if (!retryJpg && !member.photoUrl) {
-      setImgSrc(`/player/${member.name}.jpg`);
+    if (imgSrc === initialUrl && initialUrl) {
+      // 만약 DB에 저장된 photoUrl이 깨졌다면 기본 png로 재시도
+      setImgSrc(defaultPng);
+    } else if (!retryJpg) {
+      setImgSrc(defaultJpg);
       setRetryJpg(true);
     } else {
       setHasError(true);
