@@ -36,6 +36,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
   const [pointMemberId, setPointMemberId] = useState('');
   const [pointType, setPointType] = useState('R');
   const [pointAmount, setPointAmount] = useState('1');
+  const [pointDesc, setPointDesc] = useState('');
   
   let currentCombinations = [...((combinations as Record<string, string[]>)[bracketOption] || [])];
   const maxMatchIdx = Math.max(-1, ...Object.keys(matchScores).map(k => parseInt(k.split('-')[0], 10)));
@@ -133,12 +134,14 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
         memberName: member ? member.name : '',
         type: pointType,
         amount,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        description: pointDesc.trim()
       };
       setPointHistory([...pointHistory, newEntry]);
       
       setPointMemberId('');
       setPointAmount('1');
+      setPointDesc('');
     } catch (e) {
       alert('포인트 저장에 실패했습니다.');
     }
@@ -404,6 +407,13 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
             onChange={e => setPointAmount(e.target.value)}
             style={{ padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', width: '70px', textAlign: 'center' }}
           />
+          <input
+            type="text"
+            placeholder="내역 (예: 화성배 우승, 커피)"
+            value={pointDesc}
+            onChange={e => setPointDesc(e.target.value)}
+            style={{ padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', flex: 2, minWidth: '150px' }}
+          />
           <button 
             onClick={handleAddPoint}
             style={{ padding: '8px 15px', background: '#10B981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
@@ -418,7 +428,11 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '5px' }}>
               {pointHistory.map(entry => (
                 <li key={entry.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '8px 12px', borderRadius: '6px', border: '1px solid #E5E7EB', fontSize: '0.9rem' }}>
-                  <span><strong style={{ color: '#111827' }}>{entry.memberName}</strong> ({entry.type}.Point) <span style={{ color: entry.amount > 0 ? '#10B981' : '#EF4444' }}>{entry.amount > 0 ? `+${entry.amount}` : entry.amount}</span></span>
+                  <span>
+                    <strong style={{ color: '#111827' }}>{entry.memberName}</strong> ({entry.type}.Point) 
+                    <span style={{ color: entry.amount > 0 ? '#10B981' : '#EF4444', marginLeft: '4px', fontWeight: 'bold' }}>{entry.amount > 0 ? `+${entry.amount}` : entry.amount}</span>
+                    {entry.description && <span style={{ color: '#6B7280', marginLeft: '8px', fontSize: '0.85rem' }}>- {entry.description}</span>}
+                  </span>
                   <button onClick={() => handleRemovePoint(entry)} style={{ background: 'transparent', border: 'none', color: '#EF4444', cursor: 'pointer', padding: '2px' }} title="취소"><Trash2 size={16} /></button>
                 </li>
               ))}

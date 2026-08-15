@@ -145,6 +145,7 @@ function App() {
     type: 'R' | 'G';
     amount: number;
     timestamp: number;
+    description?: string;
   };
 
   const [pointHistory, setPointHistory] = useState<PointHistoryEntry[]>(() => {
