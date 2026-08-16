@@ -13,6 +13,7 @@ import MemberStats from './components/MemberStats';
 import MealCalculator from './components/MealCalculator';
 import HanullogTab from './components/HanullogTab';
 import combinations from './data/combinations.json';
+import html2canvas from 'html2canvas';
 
 const charToIndex = (c: string) => {
   if (c >= '1' && c <= '9') return parseInt(c) - 1;
@@ -553,6 +554,50 @@ function App() {
   const [sortConfig, setSortConfig] = useState<{ key: keyof Member | 'rank' | 'sumPoint' | 'winRate' | 'totalWins' | 'totalLosses'; direction: 'asc' | 'desc' }>({ key: 'rank', direction: 'asc' });
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
+  const rankingTableRef = useRef<HTMLDivElement>(null);
+
+  const handleCaptureMembersRanking = async () => {
+    if (!rankingTableRef.current) return;
+    
+    const originalScrollX = window.scrollX;
+    const originalScrollY = window.scrollY;
+
+    const originalWidth = rankingTableRef.current.style.width;
+    const originalMargin = rankingTableRef.current.style.margin;
+    
+    // 캡처 시 좌우 잘림이나 밀림 방지를 위해 너비는 넓히되 여백을 0으로 강제
+    rankingTableRef.current.style.width = 'max-content';
+    rankingTableRef.current.style.margin = '0';
+
+    // 스크롤을 최상단으로 옮긴 후 렌더링을 기다림 (iOS 밀림 현상 방지)
+    window.scrollTo(0, 0);
+    await new Promise(r => setTimeout(r, 200));
+
+    try {
+      const canvas = await html2canvas(rankingTableRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        width: rankingTableRef.current.scrollWidth,
+        windowWidth: rankingTableRef.current.scrollWidth
+      });
+      
+      rankingTableRef.current.style.width = originalWidth;
+      rankingTableRef.current.style.margin = originalMargin;
+      window.scrollTo(originalScrollX, originalScrollY);
+
+      const link = document.createElement('a');
+      link.download = `Hanultari_Members_Ranking_${new Date().toISOString().slice(0,10)}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error('Failed to capture ranking table', err);
+      rankingTableRef.current.style.width = originalWidth;
+      rankingTableRef.current.style.margin = originalMargin;
+      window.scrollTo(originalScrollX, originalScrollY);
+      alert('이미지 저장에 실패했습니다.');
+    }
+  };
+
 
   const sortedMembers = useMemo(() => {
     // 순위(RANK)는 이제 SumPoint(dynamic L.Point + GamePoint) 기준으로 계산합니다.
@@ -864,46 +909,56 @@ function App() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Award size={24} /> 한울랭킹
               </div>
-              <button 
-                onClick={handleAddNewMember}
-                style={{ 
-                  background: '#10B981', color: 'white', border: 'none', padding: '0.5rem 1rem', 
-                  borderRadius: '6px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '0.9rem'
-                }}>
-                <Plus size={16} /> 신규 회원 추가
-              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  onClick={handleCaptureMembersRanking}
+                  style={{ 
+                    background: '#3B82F6', color: 'white', border: 'none', padding: '0.5rem 1rem', 
+                    borderRadius: '6px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '0.9rem'
+                  }}>
+                  <Camera size={16} /> 전체캡처
+                </button>
+                <button 
+                  onClick={handleAddNewMember}
+                  style={{ 
+                    background: '#10B981', color: 'white', border: 'none', padding: '0.5rem 1rem', 
+                    borderRadius: '6px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '0.9rem'
+                  }}>
+                  <Plus size={16} /> 신규 회원
+                </button>
+              </div>
             </h2>
             <p style={{ color: '#6B7280', margin: '0 0 15px 0', fontSize: '0.9rem' }}>Hanultari Official Rankings • {leagueDate}</p>
             
-            <div style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: '8px', overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '550px' }}>
-                <thead style={{ background: '#F9FAFB', borderBottom: '2px solid #E5E7EB' }}>
+            <div ref={rankingTableRef} style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: '8px', overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, textAlign: 'left', minWidth: '550px' }}>
+                <thead style={{ background: '#F9FAFB' }}>
                   <tr>
-                    <th onClick={() => handleSort('rank')} className="sticky-th-rank" style={{ background: '#F9FAFB', padding: '8px 2px', width: '40px', minWidth: '40px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'center' }}>
+                    <th onClick={() => handleSort('rank')} className="sticky-th-rank" style={{ background: '#F9FAFB', borderBottom: '2px solid #E5E7EB', padding: '8px 2px', width: '40px', minWidth: '40px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', textAlign: 'center' }}>
                       RANK
                     </th>
-                    <th onClick={() => handleSort('name')} className="sticky-th-player" style={{ background: '#F9FAFB', padding: '8px 4px', width: '120px', minWidth: '120px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)' }}>
+                    <th onClick={() => handleSort('name')} className="sticky-th-player" style={{ background: '#F9FAFB', borderBottom: '2px solid #E5E7EB', padding: '8px 4px', width: '120px', minWidth: '120px', color: '#6B7280', fontSize: '0.85rem', cursor: 'pointer', boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)' }}>
                       PLAYER <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th onClick={() => handleSort('score')} style={{ padding: '8px 4px', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
+                    <th onClick={() => handleSort('score')} style={{ padding: '8px 4px', borderBottom: '2px solid #E5E7EB', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
                       L.PT <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th style={{ padding: '8px 4px', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
+                    <th style={{ padding: '8px 4px', borderBottom: '2px solid #E5E7EB', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
                       R.PT
                     </th>
-                    <th onClick={() => handleSort('gamePoint')} style={{ padding: '8px 4px', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
+                    <th onClick={() => handleSort('gamePoint')} style={{ padding: '8px 4px', borderBottom: '2px solid #E5E7EB', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
                       G.PT <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th onClick={() => handleSort('winRate')} style={{ padding: '8px 4px', width: '10%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
+                    <th onClick={() => handleSort('winRate')} style={{ padding: '8px 4px', borderBottom: '2px solid #E5E7EB', width: '10%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
                       승률 <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th onClick={() => handleSort('totalWins')} style={{ padding: '8px 4px', width: '9%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
+                    <th onClick={() => handleSort('totalWins')} style={{ padding: '8px 4px', borderBottom: '2px solid #E5E7EB', width: '9%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
                       전체승 <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th onClick={() => handleSort('totalLosses')} style={{ padding: '8px 4px', width: '9%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
+                    <th onClick={() => handleSort('totalLosses')} style={{ padding: '8px 4px', borderBottom: '2px solid #E5E7EB', width: '9%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
                       전체패 <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th onClick={() => handleSort('sumPoint')} style={{ padding: '8px 4px', width: '14%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer', fontWeight: 'bold' }}>
+                    <th onClick={() => handleSort('sumPoint')} style={{ padding: '8px 4px', borderBottom: '2px solid #E5E7EB', width: '14%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer', fontWeight: 'bold' }}>
                       SUM <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
                   </tr>
@@ -933,12 +988,12 @@ function App() {
                       key={member.id} 
                       className="ranking-row"
                       onClick={() => setSelectedMember(member)}
-                      style={{ borderBottom: '1px solid #E5E7EB', transition: 'background 0.2s', cursor: 'pointer', background: 'var(--base-bg)', '--base-bg': baseBg, '--hover-bg': hoverBg } as any}
+                      style={{ transition: 'background 0.2s', cursor: 'pointer', background: 'var(--base-bg)', '--base-bg': baseBg, '--hover-bg': hoverBg } as any}
                     >
-                      <td className="sticky-col sticky-td-rank" style={{ background: 'var(--base-bg)', padding: '10px 2px', fontSize: '1.1rem', fontWeight: 'bold', color: '#374151', textAlign: 'center', width: '40px', minWidth: '40px' }}>
+                      <td className="sticky-col sticky-td-rank" style={{ background: 'var(--base-bg)', borderBottom: '1px solid #E5E7EB', padding: '10px 2px', fontSize: '1.1rem', fontWeight: 'bold', color: '#374151', textAlign: 'center', width: '40px', minWidth: '40px' }}>
                         {member.rank}
                       </td>
-                      <td className="sticky-col sticky-td-player" style={{ background: 'var(--base-bg)', padding: '8px 4px', boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)', minWidth: '60px', textAlign: 'center', verticalAlign: 'middle' }}>
+                      <td className="sticky-col sticky-td-player" style={{ background: 'var(--base-bg)', borderBottom: '1px solid #E5E7EB', padding: '8px 4px', boxShadow: '2px 0 5px -2px rgba(0,0,0,0.1)', minWidth: '60px', textAlign: 'center', verticalAlign: 'middle' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                           <ProfileImage member={member} size={44} />
                           <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#002865', whiteSpace: 'nowrap' }}>
@@ -946,25 +1001,25 @@ function App() {
                           </div>
                         </div>
                       </td>
-                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#4B5563', fontSize: '1rem', fontWeight: 'bold' }}>
+                      <td style={{ padding: '10px 4px', borderBottom: '1px solid #E5E7EB', textAlign: 'right', color: '#4B5563', fontSize: '1rem', fontWeight: 'bold' }}>
                         {baseLPoint.toFixed(1)}
                       </td>
-                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#8B5CF6', fontSize: '1rem', fontWeight: 'bold' }}>
+                      <td style={{ padding: '10px 4px', borderBottom: '1px solid #E5E7EB', textAlign: 'right', color: '#8B5CF6', fontSize: '1rem', fontWeight: 'bold' }}>
                         {roundPoint.toFixed(1)}
                       </td>
-                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#4B5563', fontSize: '1rem' }}>
+                      <td style={{ padding: '10px 4px', borderBottom: '1px solid #E5E7EB', textAlign: 'right', color: '#4B5563', fontSize: '1rem' }}>
                         {gamePoint.toFixed(1)}
                       </td>
-                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#2563EB', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                      <td style={{ padding: '10px 4px', borderBottom: '1px solid #E5E7EB', textAlign: 'right', color: '#2563EB', fontSize: '0.9rem', fontWeight: 'bold' }}>
                         {winRate}
                       </td>
-                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#10B981', fontSize: '0.9rem' }}>
+                      <td style={{ padding: '10px 4px', borderBottom: '1px solid #E5E7EB', textAlign: 'right', color: '#10B981', fontSize: '0.9rem' }}>
                         {gStats.wins}승
                       </td>
-                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#EF4444', fontSize: '0.9rem' }}>
+                      <td style={{ padding: '10px 4px', borderBottom: '1px solid #E5E7EB', textAlign: 'right', color: '#EF4444', fontSize: '0.9rem' }}>
                         {gStats.losses}패
                       </td>
-                      <td style={{ padding: '10px 4px', textAlign: 'right', fontWeight: 'bold', color: '#002865', fontSize: '1.05rem' }}>
+                      <td style={{ padding: '10px 4px', borderBottom: '1px solid #E5E7EB', textAlign: 'right', fontWeight: 'bold', color: '#002865', fontSize: '1.05rem' }}>
                         {sumPoint.toFixed(1)}
                       </td>
                     </tr>
