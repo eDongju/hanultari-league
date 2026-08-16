@@ -287,39 +287,56 @@ function App() {
       setCurrentSessionId(idToSave);
     }
 
-    // Safety: if local matchScores is empty but DB has scores for this session,
-    // do not overwrite unless it's an explicit save (like clearing scores manually).
-    if (!explicitSave && Object.keys(matchScores).length === 0) {
-      const existingSession = savedSessions[idToSave];
-      if (existingSession && Object.keys(existingSession.matchScores || {}).length > 0) {
-        console.log('Protected DB from being overwritten by empty local state.');
-        return;
+    let finalMatchScores = { ...matchScores };
+    let finalOverrides = { ...matchOverrides };
+    let finalPointHistory = [...pointHistory];
+    let finalMembers = [...participatingMembers];
+
+    const existingSession = savedSessions[idToSave];
+    
+    // Safety: Protect DB from being overwritten by partial/empty local state during auto-save
+    if (!explicitSave && existingSession) {
+      if (existingSession.matchScores) {
+        for (const key of Object.keys(existingSession.matchScores)) {
+          if (!finalMatchScores[key]) finalMatchScores[key] = existingSession.matchScores[key];
+        }
+      }
+      if (existingSession.matchOverrides) {
+        for (const key of Object.keys(existingSession.matchOverrides)) {
+          if (!finalOverrides[key]) finalOverrides[key] = existingSession.matchOverrides[key];
+        }
+      }
+      if (existingSession.pointHistory && existingSession.pointHistory.length > finalPointHistory.length) {
+        finalPointHistory = existingSession.pointHistory;
+      }
+      if (existingSession.participatingMembers && existingSession.participatingMembers.filter(Boolean).length > finalMembers.filter(Boolean).length) {
+        finalMembers = existingSession.participatingMembers;
       }
     }
     
     const newSession = {
       id: idToSave,
       date: currentSessionDate,
-      participatingMembers,
+      participatingMembers: finalMembers,
       bracketOption,
-      matchScores,
-      matchOverrides,
+      matchScores: finalMatchScores,
+      matchOverrides: finalOverrides,
       courtName,
       courtType,
       courtEnv,
-      pointHistory
+      pointHistory: finalPointHistory
     };
 
     localStorage.setItem('currentSessionId', idToSave);
     localStorage.setItem('currentSessionDate', currentSessionDate);
-    localStorage.setItem('participatingMembers', JSON.stringify(participatingMembers));
+    localStorage.setItem('participatingMembers', JSON.stringify(finalMembers));
     localStorage.setItem('bracketOption', bracketOption);
-    localStorage.setItem('matchScores', JSON.stringify(matchScores));
-    localStorage.setItem('matchOverrides', JSON.stringify(matchOverrides));
+    localStorage.setItem('matchScores', JSON.stringify(finalMatchScores));
+    localStorage.setItem('matchOverrides', JSON.stringify(finalOverrides));
     localStorage.setItem('courtName', courtName);
     localStorage.setItem('courtType', courtType);
     localStorage.setItem('courtEnv', courtEnv);
-    localStorage.setItem('pointHistory', JSON.stringify(pointHistory));
+    localStorage.setItem('pointHistory', JSON.stringify(finalPointHistory));
 
     try {
       await setDoc(doc(db, 'sessions', idToSave), newSession);
