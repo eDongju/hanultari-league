@@ -60,44 +60,28 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
 
     const originalScrollX = window.scrollX;
     const originalScrollY = window.scrollY;
-    
-    // 강제로 뷰포트 좌상단으로 위치시켜 캡처 시 밀림 현상 방지
-    const originalPosition = tableRef.current.style.position;
-    const originalLeft = tableRef.current.style.left;
-    const originalTop = tableRef.current.style.top;
-    const originalZIndex = tableRef.current.style.zIndex;
+
     const originalWidth = tableRef.current.style.width;
+    const originalMargin = tableRef.current.style.margin;
     
-    tableRef.current.style.position = 'fixed';
-    tableRef.current.style.left = '0px';
-    tableRef.current.style.top = '0px';
-    tableRef.current.style.zIndex = '-9999';
+    // 캡처 시 좌우 잘림이나 밀림 방지를 위해 너비는 넓히되 여백을 0으로 강제
     tableRef.current.style.width = 'max-content';
+    tableRef.current.style.margin = '0';
 
-    // 스크롤도 최상단으로 (iOS 사파리 버그 방지)
+    // 스크롤을 최상단으로 옮긴 후 렌더링을 기다림 (iOS 밀림 현상 방지)
     window.scrollTo(0, 0);
-
-    // iOS 모바일 기기에서 강제로 reflow 되도록 약간의 지연(Timeout)을 줍니다. 
-    // (이렇게 하지 않으면 모바일 렌더링 엔진이 레이아웃을 다시 계산하기 전에 캡처하여 줄이 밀리게 됩니다)
-    await new Promise(r => setTimeout(r, 150));
+    await new Promise(r => setTimeout(r, 200));
 
     try {
       const canvas = await html2canvas(tableRef.current, {
         scale: 2,
         backgroundColor: '#ffffff',
-        windowWidth: tableRef.current.scrollWidth,
-        windowHeight: tableRef.current.scrollHeight,
-        x: 0,
-        y: 0,
-        scrollX: 0,
-        scrollY: 0
+        width: tableRef.current.scrollWidth,
+        windowWidth: tableRef.current.scrollWidth
       });
       
-      tableRef.current.style.position = originalPosition;
-      tableRef.current.style.left = originalLeft;
-      tableRef.current.style.top = originalTop;
-      tableRef.current.style.zIndex = originalZIndex;
       tableRef.current.style.width = originalWidth;
+      tableRef.current.style.margin = originalMargin;
       window.scrollTo(originalScrollX, originalScrollY);
 
       if (printTitle) {
