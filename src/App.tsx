@@ -277,7 +277,7 @@ function App() {
     return diffDays > 7;
   }, [currentSessionDate]);
 
-  const forceSaveSession = async () => {
+  const forceSaveSession = async (explicitSave = false) => {
     if (isReadOnly) return;
     if (participatingMembers.filter(Boolean).length === 0) return;
 
@@ -285,6 +285,16 @@ function App() {
     if (!idToSave) {
       idToSave = `${currentSessionDate}_${Date.now()}`;
       setCurrentSessionId(idToSave);
+    }
+
+    // Safety: if local matchScores is empty but DB has scores for this session,
+    // do not overwrite unless it's an explicit save (like clearing scores manually).
+    if (!explicitSave && Object.keys(matchScores).length === 0) {
+      const existingSession = savedSessions[idToSave];
+      if (existingSession && Object.keys(existingSession.matchScores || {}).length > 0) {
+        console.log('Protected DB from being overwritten by empty local state.');
+        return;
+      }
     }
     
     const newSession = {
@@ -296,6 +306,7 @@ function App() {
       matchOverrides,
       courtName,
       courtType,
+      courtEnv,
       pointHistory
     };
 
@@ -317,10 +328,17 @@ function App() {
     }
   };
 
-  // 상태 변경 시 자동 저장 로직 (Auto-save)
+  const isInitialMount = useRef(true);
+
+  // 상태 변경시 자동 저장 로직 (Auto-save)
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     const timeoutId = setTimeout(() => {
-      forceSaveSession();
+      forceSaveSession(false);
     }, 1500); // 1.5초 디바운스
 
     return () => clearTimeout(timeoutId);
