@@ -591,10 +591,40 @@ function App() {
       rankingTableRef.current.style.margin = originalMargin;
       window.scrollTo(originalScrollX, originalScrollY);
 
-      const link = document.createElement('a');
-      link.download = `Hanultari_Members_Ranking_${new Date().toISOString().slice(0,10)}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+      const filename = `Hanultari_Members_Ranking_${new Date().toISOString().slice(0,10)}.png`;
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          alert('이미지 생성에 실패했습니다.');
+          return;
+        }
+
+        // 1. 모바일 및 iOS PWA 환경을 위한 Web Share API 시도
+        if (navigator.share && navigator.canShare) {
+          const file = new File([blob], filename, { type: 'image/png' });
+          if (navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({
+                files: [file],
+                title: '한울타리 랭킹',
+              });
+              return; // 성공 시 종료
+            } catch (err) {
+              console.log('Share API cancelled or failed:', err);
+              // 실패 시 아래 fallback으로 이동
+            }
+          }
+        }
+
+        // 2. 데스크톱 등 Share API 미지원 환경을 위한 일반 다운로드 (Fallback)
+        const image = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = image;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(image);
+      }, 'image/png');
     } catch (err) {
       console.error('Failed to capture ranking table', err);
       if (captureHeader) captureHeader.style.display = 'none';
