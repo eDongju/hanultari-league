@@ -77,6 +77,10 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
     // 스크롤도 최상단으로 (iOS 사파리 버그 방지)
     window.scrollTo(0, 0);
 
+    // iOS 모바일 기기에서 강제로 reflow 되도록 약간의 지연(Timeout)을 줍니다. 
+    // (이렇게 하지 않으면 모바일 렌더링 엔진이 레이아웃을 다시 계산하기 전에 캡처하여 줄이 밀리게 됩니다)
+    await new Promise(r => setTimeout(r, 150));
+
     try {
       const canvas = await html2canvas(tableRef.current, {
         scale: 2,
