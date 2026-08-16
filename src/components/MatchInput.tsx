@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowUpDown, Edit, CheckCircle, Trash2 } from 'lucide-react';
 import { doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -32,6 +32,17 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
   
   const [editModes, setEditModes] = useState<Record<string, boolean>>({});
   const [scoreModal, setScoreModal] = useState<{ matchId: string, t1Name: string, t2Name: string } | null>(null);
+
+  const [isFinished, setIsFinished] = useState(() => {
+    return localStorage.getItem('matchInput_isFinished') === 'true';
+  });
+
+  useEffect(() => {
+    if (Object.keys(matchScores).length === 0) {
+      setIsFinished(false);
+      localStorage.setItem('matchInput_isFinished', 'false');
+    }
+  }, [matchScores]);
 
   const [pointMemberId, setPointMemberId] = useState('');
   const [pointType, setPointType] = useState('G');
@@ -110,9 +121,16 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
     if (missing) {
       alert('입력되지 않은 경기 결과가 있습니다. 모든 경기 결과를 확인해주세요!');
     } else {
-      alert('모든 경기 결과가 정상적으로 입력되었습니다. 수고하셨습니다!');
+      setIsFinished(true);
+      localStorage.setItem('matchInput_isFinished', 'true');
+      alert('마감되었습니다. 점수를 수정하시려면 [수정] 버튼을 클릭하세요.');
       if (forceSave) forceSave();
     }
+  };
+
+  const handleEditMode = () => {
+    setIsFinished(false);
+    localStorage.setItem('matchInput_isFinished', 'false');
   };
 
   const handleAddPoint = async () => {
@@ -165,18 +183,30 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
 
   return (
     <div className="content-card">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', marginBottom: '20px' }}>
-        <h2 style={{ color: '#1E3A8A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Edit size={24} /> 결과 입력
-        </h2>
-        <button 
-          onClick={handleFinishMatches}
-          style={{ background: '#10B981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}
-        >
-          <CheckCircle size={18} />
-          마감
-        </button>
-      </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', marginBottom: '20px' }}>
+          <h2 style={{ color: '#1E3A8A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Edit size={24} /> 결과 입력
+          </h2>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {isFinished && (
+              <button 
+                onClick={handleEditMode}
+                style={{ background: '#3B82F6', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}
+              >
+                <Edit size={18} />
+                수정
+              </button>
+            )}
+            <button 
+              onClick={handleFinishMatches}
+              disabled={isFinished}
+              style={{ background: isFinished ? '#9CA3AF' : '#10B981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: isFinished ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}
+            >
+              <CheckCircle size={18} />
+              {isFinished ? '마감됨' : '마감'}
+            </button>
+          </div>
+        </div>
       
       <div style={{ marginBottom: '20px', background: '#F3F4F6', padding: '15px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
@@ -335,18 +365,20 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                       
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <button 
-                          onClick={() => setScoreModal({ matchId, t1Name, t2Name })}
+                          onClick={() => { if (!isFinished) setScoreModal({ matchId, t1Name, t2Name }) }}
+                          disabled={isFinished}
                           style={{ 
                             padding: '8px 12px', 
                             fontSize: '1.2rem', 
                             fontWeight: 'bold', 
                             background: (score.t1 !== '' || score.t2 !== '') ? '#10B981' : '#F3F4F6',
-                            color: (score.t1 !== '' || score.t2 !== '') ? 'white' : '#4B5563',
-                            border: '1px solid #D1D5DB', 
-                            borderRadius: '8px', 
-                            cursor: 'pointer',
+                            color: (score.t1 !== '' || score.t2 !== '') ? 'white' : '#9CA3AF',
+                            border: (score.t1 !== '' || score.t2 !== '') ? 'none' : '1px dashed #D1D5DB',
+                            borderRadius: '8px',
+                            cursor: isFinished ? 'not-allowed' : 'pointer',
                             minWidth: '80px',
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap',
+                            opacity: isFinished ? 0.8 : 1
                           }}
                         >
                           {score.t1 !== '' || score.t2 !== '' ? `${score.t1} : ${score.t2}` : '점수 입력'}
