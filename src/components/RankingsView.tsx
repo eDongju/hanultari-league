@@ -60,17 +60,39 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
 
     const originalScrollX = window.scrollX;
     const originalScrollY = window.scrollY;
-    window.scrollTo(0, 0);
-
+    
+    // 강제로 뷰포트 좌상단으로 위치시켜 캡처 시 밀림 현상 방지
+    const originalPosition = tableRef.current.style.position;
+    const originalLeft = tableRef.current.style.left;
+    const originalTop = tableRef.current.style.top;
+    const originalZIndex = tableRef.current.style.zIndex;
     const originalWidth = tableRef.current.style.width;
+    
+    tableRef.current.style.position = 'fixed';
+    tableRef.current.style.left = '0px';
+    tableRef.current.style.top = '0px';
+    tableRef.current.style.zIndex = '-9999';
     tableRef.current.style.width = 'max-content';
+
+    // 스크롤도 최상단으로 (iOS 사파리 버그 방지)
+    window.scrollTo(0, 0);
 
     try {
       const canvas = await html2canvas(tableRef.current, {
         scale: 2,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        windowWidth: tableRef.current.scrollWidth,
+        windowHeight: tableRef.current.scrollHeight,
+        x: 0,
+        y: 0,
+        scrollX: 0,
+        scrollY: 0
       });
       
+      tableRef.current.style.position = originalPosition;
+      tableRef.current.style.left = originalLeft;
+      tableRef.current.style.top = originalTop;
+      tableRef.current.style.zIndex = originalZIndex;
       tableRef.current.style.width = originalWidth;
       window.scrollTo(originalScrollX, originalScrollY);
 
