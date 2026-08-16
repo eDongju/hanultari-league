@@ -565,6 +565,11 @@ function App() {
     const originalWidth = rankingTableRef.current.style.width;
     const originalMargin = rankingTableRef.current.style.margin;
     
+    const captureHeader = document.getElementById('members-capture-header');
+    if (captureHeader) {
+      captureHeader.style.display = 'flex';
+    }
+
     // 캡처 시 좌우 잘림이나 밀림 방지를 위해 너비는 넓히되 여백을 0으로 강제
     rankingTableRef.current.style.width = 'max-content';
     rankingTableRef.current.style.margin = '0';
@@ -581,6 +586,7 @@ function App() {
         windowWidth: rankingTableRef.current.scrollWidth
       });
       
+      if (captureHeader) captureHeader.style.display = 'none';
       rankingTableRef.current.style.width = originalWidth;
       rankingTableRef.current.style.margin = originalMargin;
       window.scrollTo(originalScrollX, originalScrollY);
@@ -591,6 +597,7 @@ function App() {
       link.click();
     } catch (err) {
       console.error('Failed to capture ranking table', err);
+      if (captureHeader) captureHeader.style.display = 'none';
       rankingTableRef.current.style.width = originalWidth;
       rankingTableRef.current.style.margin = originalMargin;
       window.scrollTo(originalScrollX, originalScrollY);
@@ -931,6 +938,13 @@ function App() {
             <p style={{ color: '#6B7280', margin: '0 0 15px 0', fontSize: '0.9rem' }}>Hanultari Official Rankings • {leagueDate}</p>
             
             <div ref={rankingTableRef} style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: '8px', overflowX: 'auto' }}>
+              <div id="members-capture-header" style={{ display: 'none', alignItems: 'center', justifyContent: 'center', gap: '15px', padding: '20px', background: 'white' }}>
+                <img src={hanulLogo} alt="Hanul Logo" style={{ height: '60px', flexShrink: 0, borderRadius: '8px', objectFit: 'cover' }} />
+                <div style={{ textAlign: 'center' }}>
+                  <h1 style={{ margin: 0, color: '#1E3A8A', fontSize: '1.8rem' }}>한울타리 랭킹</h1>
+                  <p style={{ margin: '5px 0 0 0', color: '#6B7280', fontSize: '1rem', fontWeight: 'bold' }}>Hanultari Official Rankings • {leagueDate}</p>
+                </div>
+              </div>
               <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0, textAlign: 'left', minWidth: '550px' }}>
                 <thead style={{ background: '#F9FAFB' }}>
                   <tr>
