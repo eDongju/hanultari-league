@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { ArrowUpDown, Edit, CheckCircle, Trash2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ArrowUpDown, Edit, CheckCircle, Trash2, Camera } from 'lucide-react';
+import html2canvas from 'html2canvas';
 import { doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase';
 import combinations from '../data/combinations.json';
@@ -34,6 +35,28 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
   
   const [editModes, setEditModes] = useState<Record<string, boolean>>({});
   const [scoreModal, setScoreModal] = useState<{ matchId: string, t1Name: string, t2Name: string } | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleDownloadImage = async () => {
+    if (!contentRef.current) return;
+    try {
+      const canvas = await html2canvas(contentRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        width: contentRef.current.scrollWidth,
+        windowWidth: contentRef.current.scrollWidth
+      });
+      const image = canvas.toDataURL('image/jpeg', 0.9);
+      const link = document.createElement('a');
+      link.href = image;
+      const dateStr = new Date().toISOString().split('T')[0];
+      link.download = `hanultari-match-input-${dateStr}.jpg`;
+      link.click();
+    } catch (error) {
+      console.error('Failed to generate image', error);
+      alert('이미지 생성에 실패했습니다.');
+    }
+  };
 
   useEffect(() => {
     if (Object.keys(matchScores).length === 0 && setIsFinished) {
@@ -185,12 +208,19 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
   };
 
   return (
-    <div className="content-card">
+    <div className="content-card" ref={contentRef}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', marginBottom: '20px' }}>
           <h2 style={{ color: '#1E3A8A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Edit size={24} /> 결과 입력
           </h2>
           <div style={{ display: 'flex', gap: '10px' }}>
+            <button 
+              onClick={handleDownloadImage}
+              style={{ background: '#4B5563', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}
+            >
+              <Camera size={18} />
+              이미지 저장
+            </button>
             {isFinished && (
               <button 
                 onClick={handleEditMode}
