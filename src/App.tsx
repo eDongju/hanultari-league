@@ -390,37 +390,37 @@ function App() {
           const pDateStr = new Date(p.timestamp - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
           return pDateStr === currentSessionDate;
         });
-        if (JSON.stringify(cleanHistory) !== JSON.stringify(pointHistory)) {
+        if (JSON.stringify(cleanHistory) !== localStorage.getItem('pointHistory')) {
           setPointHistory(cleanHistory);
           localStorage.setItem('pointHistory', JSON.stringify(cleanHistory));
         }
       }
       
       // Sync matchScores
-      if (session.matchScores && JSON.stringify(session.matchScores) !== JSON.stringify(matchScores)) {
+      if (session.matchScores && JSON.stringify(session.matchScores) !== localStorage.getItem('matchScores')) {
         setMatchScores(session.matchScores);
         localStorage.setItem('matchScores', JSON.stringify(session.matchScores));
       }
       
       // Sync matchOverrides
-      if (session.matchOverrides && JSON.stringify(session.matchOverrides) !== JSON.stringify(matchOverrides)) {
+      if (session.matchOverrides && JSON.stringify(session.matchOverrides) !== localStorage.getItem('matchOverrides')) {
         setMatchOverrides(session.matchOverrides);
         localStorage.setItem('matchOverrides', JSON.stringify(session.matchOverrides));
       }
       
       // Sync participatingMembers
-      if (session.participatingMembers && JSON.stringify(session.participatingMembers) !== JSON.stringify(participatingMembers)) {
+      if (session.participatingMembers && JSON.stringify(session.participatingMembers) !== localStorage.getItem('participatingMembers')) {
         setParticipatingMembers(session.participatingMembers);
         localStorage.setItem('participatingMembers', JSON.stringify(session.participatingMembers));
       }
       
       // Sync bracketOption
-      if (session.bracketOption && session.bracketOption !== bracketOption) {
+      if (session.bracketOption && session.bracketOption !== localStorage.getItem('bracketOption')) {
         setBracketOption(session.bracketOption);
         localStorage.setItem('bracketOption', session.bracketOption);
       }
     }
-  }, [savedSessions, currentSessionId, currentSessionDate, isFinished, pointHistory, matchScores, matchOverrides, participatingMembers, bracketOption]);
+  }, [savedSessions, currentSessionId, currentSessionDate, isFinished]);
 
   // 주기적 자동 저장 (Auto-save)
   useEffect(() => {
