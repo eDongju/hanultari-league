@@ -51,45 +51,44 @@ def scrape_fundamentals(ticker):
             if close_tag2:
                 close_price = int(close_tag2.text.replace(',', '').strip())
 
-        # 투자정보 테이블
-        per, pbr, dividend, eps, bps = 0.0, 0.0, 0.0, 0, 0
+        per = soup.select_one('#_per')
+        eps = soup.select_one('#_eps')
+        pbr = soup.select_one('#_pbr')
+        div = soup.select_one('#_dvr')
+        if not div: div = soup.select_one('#_dvrv')
         
-        info_table = soup.select('.aside_invest_info em')
-        for em in info_table:
-            th = em.parent.parent.select_one('th')
-            if not th:
-                continue
-            th_text = th.text.strip()
-            val_text = em.text.strip().replace(',', '')
-            
-            if val_text and val_text != 'N/A' and val_text != '-':
-                try:
-                    if 'PER' in th_text and 'EPS' not in th_text:
-                        per = float(val_text)
-                    elif 'EPS' in th_text:
-                        eps = int(val_text)
-                    elif 'PBR' in th_text and 'BPS' not in th_text:
-                        pbr = float(val_text)
-                    elif 'BPS' in th_text:
-                        bps = int(val_text)
-                    elif '배당수익률' in th_text:
-                        dividend = float(val_text.replace('%', ''))
-                except ValueError:
-                    pass
+        per_val = float(per.text.replace(',', '')) if per and per.text.strip() not in ['N/A', '-'] else 0.0
+        eps_val = int(eps.text.replace(',', '')) if eps and eps.text.strip() not in ['N/A', '-'] else 0
+        pbr_val = float(pbr.text.replace(',', '')) if pbr and pbr.text.strip() not in ['N/A', '-'] else 0.0
+        div_val = float(div.text.replace(',', '')) if div and div.text.strip() not in ['N/A', '-'] else 0.0
         
-        # ROE 계산 (Naver 기업실적분석 표에서 가져오거나 수동 계산)
-        roe = 0.0
-        if bps > 0 and eps > 0:
-            roe = (eps / bps) * 100
+        # BPS 추출 (PBR 바로 아래 em)
+        bps_val = 0
+        if pbr:
+            try:
+                # pbr <tr> 안에 있는 두번째 em을 찾기
+                tr = pbr.parent.parent
+                ems = tr.select('em')
+                if len(ems) > 1:
+                    bps_text = ems[1].text.replace(',', '').strip()
+                    if bps_text not in ['N/A', '-']:
+                        bps_val = int(bps_text)
+            except Exception:
+                pass
+        
+        # ROE 계산
+        roe_val = 0.0
+        if bps_val > 0 and eps_val > 0:
+            roe_val = (eps_val / bps_val) * 100
             
         return {
             'close': close_price,
-            'per': per,
-            'pbr': pbr,
-            'div': dividend,
-            'eps': eps,
-            'bps': bps,
-            'roe': roe
+            'per': per_val,
+            'pbr': pbr_val,
+            'div': div_val,
+            'eps': eps_val,
+            'bps': bps_val,
+            'roe': roe_val
         }
     except Exception as e:
         print(f"Error scraping {ticker}: {e}")
