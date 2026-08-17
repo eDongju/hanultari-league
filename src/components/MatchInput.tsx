@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { ArrowUpDown, Edit, CheckCircle, Trash2, Camera } from 'lucide-react';
 import html2canvas from 'html2canvas';
-import { doc, updateDoc, increment } from 'firebase/firestore';
-import { db } from '../firebase';
 import combinations from '../data/combinations.json';
 
 const charToIndex = (c: string) => {
@@ -210,7 +208,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
     }
   };
 
-  const handleDeletePoint = async (entry: any) => {
+  const handleRemovePoint = async (entry: any) => {
     if (!window.confirm(`'${entry.description}' 내역을 삭제하시겠습니까?`)) return;
     if (!pointHistory || !setPointHistory) return;
     try {
