@@ -46,12 +46,38 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
         width: contentRef.current.scrollWidth,
         windowWidth: contentRef.current.scrollWidth
       });
-      const image = canvas.toDataURL('image/jpeg', 0.9);
-      const link = document.createElement('a');
-      link.href = image;
-      const dateStr = new Date().toISOString().split('T')[0];
-      link.download = `hanultari-match-input-${dateStr}.jpg`;
-      link.click();
+      const today = new Date();
+      const dateStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      const filename = `hanultari-match-input-${dateStr}.png`;
+
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          alert('이미지 생성에 실패했습니다.');
+          return;
+        }
+
+        if (navigator.share && navigator.canShare) {
+          const file = new File([blob], filename, { type: 'image/png' });
+          if (navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({
+                files: [file],
+                title: '하늘타리 결과 입력',
+              });
+              return;
+            } catch (err) {
+              console.log('Share API cancelled or failed:', err);
+            }
+          }
+        }
+
+        const image = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = image;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(image);
+      }, 'image/png', 0.9);
     } catch (error) {
       console.error('Failed to generate image', error);
       alert('이미지 생성에 실패했습니다.');
