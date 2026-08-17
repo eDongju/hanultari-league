@@ -314,9 +314,6 @@ function App() {
           if (!finalOverrides[key]) finalOverrides[key] = existingSession.matchOverrides[key];
         }
       }
-      if (existingSession.pointHistory && existingSession.pointHistory.length > finalPointHistory.length) {
-        finalPointHistory = existingSession.pointHistory;
-      }
       if (existingSession.participatingMembers && existingSession.participatingMembers.filter(Boolean).length > finalMembers.filter(Boolean).length) {
         finalMembers = existingSession.participatingMembers;
       }
