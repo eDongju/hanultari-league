@@ -8,17 +8,9 @@ from firebase_admin import credentials, firestore
 
 def get_latest_business_day():
     today = datetime.datetime.today()
-    # Get business days of the current month up to today
-    b_days = stock.get_business_days_of_month(today.year, today.month)
-    valid_days = [d for d in b_days if d <= today]
-    if not valid_days:
-        # Fallback to last month if today is the first of the month and it's a holiday
-        first_day = today.replace(day=1)
-        last_month = first_day - datetime.timedelta(days=1)
-        b_days = stock.get_business_days_of_month(last_month.year, last_month.month)
-        valid_days = b_days
-    
-    return valid_days[-1].strftime("%Y%m%d")
+    # pandas bdate_range를 사용하여 오늘 기준 가장 최근 영업일 산출
+    last_bday = pd.bdate_range(end=today, periods=1)[0]
+    return last_bday.strftime("%Y%m%d")
 
 def fetch_and_screen():
     # 환경 변수에서 TARGET_DATE를 확인, 없으면 가장 최근 영업일 자동 계산
