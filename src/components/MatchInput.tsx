@@ -25,20 +25,18 @@ interface MatchInputProps {
   setCourtEnv: (env: string) => void;
   pointHistory?: any[];
   setPointHistory?: (history: any[]) => void;
+  isFinished?: boolean;
+  setIsFinished?: (val: boolean) => void;
   forceSave?: () => void;
 }
 
-export default function MatchInput({ allMembers, participatingMembers, bracketOption, matchScores, setMatchScores, matchOverrides, setMatchOverrides, courtName, setCourtName, courtType, setCourtType, courtEnv, setCourtEnv, pointHistory, setPointHistory, forceSave }: MatchInputProps) {
+export default function MatchInput({ allMembers, participatingMembers, bracketOption, matchScores, setMatchScores, matchOverrides, setMatchOverrides, courtName, setCourtName, courtType, setCourtType, courtEnv, setCourtEnv, pointHistory, setPointHistory, isFinished = false, setIsFinished, forceSave }: MatchInputProps) {
   
   const [editModes, setEditModes] = useState<Record<string, boolean>>({});
   const [scoreModal, setScoreModal] = useState<{ matchId: string, t1Name: string, t2Name: string } | null>(null);
 
-  const [isFinished, setIsFinished] = useState(() => {
-    return localStorage.getItem('matchInput_isFinished') === 'true';
-  });
-
   useEffect(() => {
-    if (Object.keys(matchScores).length === 0) {
+    if (Object.keys(matchScores).length === 0 && setIsFinished) {
       setIsFinished(false);
       localStorage.setItem('matchInput_isFinished', 'false');
     }
@@ -121,7 +119,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
     if (missing) {
       alert('입력되지 않은 경기 결과가 있습니다. 모든 경기 결과를 확인해주세요!');
     } else {
-      setIsFinished(true);
+      if (setIsFinished) setIsFinished(true);
       localStorage.setItem('matchInput_isFinished', 'true');
       alert('마감되었습니다. 점수를 수정하시려면 [수정] 버튼을 클릭하세요.');
       if (forceSave) forceSave();
@@ -129,7 +127,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
   };
 
   const handleEditMode = () => {
-    setIsFinished(false);
+    if (setIsFinished) setIsFinished(false);
     localStorage.setItem('matchInput_isFinished', 'false');
   };
 

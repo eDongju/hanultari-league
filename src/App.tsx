@@ -139,6 +139,10 @@ function App() {
   const [courtType, setCourtType] = useState<string>(() => localStorage.getItem('courtType') || '인조잔디');
   const [courtEnv, setCourtEnv] = useState<string>(() => localStorage.getItem('courtEnv') || '야외');
 
+  const [isFinished, setIsFinished] = useState<boolean>(() => {
+    return localStorage.getItem('matchInput_isFinished') === 'true';
+  });
+
   type PointHistoryEntry = {
     id: string;
     memberId: string;
@@ -292,6 +296,7 @@ function App() {
     let finalOverrides = { ...matchOverrides };
     let finalPointHistory = [...pointHistory];
     let finalMembers = [...participatingMembers];
+    let finalIsFinished = isFinished;
 
     const existingSession = savedSessions[idToSave];
     
@@ -313,6 +318,9 @@ function App() {
       if (existingSession.participatingMembers && existingSession.participatingMembers.filter(Boolean).length > finalMembers.filter(Boolean).length) {
         finalMembers = existingSession.participatingMembers;
       }
+      if (existingSession.isFinished !== undefined) {
+        finalIsFinished = existingSession.isFinished;
+      }
     }
     
     const newSession = {
@@ -325,7 +333,8 @@ function App() {
       courtName,
       courtType,
       courtEnv,
-      pointHistory: finalPointHistory
+      pointHistory: finalPointHistory,
+      isFinished: finalIsFinished
     };
 
     localStorage.setItem('currentSessionId', idToSave);
@@ -348,7 +357,18 @@ function App() {
 
   const isInitialMount = useRef(true);
 
-  // 상태 변경시 자동 저장 로직 (Auto-save)
+  // Sync isFinished from DB
+  useEffect(() => {
+    if (currentSessionId && savedSessions[currentSessionId]) {
+      const session = savedSessions[currentSessionId];
+      if (session.isFinished !== undefined && session.isFinished !== isFinished) {
+        setIsFinished(session.isFinished);
+        localStorage.setItem('matchInput_isFinished', session.isFinished.toString());
+      }
+    }
+  }, [savedSessions, currentSessionId, isFinished]);
+
+  // 주기적 자동 저장 (Auto-save)
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
@@ -360,7 +380,7 @@ function App() {
     }, 1500); // 1.5초 디바운스
 
     return () => clearTimeout(timeoutId);
-  }, [participatingMembers, bracketOption, matchScores, matchOverrides, currentSessionDate, currentSessionId, courtName, courtType, courtEnv, pointHistory]);
+  }, [participatingMembers, bracketOption, matchScores, matchOverrides, currentSessionDate, currentSessionId, courtName, courtType, courtEnv, pointHistory, isFinished]);
 
   const globalStats = useMemo(() => {
     const stats: Record<string, { matches: number, wins: number, losses: number, sessionMatches: number, sessionWins: number, sessionLosses: number, deuceCount: number, adCount: number, duoStats: Record<string, { wins: number, matches: number }>, attendances: number }> = {};
