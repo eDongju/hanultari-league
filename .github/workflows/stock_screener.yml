@@ -4,7 +4,12 @@ on:
   schedule:
     # 매일 오후 4시 30분 KST = 07:30 UTC
     - cron: '30 7 * * 1-5'
-  workflow_dispatch: # 수동 실행 버튼
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: '조회할 날짜 (예: 20260814). 비워두면 가장 최근 영업일로 자동 실행됩니다.'
+        required: false
+        type: string
 
 jobs:
   screen_and_upload:
@@ -27,5 +32,6 @@ jobs:
     - name: Run Screener
       env:
         FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        TARGET_DATE: ${{ github.event.inputs.target_date }}
       run: |
         python scripts/screener_firebase.py

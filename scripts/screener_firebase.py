@@ -21,7 +21,10 @@ def get_latest_business_day():
     return valid_days[-1].strftime("%Y%m%d")
 
 def fetch_and_screen():
-    target_date = get_latest_business_day()
+    # 환경 변수에서 TARGET_DATE를 확인, 없으면 가장 최근 영업일 자동 계산
+    env_date = os.environ.get('TARGET_DATE', '').strip()
+    target_date = env_date if env_date else get_latest_business_day()
+    
     print(f"[{target_date}] 데이터 수집 시작...")
     
     df_price = stock.get_market_cap_by_ticker(target_date, market="KOSPI")
