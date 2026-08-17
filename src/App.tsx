@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+﻿import { useState, useEffect, useMemo, useRef } from 'react';
 import { Camera, Plus, Trash2, ArrowUpDown, X, User, Users, Edit, Medal, List, Award, BarChart2, Utensils, BookOpen } from 'lucide-react';
 import './index.css';
 import membersData from './members.json';
@@ -361,16 +361,17 @@ function App() {
   useEffect(() => {
     if (currentSessionId && savedSessions[currentSessionId]) {
       const session = savedSessions[currentSessionId];
+      const localIsFinished = localStorage.getItem('matchInput_isFinished') === 'true';
       // Sync isFinished from DB with protection against ghost user overwrites
       if (session.isLeagueClosed !== undefined) {
-        if (session.isLeagueClosed !== isFinished) {
+        if (session.isLeagueClosed !== localIsFinished) {
           setIsFinished(session.isLeagueClosed);
           localStorage.setItem('matchInput_isFinished', session.isLeagueClosed.toString());
         }
       } else if (session.isFinished !== undefined) {
         // Legacy fallback: Ghost user might delete isLeagueClosed and set isFinished to false
         // Only accept true from legacy field to prevent ghost user reverting our finish state
-        if (session.isFinished === true && !isFinished) {
+        if (session.isFinished === true && !localIsFinished) {
           setIsFinished(true);
           localStorage.setItem('matchInput_isFinished', 'true');
         }
@@ -378,14 +379,9 @@ function App() {
       
       // Sync pointHistory while filtering out ghost user's stale data
       if (session.pointHistory) {
-        const cleanHistory = session.pointHistory.filter((p: any) => {
-          if (!p.timestamp) return true;
-          const pDateStr = new Date(p.timestamp - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-          return pDateStr === currentSessionDate;
-        });
-        if (JSON.stringify(cleanHistory) !== localStorage.getItem('pointHistory')) {
-          setPointHistory(cleanHistory);
-          localStorage.setItem('pointHistory', JSON.stringify(cleanHistory));
+        if (JSON.stringify(session.pointHistory) !== localStorage.getItem('pointHistory')) {
+          setPointHistory(session.pointHistory);
+          localStorage.setItem('pointHistory', JSON.stringify(session.pointHistory));
         }
       }
       
@@ -413,7 +409,7 @@ function App() {
         localStorage.setItem('bracketOption', session.bracketOption);
       }
     }
-  }, [savedSessions, currentSessionId, currentSessionDate, isFinished]);
+  }, [savedSessions, currentSessionId, currentSessionDate]);
 
   // 주기적 자동 저장 (Auto-save)
   useEffect(() => {
