@@ -27,11 +27,11 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pykrx pandas firebase-admin requests
+        pip install pandas firebase-admin requests beautifulsoup4 lxml
         
     - name: Run Screener
       env:
         FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         TARGET_DATE: ${{ github.event.inputs.target_date }}
       run: |
-        python scripts/screener_firebase.py
+        python scripts/screener_naver.py
