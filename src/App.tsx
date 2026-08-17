@@ -322,13 +322,6 @@ function App() {
       }
     }
     
-    // Defeat Ghost User: filter out stale points from old days AFTER merging
-    finalPointHistory = finalPointHistory.filter(p => {
-      if (!p.timestamp) return true;
-      const pDateStr = new Date(p.timestamp - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-      return pDateStr === currentSessionDate;
-    });
-    
     const newSession = {
       id: idToSave,
       date: currentSessionDate,
