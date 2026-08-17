@@ -395,8 +395,32 @@ function App() {
           localStorage.setItem('pointHistory', JSON.stringify(cleanHistory));
         }
       }
+      
+      // Sync matchScores
+      if (session.matchScores && JSON.stringify(session.matchScores) !== JSON.stringify(matchScores)) {
+        setMatchScores(session.matchScores);
+        localStorage.setItem('matchScores', JSON.stringify(session.matchScores));
+      }
+      
+      // Sync matchOverrides
+      if (session.matchOverrides && JSON.stringify(session.matchOverrides) !== JSON.stringify(matchOverrides)) {
+        setMatchOverrides(session.matchOverrides);
+        localStorage.setItem('matchOverrides', JSON.stringify(session.matchOverrides));
+      }
+      
+      // Sync participatingMembers
+      if (session.participatingMembers && JSON.stringify(session.participatingMembers) !== JSON.stringify(participatingMembers)) {
+        setParticipatingMembers(session.participatingMembers);
+        localStorage.setItem('participatingMembers', JSON.stringify(session.participatingMembers));
+      }
+      
+      // Sync bracketOption
+      if (session.bracketOption && session.bracketOption !== bracketOption) {
+        setBracketOption(session.bracketOption);
+        localStorage.setItem('bracketOption', session.bracketOption);
+      }
     }
-  }, [savedSessions, currentSessionId, currentSessionDate, isFinished, pointHistory]);
+  }, [savedSessions, currentSessionId, currentSessionDate, isFinished, pointHistory, matchScores, matchOverrides, participatingMembers, bracketOption]);
 
   // 주기적 자동 저장 (Auto-save)
   useEffect(() => {
