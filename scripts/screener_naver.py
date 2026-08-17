@@ -51,6 +51,12 @@ def scrape_fundamentals(ticker):
             if close_tag2:
                 close_price = int(close_tag2.text.replace(',', '').strip())
 
+        per = soup.select_one('#_per')
+        eps = soup.select_one('#_eps')
+        pbr = soup.select_one('#_pbr')
+        div = soup.select_one('#_dvr')
+        if not div: div = soup.select_one('#_dvrv')
+        
         cns_per = soup.select_one('#_cns_per')
         cns_eps = soup.select_one('#_cns_eps')
         
