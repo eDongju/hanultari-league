@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Camera, Plus, Trash2, ArrowUpDown, X, User, Users, Edit, Medal, List, Award, BarChart2, Utensils, BookOpen, Download } from 'lucide-react';
+import { Camera, Plus, Trash2, ArrowUpDown, X, User, Users, Edit, Medal, List, Award, BarChart2, Utensils, BookOpen, Download, TrendingUp } from 'lucide-react';
 import './index.css';
 import membersData from './members.json';
 import { collection, doc, onSnapshot, setDoc, deleteDoc } from 'firebase/firestore';
@@ -12,6 +12,7 @@ import LeagueHistory from './components/LeagueHistory';
 import MemberStats from './components/MemberStats';
 import MealCalculator from './components/MealCalculator';
 import HanullogTab from './components/HanullogTab';
+import StockRecommendations from './components/StockRecommendations';
 import combinations from './data/combinations.json';
 import html2canvas from 'html2canvas';
 
@@ -922,6 +923,7 @@ function App() {
             <button onClick={() => handleTabChange('members')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'members' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'members' ? 'white' : '#2563EB' }}><Award size={18} /> 한울랭킹</button>
             <button onClick={() => handleTabChange('stats')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'stats' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'stats' ? 'white' : '#2563EB' }}><BarChart2 size={18} /> 멤버통계</button>
             <button onClick={() => handleTabChange('meal')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'meal' ? 'var(--primary)' : '#EFF6FF', color: activeTab === 'meal' ? 'white' : '#2563EB' }}><Utensils size={18} /> 밥값정산</button>
+            <button onClick={() => handleTabChange('aipick')} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0.6rem 1.2rem', fontSize: '0.95rem', borderRadius: '25px', border: 'none', cursor: 'pointer', fontWeight: 'bold', background: activeTab === 'aipick' ? '#3B82F6' : '#EFF6FF', color: activeTab === 'aipick' ? 'white' : '#2563EB' }}><TrendingUp size={18} /> AI 픽</button>
             
             <div className="new-league-wrapper">
                 <button 
@@ -1036,6 +1038,9 @@ function App() {
             globalStats={globalStats}
             memberPoints={memberPoints}
           />
+        )}
+        {activeTab === 'aipick' && (
+          <StockRecommendations />
         )}
         {activeTab === 'meal' && (
           <MealCalculator 
