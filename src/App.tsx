@@ -296,12 +296,7 @@ function App() {
     let finalOverrides = { ...matchOverrides };
     
     // Defeat Ghost User: filter out stale points from old days
-    let finalPointHistory = pointHistory.filter(p => {
-      if (!p.timestamp) return true;
-      const pDateStr = new Date(p.timestamp - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-      return pDateStr === currentSessionDate;
-    });
-    
+    let finalPointHistory = [...pointHistory];
     let finalMembers = [...participatingMembers];
     let finalIsFinished = localStorage.getItem('matchInput_isFinished') === 'true';
 
@@ -326,6 +321,13 @@ function App() {
         finalMembers = existingSession.participatingMembers;
       }
     }
+    
+    // Defeat Ghost User: filter out stale points from old days AFTER merging
+    finalPointHistory = finalPointHistory.filter(p => {
+      if (!p.timestamp) return true;
+      const pDateStr = new Date(p.timestamp - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      return pDateStr === currentSessionDate;
+    });
     
     const newSession = {
       id: idToSave,
