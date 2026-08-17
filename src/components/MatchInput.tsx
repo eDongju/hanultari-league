@@ -128,7 +128,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
 
   const handleEditMode = () => {
     const pwd = window.prompt("마감을 해제하시려면 암호를 입력하세요:");
-    if (pwd === "1234") {
+    if (pwd === "1982") {
       if (setIsFinished) setIsFinished(false);
       localStorage.setItem('matchInput_isFinished', 'false');
     } else if (pwd !== null) {
