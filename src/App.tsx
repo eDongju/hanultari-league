@@ -294,7 +294,14 @@ function App() {
 
     let finalMatchScores = { ...matchScores };
     let finalOverrides = { ...matchOverrides };
-    let finalPointHistory = [...pointHistory];
+    
+    // Defeat Ghost User: filter out stale points from old days
+    let finalPointHistory = pointHistory.filter(p => {
+      if (!p.timestamp) return true;
+      const pDateStr = new Date(p.timestamp - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      return pDateStr === currentSessionDate;
+    });
+    
     let finalMembers = [...participatingMembers];
     let finalIsFinished = localStorage.getItem('matchInput_isFinished') === 'true';
 
@@ -331,7 +338,8 @@ function App() {
       courtType,
       courtEnv,
       pointHistory: finalPointHistory,
-      isFinished: finalIsFinished
+      isFinished: finalIsFinished,
+      isLeagueClosed: finalIsFinished
     };
 
     localStorage.setItem('currentSessionId', idToSave);
@@ -358,12 +366,35 @@ function App() {
   useEffect(() => {
     if (currentSessionId && savedSessions[currentSessionId]) {
       const session = savedSessions[currentSessionId];
-      if (session.isFinished !== undefined && session.isFinished !== isFinished) {
-        setIsFinished(session.isFinished);
-        localStorage.setItem('matchInput_isFinished', session.isFinished.toString());
+      // Sync isFinished from DB with protection against ghost user overwrites
+      if (session.isLeagueClosed !== undefined) {
+        if (session.isLeagueClosed !== isFinished) {
+          setIsFinished(session.isLeagueClosed);
+          localStorage.setItem('matchInput_isFinished', session.isLeagueClosed.toString());
+        }
+      } else if (session.isFinished !== undefined) {
+        // Legacy fallback: Ghost user might delete isLeagueClosed and set isFinished to false
+        // Only accept true from legacy field to prevent ghost user reverting our finish state
+        if (session.isFinished === true && !isFinished) {
+          setIsFinished(true);
+          localStorage.setItem('matchInput_isFinished', 'true');
+        }
+      }
+      
+      // Sync pointHistory while filtering out ghost user's stale data
+      if (session.pointHistory) {
+        const cleanHistory = session.pointHistory.filter((p: any) => {
+          if (!p.timestamp) return true;
+          const pDateStr = new Date(p.timestamp - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+          return pDateStr === currentSessionDate;
+        });
+        if (JSON.stringify(cleanHistory) !== JSON.stringify(pointHistory)) {
+          setPointHistory(cleanHistory);
+          localStorage.setItem('pointHistory', JSON.stringify(cleanHistory));
+        }
       }
     }
-  }, [savedSessions, currentSessionId, isFinished]);
+  }, [savedSessions, currentSessionId, currentSessionDate, isFinished, pointHistory]);
 
   // 주기적 자동 저장 (Auto-save)
   useEffect(() => {
