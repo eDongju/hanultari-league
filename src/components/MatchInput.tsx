@@ -127,8 +127,13 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
   };
 
   const handleEditMode = () => {
-    if (setIsFinished) setIsFinished(false);
-    localStorage.setItem('matchInput_isFinished', 'false');
+    const pwd = window.prompt("마감을 해제하시려면 암호를 입력하세요:");
+    if (pwd === "1234") {
+      if (setIsFinished) setIsFinished(false);
+      localStorage.setItem('matchInput_isFinished', 'false');
+    } else if (pwd !== null) {
+      alert("암호가 일치하지 않습니다.");
+    }
   };
 
   const handleAddPoint = async () => {
