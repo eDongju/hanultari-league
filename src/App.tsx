@@ -296,7 +296,7 @@ function App() {
     let finalOverrides = { ...matchOverrides };
     let finalPointHistory = [...pointHistory];
     let finalMembers = [...participatingMembers];
-    let finalIsFinished = isFinished;
+    let finalIsFinished = localStorage.getItem('matchInput_isFinished') === 'true';
 
     const existingSession = savedSessions[idToSave];
     
@@ -317,9 +317,6 @@ function App() {
       }
       if (existingSession.participatingMembers && existingSession.participatingMembers.filter(Boolean).length > finalMembers.filter(Boolean).length) {
         finalMembers = existingSession.participatingMembers;
-      }
-      if (existingSession.isFinished !== undefined) {
-        finalIsFinished = existingSession.isFinished;
       }
     }
     
