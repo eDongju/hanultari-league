@@ -543,6 +543,7 @@ function App() {
       localStorage.removeItem('courtName');
       localStorage.removeItem('courtType');
       localStorage.removeItem('courtEnv');
+      localStorage.removeItem('pointHistory');
     }
     } catch (err) {
       console.error('Failed to delete session:', err);
@@ -853,6 +854,7 @@ function App() {
                       localStorage.removeItem('courtName');
                       localStorage.removeItem('courtType');
                       localStorage.removeItem('courtEnv');
+      localStorage.removeItem('pointHistory');
                       } else if (pwd !== null) {
                         window.alert("암호가 틀렸습니다.");
                       }
