@@ -88,7 +88,7 @@ export const ProfileImage = ({ member, size = 45 }: { member: Member, size?: num
 };
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'hanullog' | 'match' | 'members' | 'playerSetup' | 'matchInput' | 'rankings' | 'history' | 'stats' | 'meal'>(() => {
+  const [activeTab, setActiveTab] = useState<'hanullog' | 'match' | 'members' | 'playerSetup' | 'matchInput' | 'rankings' | 'history' | 'stats' | 'meal' | 'aipick'>(() => {
     return (localStorage.getItem('activeTab') as any) || 'members';
   });
   const [slideDir, setSlideDir] = useState<'left'|'right'|''>('');

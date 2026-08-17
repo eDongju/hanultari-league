@@ -107,7 +107,7 @@ export default function StockRecommendations() {
               </thead>
               <tbody>
                 {latestRec.stocks.map((stock, index) => (
-                  <tr key={stock.ticker} style={{ borderBottom: '1px solid #E5E7EB', hover: { background: '#F3F4F6' } }}>
+                  <tr key={stock.ticker} style={{ borderBottom: '1px solid #E5E7EB' }}>
                     <td style={{ padding: '12px 15px', textAlign: 'center', fontWeight: 'bold', color: index < 3 ? '#EF4444' : '#6B7280' }}>
                       {index + 1}
                     </td>
