@@ -13,6 +13,10 @@ interface StockData {
   roe?: number;
   eps?: number;
   bps?: number;
+  fwd_per?: number;
+  eps_growth?: number;
+  target_price?: number;
+  upside?: number;
 }
 
 interface RecommendationDoc {
@@ -103,11 +107,12 @@ export default function StockRecommendations() {
                   <th style={{ padding: '12px 15px', textAlign: 'center', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>순위</th>
                   <th style={{ padding: '12px 15px', textAlign: 'left', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>종목명</th>
                   <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>종가</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>PER</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>목표가(상승여력)</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>예상 PER</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>EPS성장률</th>
                   <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>PBR</th>
                   <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>ROE(%)</th>
                   <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>배당률</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>EPS/BPS</th>
                 </tr>
               </thead>
               <tbody>
@@ -119,11 +124,23 @@ export default function StockRecommendations() {
                     <td style={{ padding: '12px 15px', fontWeight: 'bold', color: '#111827' }}>
                       {stock.name} <span style={{ fontSize: '0.75rem', color: '#9CA3AF', marginLeft: '4px', fontWeight: 'normal' }}>{stock.ticker}</span>
                     </td>
-                    <td style={{ padding: '12px 15px', textAlign: 'right', color: '#374151' }}>
+                    <td style={{ padding: '12px 15px', textAlign: 'right', color: '#4B5563' }}>
                       {stock.close.toLocaleString()}원
                     </td>
+                    <td style={{ padding: '12px 15px', textAlign: 'right' }}>
+                      <span style={{ color: '#E11D48', fontWeight: 'bold' }}>
+                        {stock.target_price !== undefined ? stock.target_price.toLocaleString() : '-'}원
+                      </span>
+                      <br />
+                      <span style={{ fontSize: '0.8rem', color: stock.upside && stock.upside > 0 ? '#10B981' : '#9CA3AF' }}>
+                        (↑ {stock.upside !== undefined ? stock.upside.toFixed(1) : '-'}%)
+                      </span>
+                    </td>
                     <td style={{ padding: '12px 15px', textAlign: 'right', color: '#2563EB', fontWeight: '500' }}>
-                      {stock.per.toFixed(2)}배
+                      {stock.fwd_per !== undefined && stock.fwd_per > 0 ? stock.fwd_per.toFixed(2) : stock.per.toFixed(2)}배
+                    </td>
+                    <td style={{ padding: '12px 15px', textAlign: 'right', color: '#10B981', fontWeight: 'bold' }}>
+                      {stock.eps_growth !== undefined ? `+${stock.eps_growth.toFixed(1)}` : '-'}%
                     </td>
                     <td style={{ padding: '12px 15px', textAlign: 'right', color: '#059669', fontWeight: '500' }}>
                       {stock.pbr.toFixed(2)}배
@@ -133,9 +150,6 @@ export default function StockRecommendations() {
                     </td>
                     <td style={{ padding: '12px 15px', textAlign: 'right', color: '#D97706', fontWeight: 'bold' }}>
                       {stock.div.toFixed(2)}%
-                    </td>
-                    <td style={{ padding: '12px 15px', textAlign: 'right', color: '#4B5563', fontSize: '0.85rem' }}>
-                      {stock.eps !== undefined ? stock.eps.toLocaleString() : '-'}/{stock.bps !== undefined ? stock.bps.toLocaleString() : '-'}
                     </td>
                   </tr>
                 ))}
