@@ -6,9 +6,10 @@ interface MemberStatsProps {
   allMembers: any[];
   savedSessions: Record<string, any>;
   globalStats: Record<string, any>;
+  memberPoints: Record<string, { g: number, r: number }>;
 }
 
-export default function MemberStats({ allMembers, globalStats }: MemberStatsProps) {
+export default function MemberStats({ allMembers, globalStats, memberPoints }: MemberStatsProps) {
   const [sortKey, setSortKey] = useState<string>('attendances');
   const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
 
@@ -61,8 +62,8 @@ export default function MemberStats({ allMembers, globalStats }: MemberStatsProp
         wins: stats.wins,
         winRate: winRate,
         bestDuo: bestDuoWins > 0 ? `${bestDuoName} (${bestDuoWins}승)` : '-',
-        rPt: Number(m.roundPoint) || 0,
-        gPt: Number(m.gamePoint) || 0,
+        rPt: memberPoints[m.name]?.r || 0,
+        gPt: memberPoints[m.name]?.g || 0,
         deuceCount: stats.deuceCount || 0,
         adCount: stats.adCount || 0,
         original: m as Member,

@@ -189,14 +189,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
     if (!pointMemberId || !pointHistory || !setPointHistory) return;
     const amount = parseInt(pointAmount) || 1;
     
-    const memberRef = doc(db, 'members', pointMemberId);
-    const fieldToUpdate = pointType === 'R' ? 'roundPoint' : 'gamePoint';
-    
     try {
-      await updateDoc(memberRef, {
-        [fieldToUpdate]: increment(amount)
-      });
-      
       const member = allMembers.find(m => m && m.id === pointMemberId);
       const newEntry = {
         id: Date.now().toString(),
@@ -217,19 +210,13 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
     }
   };
 
-  const handleRemovePoint = async (entry: any) => {
+  const handleDeletePoint = async (entry: any) => {
+    if (!window.confirm(`'${entry.description}' 내역을 삭제하시겠습니까?`)) return;
     if (!pointHistory || !setPointHistory) return;
-    const memberRef = doc(db, 'members', entry.memberId);
-    const fieldToUpdate = entry.type === 'R' ? 'roundPoint' : 'gamePoint';
-    
     try {
-      await updateDoc(memberRef, {
-        [fieldToUpdate]: increment(-entry.amount)
-      });
-      
       setPointHistory(pointHistory.filter(h => h.id !== entry.id));
     } catch (e) {
-      alert('포인트 취소에 실패했습니다.');
+      alert('포인트 삭제에 실패했습니다.');
     }
   };
 

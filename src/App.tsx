@@ -422,6 +422,23 @@ function App() {
     return () => clearTimeout(timeoutId);
   }, [participatingMembers, bracketOption, matchScores, matchOverrides, currentSessionDate, currentSessionId, courtName, courtType, courtEnv, pointHistory, isFinished]);
 
+  const memberPoints = useMemo(() => {
+    const points: Record<string, { g: number, r: number }> = {};
+    Object.values(savedSessions).forEach((session: any) => {
+      if (session.pointHistory && Array.isArray(session.pointHistory)) {
+        session.pointHistory.forEach((p: any) => {
+          const name = p.memberName;
+          if (!name) return;
+          if (!points[name]) points[name] = { g: 0, r: 0 };
+          const amt = Number(p.amount) || 0;
+          if (p.type === 'G') points[name].g += amt;
+          if (p.type === 'R') points[name].r += amt;
+        });
+      }
+    });
+    return points;
+  }, [savedSessions]);
+
   const globalStats = useMemo(() => {
     const stats: Record<string, { matches: number, wins: number, losses: number, sessionMatches: number, sessionWins: number, sessionLosses: number, deuceCount: number, adCount: number, duoStats: Record<string, { wins: number, matches: number }>, attendances: number }> = {};
     allMembers.forEach(m => {
@@ -699,11 +716,12 @@ function App() {
 
   const sortedMembers = useMemo(() => {
     // 순위(RANK)는 이제 SumPoint(dynamic L.Point + GamePoint) 기준으로 계산합니다.
-    const getSum = (m: Member) => {
-      const sStats = globalStats[m.id] || { sessionMatches: 0, sessionWins: 0 };
-      const dynamicLPoint = (Number(m.score) || 0) + (sStats.sessionWins * 2) + (sStats.sessionMatches * 1);
-      return (Number(m.gamePoint) || 0) + dynamicLPoint;
-    };
+      const getSum = (m: Member) => {
+        const sStats = globalStats[m.id] || { sessionMatches: 0, sessionWins: 0 };
+        const dynamicLPoint = (Number(m.score) || 0) + (sStats.sessionWins * 2) + (sStats.sessionMatches * 1);
+        const computedGPoint = memberPoints[m.name]?.g || 0;
+        return computedGPoint + dynamicLPoint;
+      };
 
     const baseSorted = [...allMembers].sort((a, b) => getSum(b) - getSum(a));
     const membersWithRank = baseSorted.map((m, idx) => ({ ...m, rank: idx + 1, sumPoint: getSum(m) }));
@@ -723,17 +741,10 @@ function App() {
       }
 
       if (sortConfig.key === 'gamePoint') {
-        let vA = a[sortConfig.key];
-        let vB = b[sortConfig.key];
-        
-        if (typeof vA === 'string' && typeof vB === 'string') {
-          return sortConfig.direction === 'asc' ? vA.localeCompare(vB) : vB.localeCompare(vA);
-        }
-        
-        const numA = Number(vA) ?? 0;
-        const numB = Number(vB) ?? 0;
-        if (numA < numB) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (numA > numB) return sortConfig.direction === 'asc' ? 1 : -1;
+        let vA = memberPoints[a.name]?.g || 0;
+        let vB = memberPoints[b.name]?.g || 0;
+        if (vA < vB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (vA > vB) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
       }
 
@@ -995,6 +1006,7 @@ function App() {
             allMembers={allMembers}
             savedSessions={savedSessions}
             globalStats={globalStats}
+            memberPoints={memberPoints}
           />
         )}
         {activeTab === 'meal' && (
@@ -1076,8 +1088,8 @@ function App() {
                     const gStats = globalStats[member.id] || { matches: 0, wins: 0, losses: 0, sessionMatches: 0, sessionWins: 0, sessionLosses: 0 };
                     const winRate = gStats.matches > 0 ? ((gStats.wins / gStats.matches) * 100).toFixed(1) + '%' : '-';
                     const baseLPoint = (gStats.sessionWins * 2) + (gStats.sessionMatches * 1) + (Number(member.score) || 0);
-                    const roundPoint = Number(member.roundPoint) || 0;
-                    const gamePoint = Number(member.gamePoint) || 0;
+                    const roundPoint = memberPoints[member.name]?.r || 0;
+                    const gamePoint = memberPoints[member.name]?.g || 0;
                     const sumPoint = baseLPoint + roundPoint + gamePoint;
                     
                     const rank = member.rank;
@@ -1181,11 +1193,11 @@ function App() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <label style={{ display: 'block', fontSize: '0.72rem', color: '#6B7280', marginBottom: '3px' }}>R.Point</label>
-                      <input type="number" value={selectedMember.roundPoint || 0} onChange={e => setSelectedMember({...selectedMember, roundPoint: e.target.value})} style={{ width: '100%', padding: '6px 4px', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.9rem' }} />
+                      <input type="number" readOnly value={memberPoints[selectedMember.name]?.r || 0} style={{ width: '100%', padding: '6px 4px', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.9rem', background: '#F3F4F6' }} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <label style={{ display: 'block', fontSize: '0.72rem', color: '#6B7280', marginBottom: '3px' }}>G.Point</label>
-                      <input type="number" value={selectedMember.gamePoint || 0} onChange={e => setSelectedMember({...selectedMember, gamePoint: e.target.value})} style={{ width: '100%', padding: '6px 4px', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.9rem' }} />
+                      <input type="number" readOnly value={memberPoints[selectedMember.name]?.g || 0} style={{ width: '100%', padding: '6px 4px', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.9rem', background: '#F3F4F6' }} />
                     </div>
                   </div>
                 </div>
