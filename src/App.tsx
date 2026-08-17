@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Camera, Plus, Trash2, ArrowUpDown, X, User, Users, Edit, Medal, List, Award, BarChart2, Utensils, BookOpen } from 'lucide-react';
 import './index.css';
 import membersData from './members.json';
@@ -968,6 +968,8 @@ function App() {
               setCourtEnv={setCourtEnv}
               pointHistory={pointHistory}
               setPointHistory={setPointHistory}
+              isFinished={isFinished}
+              setIsFinished={setIsFinished}
               forceSave={forceSaveSession}
             />
           </div>
