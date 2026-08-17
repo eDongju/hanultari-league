@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Camera, Plus, Trash2, ArrowUpDown, X, User, Users, Edit, Medal, List, Award, BarChart2, Utensils, BookOpen } from 'lucide-react';
+import { Camera, Plus, Trash2, ArrowUpDown, X, User, Users, Edit, Medal, List, Award, BarChart2, Utensils, BookOpen, Download } from 'lucide-react';
 import './index.css';
 import membersData from './members.json';
 import { collection, doc, onSnapshot, setDoc, deleteDoc } from 'firebase/firestore';
@@ -634,6 +634,34 @@ function App() {
 
   const rankingTableRef = useRef<HTMLDivElement>(null);
 
+  const handleDownloadBackup = () => {
+    try {
+      const backupData = {
+        members: allMembers,
+        sessions: savedSessions,
+        timestamp: new Date().toISOString()
+      };
+      
+      const jsonString = JSON.stringify(backupData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const dateStr = new Date().toISOString().split('T')[0];
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `hanultari_db_backup_${dateStr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      alert('DB 백업 파일이 성공적으로 다운로드되었습니다.');
+    } catch (err) {
+      console.error(err);
+      alert('백업 다운로드 중 오류가 발생했습니다.');
+    }
+  };
+
   const handleCaptureMembersRanking = async () => {
     if (!rankingTableRef.current) return;
     
@@ -1030,6 +1058,14 @@ function App() {
                     borderRadius: '6px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '0.9rem'
                   }}>
                   <Camera size={16} /> 전체캡처
+                </button>
+                <button 
+                  onClick={handleDownloadBackup}
+                  style={{ 
+                    background: '#6B7280', color: 'white', border: 'none', padding: '0.5rem 1rem', 
+                    borderRadius: '6px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '0.9rem'
+                  }}>
+                  <Download size={16} /> DB 백업
                 </button>
                 <button 
                   onClick={handleAddNewMember}
