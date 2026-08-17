@@ -10,6 +10,9 @@ interface StockData {
   per: number;
   pbr: number;
   div: number;
+  roe?: number;
+  eps?: number;
+  bps?: number;
 }
 
 interface RecommendationDoc {
@@ -102,7 +105,9 @@ export default function StockRecommendations() {
                   <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>종가</th>
                   <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>PER</th>
                   <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>PBR</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>배당수익률</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>ROE(%)</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>배당률</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>EPS/BPS</th>
                 </tr>
               </thead>
               <tbody>
@@ -123,8 +128,14 @@ export default function StockRecommendations() {
                     <td style={{ padding: '12px 15px', textAlign: 'right', color: '#059669', fontWeight: '500' }}>
                       {stock.pbr.toFixed(2)}배
                     </td>
+                    <td style={{ padding: '12px 15px', textAlign: 'right', color: '#7C3AED', fontWeight: 'bold' }}>
+                      {stock.roe !== undefined ? stock.roe.toFixed(2) : '-'}%
+                    </td>
                     <td style={{ padding: '12px 15px', textAlign: 'right', color: '#D97706', fontWeight: 'bold' }}>
                       {stock.div.toFixed(2)}%
+                    </td>
+                    <td style={{ padding: '12px 15px', textAlign: 'right', color: '#4B5563', fontSize: '0.85rem' }}>
+                      {stock.eps !== undefined ? stock.eps.toLocaleString() : '-'}/{stock.bps !== undefined ? stock.bps.toLocaleString() : '-'}
                     </td>
                   </tr>
                 ))}
