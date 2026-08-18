@@ -166,11 +166,18 @@ def fetch_and_screen():
     df['sector_pbr_std'] = df.groupby('sector')['pbr'].transform('std')
     df['z_pbr'] = np.where(df['sector_pbr_std'] > 0, (df['pbr'] - df['sector_pbr_mean']) / df['sector_pbr_std'], 0)
     
-    # 2. 금리 반영 그레이엄 목표가 (Graham Formula Revisited)
-    # V = EPS * (8.5 + 2g) * 4.4 / Y
-    # 보수적 접근을 위해 g는 최대 15% 캡 적용
-    df['g_capped'] = df['cagr_3y'].clip(lower=0, upper=15)
-    df['target_price'] = (df['fwd_eps'] * (8.5 + 2 * df['g_capped']) * 4.4 / bond_yield).astype(int)
+    # 2. 사경인 S-RIM 목표가 (S-RIM Valuation)
+    # V = BPS + [BPS * (ROE - COE) / COE]
+    # COE(기대수익률)는 보통 BBB- 5년물 회사채 금리를 쓰지만, 여기서는 국고채 금리 + 4.5% (대략 8.0%) 적용
+    coe = (bond_yield + 4.5) / 100.0
+    
+    # BPS 산출 (현재가 / PBR)
+    df['bps'] = np.where(df['pbr'] > 0, df['close'] / df['pbr'], 0)
+    
+    # S-RIM 목표가
+    df['target_price'] = (df['bps'] + df['bps'] * ((df['roe'] / 100.0) - coe) / coe).fillna(0).astype(int)
+    df['target_price'] = np.where(df['target_price'] < 0, 0, df['target_price']) # 음수 방지
+    
     df['upside'] = np.where(df['close'] > 0, (df['target_price'] - df['close']) / df['close'] * 100, 0)
     
     # 3. Quality 필터링 (금융업 제외 부채비율 150% 이하)
