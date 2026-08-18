@@ -13,11 +13,18 @@ interface StockData {
   roe?: number;
   eps?: number;
   fwd_per?: number;
+  fwd_eps?: number;
   eps_growth?: number;
+  peg?: number;
+  bps?: number;
+  z_per?: number;
+  z_pbr?: number;
+  debt_ratio?: number;
   target_price?: number;
   upside?: number;
   score?: number;
   sector?: string;
+  bond_yield?: number;
 }
 
 interface RecommendationDoc {
@@ -110,11 +117,17 @@ export default function StockRecommendations() {
                   <th style={{ padding: '12px 15px', textAlign: 'center', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>총점</th>
                   <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>종가</th>
                   <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>목표가(상승여력)</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>예상 PER</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>3년 연평균성장률</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>PBR</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>ROE(%)</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>배당률</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>예상 EPS</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>예상 PER</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>Z-PER</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>3Y CAGR</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>PEG</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>PBR</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>Z-PBR</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>BPS</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>ROE(%)</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>부채비율(%)</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>배당률(%)</th>
                 </tr>
               </thead>
               <tbody>
@@ -155,17 +168,35 @@ export default function StockRecommendations() {
                         (↑ {stock.upside !== undefined ? stock.upside.toFixed(1) : '-'}%)
                       </span>
                     </td>
+                    <td style={{ padding: '12px 15px', textAlign: 'right', color: '#4B5563' }}>
+                      {stock.fwd_eps !== undefined ? stock.fwd_eps.toLocaleString() : '-'}
+                    </td>
                     <td style={{ padding: '12px 15px', textAlign: 'right', color: '#2563EB', fontWeight: '500' }}>
                       {stock.fwd_per !== undefined && stock.fwd_per > 0 ? stock.fwd_per.toFixed(2) : stock.per.toFixed(2)}배
+                    </td>
+                    <td style={{ padding: '12px 15px', textAlign: 'right', color: stock.z_per !== undefined && stock.z_per < 0 ? '#10B981' : '#EF4444', fontWeight: 'bold' }}>
+                      {stock.z_per !== undefined ? stock.z_per.toFixed(2) : '-'}
                     </td>
                     <td style={{ padding: '12px 15px', textAlign: 'right', color: '#10B981', fontWeight: 'bold' }}>
                       {stock.eps_growth !== undefined ? `+${stock.eps_growth.toFixed(1)}` : '-'}%
                     </td>
+                    <td style={{ padding: '12px 15px', textAlign: 'right', color: '#4B5563' }}>
+                      {stock.peg !== undefined ? stock.peg.toFixed(2) : '-'}
+                    </td>
                     <td style={{ padding: '12px 15px', textAlign: 'right', color: '#059669', fontWeight: '500' }}>
                       {stock.pbr.toFixed(2)}배
                     </td>
+                    <td style={{ padding: '12px 15px', textAlign: 'right', color: stock.z_pbr !== undefined && stock.z_pbr < 0 ? '#10B981' : '#EF4444', fontWeight: 'bold' }}>
+                      {stock.z_pbr !== undefined ? stock.z_pbr.toFixed(2) : '-'}
+                    </td>
+                    <td style={{ padding: '12px 15px', textAlign: 'right', color: '#4B5563' }}>
+                      {stock.bps !== undefined ? stock.bps.toLocaleString() : '-'}
+                    </td>
                     <td style={{ padding: '12px 15px', textAlign: 'right', color: '#7C3AED', fontWeight: 'bold' }}>
                       {stock.roe !== undefined ? stock.roe.toFixed(2) : '-'}%
+                    </td>
+                    <td style={{ padding: '12px 15px', textAlign: 'right', color: stock.debt_ratio !== undefined && stock.debt_ratio > 150 ? '#EF4444' : '#4B5563' }}>
+                      {stock.debt_ratio !== undefined ? stock.debt_ratio.toFixed(1) : '-'}%
                     </td>
                     <td style={{ padding: '12px 15px', textAlign: 'right', color: '#D97706', fontWeight: 'bold' }}>
                       {stock.div.toFixed(2)}%

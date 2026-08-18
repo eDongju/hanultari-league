@@ -223,14 +223,19 @@ def fetch_and_screen():
             "pbr": float(row['pbr']),
             "div": float(row['div']),
             "roe": round(float(row['roe']), 2),
-            "eps": 0, # Unused
-            "bps": 0, # Unused
+            "debt_ratio": round(float(row['debt_ratio']), 2),
             "fwd_per": round(float(row['fwd_per']), 2),
-            "eps_growth": round(float(row['cagr_3y']), 2), # Frontend uses eps_growth mapping
+            "fwd_eps": int(row['fwd_eps']),
+            "eps_growth": round(float(row['cagr_3y']), 2),
+            "peg": round(float(row['peg']), 2),
+            "bps": int(row['bps']),
+            "z_per": round(float(row['z_per']), 2),
+            "z_pbr": round(float(row['z_pbr']), 2),
             "target_price": int(row['target_price']),
             "upside": round(float(row['upside']), 2),
             "score": round(float(row['total_score']) * 100, 1),
-            "sector": row['sector']
+            "sector": row['sector'],
+            "bond_yield": float(bond_yield)
         })
         
     target_date = datetime.datetime.today().strftime("%Y%m%d")
