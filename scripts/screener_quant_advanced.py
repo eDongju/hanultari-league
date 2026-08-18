@@ -29,6 +29,8 @@ def get_bond_yield():
 
 def get_kospi_top_200():
     df_kospi = fdr.StockListing('KOSPI')
+    # 보통주(Common Stock)만 필터링: 한국 주식은 종목코드 마지막 자리가 '0'이면 보통주, 그 외(5, 7, K 등)는 우선주
+    df_kospi = df_kospi[df_kospi['Code'].str.endswith('0')]
     df_kospi = df_kospi.head(200)
     
     tickers = []
