@@ -29,11 +29,13 @@ def get_bond_yield():
 
 def get_kospi_top_200():
     df_kospi = fdr.StockListing('KOSPI')
-    # 시가총액 기준으로 정렬되어 있으므로 상위 200개 추출
     df_kospi = df_kospi.head(200)
     
+    df_desc = fdr.StockListing('KRX-DESC')
+    df_merged = pd.merge(df_kospi, df_desc[['Code', 'Sector']], on='Code', how='left')
+    
     tickers = []
-    for _, row in df_kospi.iterrows():
+    for _, row in df_merged.iterrows():
         tickers.append({
             'ticker': str(row['Code']),
             'name': row['Name'],
