@@ -137,7 +137,16 @@ export default function StockRecommendations() {
                       {index + 1}
                     </td>
                     <td style={{ padding: '12px 15px', fontWeight: 'bold', color: '#111827' }}>
-                      {stock.name} <span style={{ fontSize: '0.75rem', color: '#9CA3AF', marginLeft: '4px', fontWeight: 'normal' }}>{stock.ticker}</span>
+                      <a 
+                        href={`https://finance.naver.com/item/main.naver?code=${stock.ticker}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#111827', textDecoration: 'none', cursor: 'pointer' }}
+                        onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                        onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                      >
+                        {stock.name} <span style={{ fontSize: '0.75rem', color: '#9CA3AF', marginLeft: '4px', fontWeight: 'normal' }}>{stock.ticker}</span>
+                      </a>
                       {stock.sector && (
                         <div style={{ fontSize: '0.75rem', color: '#6B7280', marginTop: '2px', fontWeight: 'normal' }}>
                           {stock.sector}

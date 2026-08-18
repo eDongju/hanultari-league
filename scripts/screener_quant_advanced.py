@@ -31,15 +31,11 @@ def get_kospi_top_200():
     df_kospi = fdr.StockListing('KOSPI')
     df_kospi = df_kospi.head(200)
     
-    df_desc = fdr.StockListing('KRX-DESC')
-    df_merged = pd.merge(df_kospi, df_desc[['Code', 'Sector']], on='Code', how='left')
-    
     tickers = []
-    for _, row in df_merged.iterrows():
+    for _, row in df_kospi.iterrows():
         tickers.append({
             'ticker': str(row['Code']),
-            'name': row['Name'],
-            'sector': row['Sector'] if pd.notna(row['Sector']) else '기타'
+            'name': row['Name']
         })
     return tickers
 
@@ -103,6 +99,13 @@ def scrape_fundamentals(ticker):
                     elif 'ROE' in th_text:
                         roe_val = parse_num(tds[3]) if parse_num(tds[3]) > 0 else parse_num(tds[2])
         
+        # Sector 추출 (Naver Finance)
+        sector_val = '기타'
+        for a in soup.select('a'):
+            if 'sise_group_detail' in a.get('href', ''):
+                sector_val = a.text.strip()
+                break
+                
         # 3-Year CAGR 계산 (EPS_Y-3 -> EPS_Y(E))
         cagr_3y = 0.0
         if len(eps_list) >= 4 and eps_list[0] > 0 and eps_list[3] > 0:
@@ -128,7 +131,8 @@ def scrape_fundamentals(ticker):
             'peg': peg,
             'debt_ratio': debt_ratio,
             'roe': roe_val,
-            'op_profit_positive': all(op > 0 for op in op_profit_list) if len(op_profit_list) >= 4 else False
+            'op_profit_positive': all(op > 0 for op in op_profit_list) if len(op_profit_list) >= 4 else False,
+            'sector': sector_val
         }
     except Exception as e:
         print(f"Error scraping {ticker}: {e}")
