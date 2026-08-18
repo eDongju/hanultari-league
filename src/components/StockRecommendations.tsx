@@ -90,9 +90,12 @@ export default function StockRecommendations() {
       <div style={{ background: '#EFF6FF', borderRadius: '8px', padding: '15px', marginBottom: '20px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
         <Info size={20} color="#3B82F6" style={{ marginTop: '2px', flexShrink: 0 }} />
         <div style={{ fontSize: '0.9rem', color: '#1E3A8A', lineHeight: '1.5' }}>
-          <strong>GARP (Growth At a Reasonable Price) 퀀트 전략</strong><br/>
-          PER 15배 이하, PBR 1.5배 이하의 <strong>저평가 가치주</strong>이면서 동시에 배당수익률 1.5% 이상으로 <strong>하방 방어력</strong>을 갖춘 코스피 우량주를 
-          매일 오후 4시 30분에 AI 알고리즘이 자동으로 분석하여 추천합니다.
+          <strong>피터 린치의 GARP (Growth At a Reasonable Price) 퀀트 전략 탑재</strong><br/>
+          단순 저평가(Value Trap)나 고평가 거품주를 피하고, <strong>'가치와 성장의 완벽한 교집합'</strong>을 찾습니다. <br/>
+          <strong>1) 섹터 중립화(Z-Score)</strong>로 업종 내 압도적 저평가주 발굴 
+          <strong>2) 사경인 S-RIM</strong>으로 깐깐한 목표가 산출 <br/>
+          <strong>3) 3년 연평균 복합성장률(CAGR) 대비 저평가 비율(PEG)</strong>과 부채비율, 배당률을 
+          모두 가중합산(Multi-Factor)하여 매일 최고의 코스피 우량주 20선을 추천합니다.
         </div>
       </div>
 
