@@ -12,11 +12,12 @@ interface StockData {
   div: number;
   roe?: number;
   eps?: number;
-  bps?: number;
   fwd_per?: number;
   eps_growth?: number;
   target_price?: number;
   upside?: number;
+  score?: number;
+  sector?: string;
 }
 
 interface RecommendationDoc {
@@ -105,11 +106,12 @@ export default function StockRecommendations() {
               <thead>
                 <tr style={{ background: '#F9FAFB' }}>
                   <th style={{ padding: '12px 15px', textAlign: 'center', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>순위</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'left', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>종목명</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'left', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>종목 (섹터)</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'center', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>총점</th>
                   <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>종가</th>
                   <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>목표가(상승여력)</th>
                   <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>예상 PER</th>
-                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>EPS성장률</th>
+                  <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>3년 연평균성장률</th>
                   <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>PBR</th>
                   <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>ROE(%)</th>
                   <th style={{ padding: '12px 15px', textAlign: 'right', borderBottom: '2px solid #E5E7EB', color: '#4B5563', fontSize: '0.9rem' }}>배당률</th>
@@ -123,6 +125,23 @@ export default function StockRecommendations() {
                     </td>
                     <td style={{ padding: '12px 15px', fontWeight: 'bold', color: '#111827' }}>
                       {stock.name} <span style={{ fontSize: '0.75rem', color: '#9CA3AF', marginLeft: '4px', fontWeight: 'normal' }}>{stock.ticker}</span>
+                      {stock.sector && (
+                        <div style={{ fontSize: '0.75rem', color: '#6B7280', marginTop: '2px', fontWeight: 'normal' }}>
+                          {stock.sector}
+                        </div>
+                      )}
+                    </td>
+                    <td style={{ padding: '12px 15px', textAlign: 'center' }}>
+                      <span style={{ 
+                        backgroundColor: '#FEF3C7', 
+                        color: '#D97706', 
+                        padding: '2px 8px', 
+                        borderRadius: '12px',
+                        fontSize: '0.85rem',
+                        fontWeight: 'bold'
+                      }}>
+                        {stock.score !== undefined ? stock.score.toFixed(1) : '-'}점
+                      </span>
                     </td>
                     <td style={{ padding: '12px 15px', textAlign: 'right', color: '#4B5563' }}>
                       {stock.close.toLocaleString()}원

@@ -34,4 +34,4 @@ jobs:
         FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         TARGET_DATE: ${{ github.event.inputs.target_date }}
       run: |
-        python scripts/screener_naver.py
+        python scripts/screener_quant_advanced.py
