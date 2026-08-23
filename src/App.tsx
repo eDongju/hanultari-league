@@ -1406,35 +1406,53 @@ function App() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#6B7280', marginBottom: '4px' }}>생년월일</label>
-                  <input type="date" value={selectedMember.birthdate !== '-' ? selectedMember.birthdate : ''} onChange={e => setSelectedMember({...selectedMember, birthdate: e.target.value})} style={{ display: 'block', width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.85rem' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <div style={{ background: '#1F2937', padding: '4px', borderRadius: '6px' }}><div style={{ width: '10px', height: '10px', border: '2px solid #D9F99D' }}></div></div>
+                    <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#111827' }}>생년월일</span>
+                  </div>
+                  <input type="date" value={selectedMember.birthdate !== '-' ? selectedMember.birthdate : ''} onChange={e => setSelectedMember({...selectedMember, birthdate: e.target.value})} style={{ display: 'block', width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px 8px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '0.9rem' }} />
                 </div>
-                <div style={{ width: '60px', flexShrink: 0 }}>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#6B7280', marginBottom: '4px' }}>나이</label>
-                  <input type="text" value={selectedMember.age} readOnly style={{ display: 'block', width: '100%', boxSizing: 'border-box', padding: '8px 4px', border: '1px solid #D1D5DB', borderRadius: '6px', background: '#F3F4F6', textAlign: 'center', fontSize: '0.9rem' }} />
+                <div style={{ width: '70px', flexShrink: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <div style={{ background: '#1F2937', padding: '4px', borderRadius: '6px' }}><div style={{ width: '10px', height: '10px', border: '2px solid #D9F99D' }}></div></div>
+                    <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#111827' }}>나이</span>
+                  </div>
+                  <input type="text" value={selectedMember.age} readOnly style={{ display: 'block', width: '100%', boxSizing: 'border-box', padding: '10px 4px', border: '1px solid #D1D5DB', borderRadius: '8px', background: '#F3F4F6', textAlign: 'center', fontSize: '0.9rem', color: '#6B7280', fontWeight: 'bold' }} />
                 </div>
-              </div>
-
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: '#6B7280', marginBottom: '4px' }}>입회날짜</label>
-                <input type="date" value={selectedMember.joinDate || ''} onChange={e => setSelectedMember({...selectedMember, joinDate: e.target.value})} style={{ display: 'block', width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '8px', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.9rem' }} />
-              </div>
-
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>전국 대회 입상</label>
-                <textarea rows={6} value={selectedMember.nationalPrize || ''} onChange={e => setSelectedMember({...selectedMember, nationalPrize: e.target.value})} placeholder={`(2026-08-09) 수원화성배 32강 : 5점\n\n(한울타리페어 점수)\n우승(45), 준우승(30), 입상(20), 8강(13), 16강(8), 32강(5)\n(타클럽페어 점수, 복식/단식/혼복)\n우승(35), 준우승(23), 입상(15), 8강(9), 16강(5), 32강(3)\n(단체전 점수)\n우승(15), 준우승(10), 입상(5점)`} style={{ width: '100%', padding: '12px', border: '1px solid #D1D5DB', borderRadius: '6px', resize: 'vertical', lineHeight: '1.5' }}></textarea>
-              </div>
-
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>간식점수</label>
-                <textarea rows={6} value={selectedMember.snackScoreText || ''} onChange={e => setSelectedMember({...selectedMember, snackScoreText: e.target.value})} placeholder={`(2026-08-09) 메가 커피 : 1점\n(간식 점수)\n커피(1), 식사(2)`} style={{ width: '100%', padding: '12px', border: '1px solid #D1D5DB', borderRadius: '6px', resize: 'vertical', lineHeight: '1.5' }}></textarea>
               </div>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: '#6B7280', marginBottom: '4px' }}>선수 추가 정보 (특이사항)</label>
-                <textarea rows={6} value={selectedMember.extraInfo || ''} onChange={e => setSelectedMember({...selectedMember, extraInfo: e.target.value})} placeholder="우승 경력, 주특기 등 추가 정보 입력..." style={{ width: '100%', padding: '12px', border: '1px solid #D1D5DB', borderRadius: '6px', resize: 'vertical', lineHeight: '1.5' }}></textarea>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <div style={{ background: '#1F2937', padding: '4px', borderRadius: '6px' }}><div style={{ width: '10px', height: '10px', border: '2px solid #D9F99D' }}></div></div>
+                  <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#111827' }}>입회날짜</span>
+                </div>
+                <input type="date" value={selectedMember.joinDate || ''} onChange={e => setSelectedMember({...selectedMember, joinDate: e.target.value})} style={{ display: 'block', width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px 8px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '0.9rem' }} />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <div style={{ background: '#1F2937', padding: '4px', borderRadius: '6px' }}><div style={{ width: '10px', height: '10px', border: '2px solid #D9F99D' }}></div></div>
+                  <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#111827' }}>전국 대회 입상</span>
+                </div>
+                <textarea rows={5} value={selectedMember.nationalPrize || ''} onChange={e => setSelectedMember({...selectedMember, nationalPrize: e.target.value})} placeholder={`(2026-08-09) 수원화성배 32강 : 5점\n\n(한울타리페어 점수)\n우승(45), 준우승(30), 입상(20), 8강(13), 16강(8), 32강(5)\n(타클럽페어 점수, 복식/단식/혼복)\n우승(35), 준우승(23), 입상(15), 8강(9), 16강(5), 32강(3)\n(단체전 점수)\n우승(15), 준우승(10), 입상(5점)`} style={{ width: '100%', padding: '12px', border: '1px solid #D1D5DB', borderRadius: '8px', resize: 'vertical', lineHeight: '1.5', fontSize: '0.9rem' }}></textarea>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <div style={{ background: '#1F2937', padding: '4px', borderRadius: '6px' }}><div style={{ width: '10px', height: '10px', border: '2px solid #D9F99D' }}></div></div>
+                  <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#111827' }}>간식점수</span>
+                </div>
+                <textarea rows={4} value={selectedMember.snackScoreText || ''} onChange={e => setSelectedMember({...selectedMember, snackScoreText: e.target.value})} placeholder={`(2026-08-09) 메가 커피 : 1점\n(간식 점수)\n커피(1), 식사(2)`} style={{ width: '100%', padding: '12px', border: '1px solid #D1D5DB', borderRadius: '8px', resize: 'vertical', lineHeight: '1.5', fontSize: '0.9rem' }}></textarea>
+              </div>
+
+              <div style={{ marginBottom: '25px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <div style={{ background: '#1F2937', padding: '4px', borderRadius: '6px' }}><div style={{ width: '10px', height: '10px', border: '2px solid #D9F99D' }}></div></div>
+                  <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#111827' }}>선수 추가 정보 (특이사항)</span>
+                </div>
+                <textarea rows={4} value={selectedMember.extraInfo || ''} onChange={e => setSelectedMember({...selectedMember, extraInfo: e.target.value})} placeholder="우승 경력, 주특기 등 추가 정보 입력..." style={{ width: '100%', padding: '12px', border: '1px solid #D1D5DB', borderRadius: '8px', resize: 'vertical', lineHeight: '1.5', fontSize: '0.9rem' }}></textarea>
               </div>
 
               <div style={{ display: 'flex', gap: '10px' }}>
