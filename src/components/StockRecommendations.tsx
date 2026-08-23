@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
-import { TrendingUp, Calendar, Info, RefreshCw } from 'lucide-react';
+import { TrendingUp, Calendar, Info, RefreshCw, Share2 } from 'lucide-react';
 
 interface StockData {
   ticker: string;
@@ -69,7 +69,7 @@ export default function StockRecommendations() {
   }, []);
 
   return (
-    <div className="content-card" style={{ maxWidth: '900px', margin: '0 auto' }}>
+    <div className="content-card" style={{ position: 'relative' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', marginBottom: '20px' }}>
         <h2 style={{ color: '#1E3A8A', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
           <TrendingUp size={24} color="#3B82F6" /> 
@@ -106,9 +106,36 @@ export default function StockRecommendations() {
         </div>
       ) : latestRec ? (
         <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '15px', color: '#4B5563', fontWeight: 'bold' }}>
-            <Calendar size={16} /> 
-            기준일: {latestRec.date.substring(0,4)}년 {latestRec.date.substring(4,6)}월 {latestRec.date.substring(6,8)}일 장 마감 기준
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#4B5563', fontWeight: 'bold' }}>
+              <Calendar size={16} /> 
+              기준일: {latestRec.date.substring(0,4)}년 {latestRec.date.substring(4,6)}월 {latestRec.date.substring(6,8)}일 장 마감 기준
+            </div>
+            <button 
+              onClick={async () => {
+                try {
+                  if (navigator.share) {
+                    await navigator.share({
+                      title: 'AI 가치성장주 픽 (GARP)',
+                      text: '한울타리 주식 스크리너 추천 종목을 확인해보세요!',
+                      url: window.location.href,
+                    });
+                  } else {
+                    await navigator.clipboard.writeText(window.location.href);
+                    alert('페이지 링크가 복사되었습니다.');
+                  }
+                } catch (error) {
+                  console.log('Error sharing:', error);
+                }
+              }}
+              style={{
+                background: 'white', color: '#4B5563', border: '1px solid #D1D5DB', padding: '6px 12px',
+                borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer',
+                fontSize: '0.85rem'
+              }}
+            >
+              <Share2 size={14} /> 공유하기
+            </button>
           </div>
           
           <div style={{ overflowX: 'auto', background: 'white', border: '1px solid #E5E7EB', borderRadius: '8px' }}>

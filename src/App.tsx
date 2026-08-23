@@ -899,6 +899,84 @@ function App() {
     event.target.value = ''; 
   };
 
+  const selectedMemberStats = useMemo(() => {
+    if (!selectedMember) return null;
+    
+    // basic
+    const gStats = globalStats[selectedMember.id] || { wins: 0, losses: 0, matches: 0, deuceCount: 0, adCount: 0 };
+    
+    // detailed
+    const courtData: Record<string, { wins: number, losses: number }> = {
+      '클레이': {wins: 0, losses: 0},
+      '하드': {wins: 0, losses: 0},
+      '잔디': {wins: 0, losses: 0},
+      '인조잔디': {wins: 0, losses: 0},
+      '기타': {wins: 0, losses: 0}
+    };
+    
+    const envData: Record<string, { wins: number, losses: number }> = {
+      '실내': {wins: 0, losses: 0},
+      '야외': {wins: 0, losses: 0}
+    };
+
+    // Calculate detailed stats by iterating sessions
+    Object.values(savedSessions).forEach((session: any) => {
+      const cType = session.courtType || '기타';
+      const cEnv = session.courtEnv || '야외';
+      
+      if (!courtData[cType]) courtData[cType] = {wins: 0, losses: 0};
+      if (!envData[cEnv]) envData[cEnv] = {wins: 0, losses: 0};
+      
+      const mScores = session.matchScores || {};
+      let currentCombinations = [...((combinations as Record<string, string[]>)[session.bracketOption] || [])];
+      // padding combinations
+      const maxMatchIdx = Math.max(-1, ...Object.keys(mScores).map(k => parseInt(k.split('-')[0], 10)));
+      if (maxMatchIdx >= currentCombinations.length) {
+        const padCount = maxMatchIdx - currentCombinations.length + 1;
+        for (let i = 0; i < padCount; i++) currentCombinations.push("1234");
+      }
+      
+      const mOverrides = session.matchOverrides || {};
+      const pMembers = session.participatingMembers || [];
+      
+      currentCombinations.forEach((matchStr, matchIdx) => {
+        let matchSubIdx = 0;
+        for (let i = 0; i < matchStr.length; i += 4) {
+          const sub = matchStr.slice(i, i + 4);
+          if (sub.length === 4) {
+            const matchId = `${matchIdx}-${matchSubIdx}`;
+            const score = mScores[matchId];
+            if (score && score.t1 !== '' && score.t2 !== '') {
+              const s1 = parseInt(score.t1) || 0;
+              const s2 = parseInt(score.t2) || 0;
+              
+              const p1Id = mOverrides[matchId]?.[0] || pMembers[charToIndex(sub[0])]?.id;
+              const p2Id = mOverrides[matchId]?.[1] || pMembers[charToIndex(sub[1])]?.id;
+              const p3Id = mOverrides[matchId]?.[2] || pMembers[charToIndex(sub[2])]?.id;
+              const p4Id = mOverrides[matchId]?.[3] || pMembers[charToIndex(sub[3])]?.id;
+              
+              const win = s1 > s2;
+              const loss = s1 < s2;
+              
+              if (win || loss) {
+                  if (p1Id === selectedMember.id || p2Id === selectedMember.id) {
+                     if (win) { courtData[cType].wins++; envData[cEnv].wins++; }
+                     else { courtData[cType].losses++; envData[cEnv].losses++; }
+                  } else if (p3Id === selectedMember.id || p4Id === selectedMember.id) {
+                     if (loss) { courtData[cType].wins++; envData[cEnv].wins++; }
+                     else { courtData[cType].losses++; envData[cEnv].losses++; }
+                  }
+              }
+            }
+            matchSubIdx++;
+          }
+        }
+      });
+    });
+
+    return { gStats, courtData, envData };
+  }, [selectedMember, savedSessions, globalStats]);
+
   return (
     <div 
       className="container" 
@@ -1241,6 +1319,90 @@ function App() {
                       <input type="number" readOnly value={memberPoints[selectedMember.name]?.g || 0} style={{ width: '100%', padding: '6px 4px', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.9rem', background: '#F3F4F6' }} />
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* 승률 카드 */}
+              <div style={{ background: '#111827', borderRadius: '12px', padding: '20px', color: 'white', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '15px' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                    <span style={{ fontSize: '2.5rem', fontWeight: '900', lineHeight: 1 }}>
+                      {selectedMemberStats?.gStats.matches ? Math.round((selectedMemberStats.gStats.wins / selectedMemberStats.gStats.matches) * 100) : 0}
+                    </span>
+                    <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>%</span>
+                    <span style={{ fontSize: '0.9rem', color: '#9CA3AF' }}>승률</span>
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: '#9CA3AF' }}>리그 통산 · {selectedMemberStats?.gStats.matches || 0}경기</div>
+                </div>
+                <div style={{ display: 'flex', height: '36px', borderRadius: '8px', overflow: 'hidden' }}>
+                  <div style={{ width: `${selectedMemberStats?.gStats.matches ? Math.round((selectedMemberStats.gStats.wins / selectedMemberStats.gStats.matches) * 100) : 0}%`, background: '#D9F99D', color: '#111827', display: 'flex', alignItems: 'center', paddingLeft: '12px', fontWeight: 'bold' }}>
+                    {selectedMemberStats?.gStats.wins || 0}승
+                  </div>
+                  <div style={{ flex: 1, background: '#374151', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '12px', fontWeight: 'bold' }}>
+                    {selectedMemberStats?.gStats.losses || 0}패
+                  </div>
+                </div>
+              </div>
+
+              {/* 코트 통계 */}
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <div style={{ background: '#1F2937', padding: '4px', borderRadius: '6px' }}><div style={{ width: '12px', height: '12px', border: '2px solid #D9F99D' }}></div></div>
+                  <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>코트</span>
+                </div>
+                <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '0 15px' }}>
+                  {Object.entries(selectedMemberStats?.courtData || {}).filter(([_, data]) => (data.wins + data.losses) > 0).map(([cType, data], idx, arr) => {
+                    const total = data.wins + data.losses;
+                    const rate = Math.round((data.wins / total) * 100);
+                    return (
+                      <div key={cType} style={{ padding: '15px 0', borderBottom: idx < arr.length - 1 ? '1px solid #E5E7EB' : 'none' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                          <span style={{ fontWeight: 'bold' }}>{cType}</span>
+                          <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{rate}%</span>
+                        </div>
+                        <div style={{ height: '8px', background: '#F3F4F6', borderRadius: '4px', marginBottom: '8px', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${rate}%`, background: '#A3E635', borderRadius: '4px' }}></div>
+                        </div>
+                        <div style={{ fontSize: '0.85rem', color: '#6B7280' }}>
+                          <span style={{ color: '#374151', fontWeight: 'bold' }}>{data.wins}승</span> · 0무 · <span style={{ color: '#374151', fontWeight: 'bold' }}>{data.losses}패</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {Object.values(selectedMemberStats?.courtData || {}).reduce((acc, curr) => acc + curr.wins + curr.losses, 0) === 0 && (
+                    <div style={{ padding: '15px 0', textAlign: 'center', color: '#9CA3AF', fontSize: '0.9rem' }}>기록 없음</div>
+                  )}
+                </div>
+              </div>
+
+              {/* 경기 환경 통계 */}
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <div style={{ background: '#1F2937', padding: '4px', borderRadius: '6px' }}><div style={{ width: '12px', height: '12px', border: '2px solid #D9F99D', borderRadius: '50%' }}></div></div>
+                  <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>경기 환경</span>
+                </div>
+                <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #E5E7EB', padding: '0 15px' }}>
+                  {Object.entries(selectedMemberStats?.envData || {}).filter(([_, data]) => (data.wins + data.losses) > 0).map(([cEnv, data], idx, arr) => {
+                    const total = data.wins + data.losses;
+                    const rate = Math.round((data.wins / total) * 100);
+                    return (
+                      <div key={cEnv} style={{ padding: '15px 0', borderBottom: idx < arr.length - 1 ? '1px solid #E5E7EB' : 'none' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                          <span style={{ fontWeight: 'bold' }}>{cEnv}</span>
+                          <span style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{rate}%</span>
+                        </div>
+                        <div style={{ height: '8px', background: '#F3F4F6', borderRadius: '4px', marginBottom: '8px', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${rate}%`, background: '#A3E635', borderRadius: '4px' }}></div>
+                        </div>
+                        <div style={{ fontSize: '0.85rem', color: '#6B7280' }}>
+                          <span style={{ color: '#374151', fontWeight: 'bold' }}>{data.wins}승</span> · 0무 · <span style={{ color: '#374151', fontWeight: 'bold' }}>{data.losses}패</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {Object.values(selectedMemberStats?.envData || {}).reduce((acc, curr) => acc + curr.wins + curr.losses, 0) === 0 && (
+                    <div style={{ padding: '15px 0', textAlign: 'center', color: '#9CA3AF', fontSize: '0.9rem' }}>기록 없음</div>
+                  )}
                 </div>
               </div>
 

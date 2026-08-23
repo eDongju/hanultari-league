@@ -186,10 +186,10 @@ def fetch_and_screen():
     
     df['upside'] = np.where(df['close'] > 0, (df['target_price'] - df['close']) / df['close'] * 100, 0)
     
-    # 3. Quality 필터링 (금융업 제외 부채비율 150% 이하)
+    # 3. Quality 필터링 (금융업 제외 부채비율 150% 이하) 및 상승여력 필터링 (Upside 10% 이상)
     # 금융업 섹터명에 '금융', '보험', '은행', '증권' 등이 포함된 경우 부채비율 컷오프 면제
     is_finance = df['sector'].str.contains('금융|보험|은행|증권|지주', na=False)
-    cond_quality = (df['debt_ratio'] <= 150) | is_finance
+    cond_quality = ((df['debt_ratio'] <= 150) | is_finance) & (df['upside'] >= 10)
     
     df_filtered = df[cond_quality].copy()
     
@@ -244,7 +244,11 @@ def fetch_and_screen():
             "bond_yield": float(bond_yield)
         })
         
-    target_date = datetime.datetime.today().strftime("%Y%m%d")
+    target_date = os.environ.get('TARGET_DATE')
+    if not target_date or target_date.strip() == '':
+        kst = datetime.timezone(datetime.timedelta(hours=9))
+        target_date = datetime.datetime.now(kst).strftime("%Y%m%d")
+        
     return target_date, results
 
 def upload_to_firebase(target_date, results):
