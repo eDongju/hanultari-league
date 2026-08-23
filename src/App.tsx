@@ -630,7 +630,7 @@ function App() {
 
   const leagueDate = new Date().toISOString().slice(0, 10);
 
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Member | 'rank' | 'sumPoint' | 'winRate' | 'totalWins' | 'totalLosses'; direction: 'asc' | 'desc' }>({ key: 'rank', direction: 'asc' });
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Member | 'rank' | 'sumPoint' | 'winRate' | 'totalWins' | 'totalLosses'; direction: 'asc' | 'desc' }>({ key: 'sumPoint', direction: 'desc' });
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
   const rankingTableRef = useRef<HTMLDivElement>(null);
@@ -749,7 +749,8 @@ function App() {
         const sStats = globalStats[m.id] || { sessionMatches: 0, sessionWins: 0 };
         const dynamicLPoint = (Number(m.score) || 0) + (sStats.sessionWins * 2) + (sStats.sessionMatches * 1);
         const computedGPoint = memberPoints[m.name]?.g || 0;
-        return computedGPoint + dynamicLPoint;
+        const computedRPoint = memberPoints[m.name]?.r || 0;
+        return dynamicLPoint + computedGPoint + computedRPoint;
       };
 
     const baseSorted = [...allMembers].sort((a, b) => getSum(b) - getSum(a));
