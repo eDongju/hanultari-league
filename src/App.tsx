@@ -919,6 +919,11 @@ function App() {
       '야외': {wins: 0, losses: 0}
     };
 
+    const pointDetails = {
+      R: [] as string[],
+      G: [] as string[]
+    };
+
     // Calculate detailed stats by iterating sessions
     Object.values(savedSessions).forEach((session: any) => {
       const cType = session.courtType || '기타';
@@ -972,9 +977,22 @@ function App() {
           }
         }
       });
+      
+      // Collect point history for this member
+      if (session.pointHistory && Array.isArray(session.pointHistory)) {
+        session.pointHistory.forEach((p: any) => {
+          if (p.memberName === selectedMember.name || p.memberId === selectedMember.id) {
+            const pDate = p.timestamp ? new Date(p.timestamp).toISOString().split('T')[0] : (session.date || '');
+            const desc = p.description ? p.description.trim() : '포인트 추가';
+            const line = `(${pDate}) ${desc} : ${p.amount}점`;
+            if (p.type === 'R') pointDetails.R.push(line);
+            if (p.type === 'G') pointDetails.G.push(line);
+          }
+        });
+      }
     });
 
-    return { gStats, courtData, envData };
+    return { gStats, courtData, envData, pointDetails };
   }, [selectedMember, savedSessions, globalStats]);
 
   return (
@@ -1434,17 +1452,17 @@ function App() {
               <div style={{ marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                   <div style={{ background: '#1F2937', padding: '4px', borderRadius: '6px' }}><div style={{ width: '10px', height: '10px', border: '2px solid #D9F99D' }}></div></div>
-                  <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#111827' }}>전국 대회 입상</span>
+                  <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#111827' }}>전국 대회 입상 (자동 기록)</span>
                 </div>
-                <textarea rows={5} value={selectedMember.nationalPrize || ''} onChange={e => setSelectedMember({...selectedMember, nationalPrize: e.target.value})} placeholder={`(2026-08-09) 수원화성배 32강 : 5점\n\n(한울타리페어 점수)\n우승(45), 준우승(30), 입상(20), 8강(13), 16강(8), 32강(5)\n(타클럽페어 점수, 복식/단식/혼복)\n우승(35), 준우승(23), 입상(15), 8강(9), 16강(5), 32강(3)\n(단체전 점수)\n우승(15), 준우승(10), 입상(5점)`} style={{ width: '100%', padding: '12px', border: '1px solid #D1D5DB', borderRadius: '8px', resize: 'vertical', lineHeight: '1.5', fontSize: '0.9rem' }}></textarea>
+                <textarea rows={4} readOnly value={selectedMemberStats?.pointDetails?.R.join('\n') || '전국 대회 입상 기록이 없습니다.'} style={{ width: '100%', padding: '12px', border: '1px solid #D1D5DB', borderRadius: '8px', resize: 'vertical', lineHeight: '1.5', fontSize: '0.9rem', background: '#F9FAFB', color: '#374151' }}></textarea>
               </div>
 
               <div style={{ marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                   <div style={{ background: '#1F2937', padding: '4px', borderRadius: '6px' }}><div style={{ width: '10px', height: '10px', border: '2px solid #D9F99D' }}></div></div>
-                  <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#111827' }}>간식점수</span>
+                  <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#111827' }}>간식점수 (자동 기록)</span>
                 </div>
-                <textarea rows={4} value={selectedMember.snackScoreText || ''} onChange={e => setSelectedMember({...selectedMember, snackScoreText: e.target.value})} placeholder={`(2026-08-09) 메가 커피 : 1점\n(간식 점수)\n커피(1), 식사(2)`} style={{ width: '100%', padding: '12px', border: '1px solid #D1D5DB', borderRadius: '8px', resize: 'vertical', lineHeight: '1.5', fontSize: '0.9rem' }}></textarea>
+                <textarea rows={4} readOnly value={selectedMemberStats?.pointDetails?.G.join('\n') || '간식 찬조 기록이 없습니다.'} style={{ width: '100%', padding: '12px', border: '1px solid #D1D5DB', borderRadius: '8px', resize: 'vertical', lineHeight: '1.5', fontSize: '0.9rem', background: '#F9FAFB', color: '#374151' }}></textarea>
               </div>
 
               <div style={{ marginBottom: '25px' }}>
