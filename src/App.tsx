@@ -1425,27 +1425,27 @@ function App() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'nowrap' }}>
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', width: '100%' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                     <div style={{ background: '#1F2937', padding: '4px', borderRadius: '6px' }}><div style={{ width: '10px', height: '10px', border: '2px solid #D9F99D' }}></div></div>
                     <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#111827' }}>생년월일</span>
                   </div>
-                  <input type="date" value={selectedMember.birthdate !== '-' ? selectedMember.birthdate : ''} onChange={e => setSelectedMember({...selectedMember, birthdate: e.target.value})} style={{ display: 'block', width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px 4px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '0.9rem' }} />
+                  <input type="date" value={selectedMember.birthdate !== '-' ? selectedMember.birthdate : ''} onChange={e => setSelectedMember({...selectedMember, birthdate: e.target.value})} style={{ display: 'block', width: '100%', height: '42px', minWidth: 0, boxSizing: 'border-box', padding: '0 8px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '0.9rem', fontFamily: 'inherit' }} />
                 </div>
                 <div style={{ width: '60px', flexShrink: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                     <div style={{ background: '#1F2937', padding: '4px', borderRadius: '6px' }}><div style={{ width: '10px', height: '10px', border: '2px solid #D9F99D' }}></div></div>
                     <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#111827' }}>나이</span>
                   </div>
-                  <input type="text" value={selectedMember.age} readOnly style={{ display: 'block', width: '100%', boxSizing: 'border-box', padding: '10px 0', border: '1px solid #D1D5DB', borderRadius: '8px', background: '#F3F4F6', textAlign: 'center', fontSize: '0.9rem', color: '#6B7280', fontWeight: 'bold' }} />
+                  <input type="text" value={selectedMember.age} readOnly style={{ display: 'block', width: '100%', height: '42px', boxSizing: 'border-box', padding: '0', border: '1px solid #D1D5DB', borderRadius: '8px', background: '#F3F4F6', textAlign: 'center', fontSize: '0.9rem', color: '#6B7280', fontWeight: 'bold', fontFamily: 'inherit' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                     <div style={{ background: '#1F2937', padding: '4px', borderRadius: '6px' }}><div style={{ width: '10px', height: '10px', border: '2px solid #D9F99D' }}></div></div>
                     <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#111827' }}>입회날짜</span>
                   </div>
-                  <input type="date" value={selectedMember.joinDate || ''} onChange={e => setSelectedMember({...selectedMember, joinDate: e.target.value})} style={{ display: 'block', width: '100%', minWidth: 0, boxSizing: 'border-box', padding: '10px 4px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '0.9rem' }} />
+                  <input type="date" value={selectedMember.joinDate || ''} onChange={e => setSelectedMember({...selectedMember, joinDate: e.target.value})} style={{ display: 'block', width: '100%', height: '42px', minWidth: 0, boxSizing: 'border-box', padding: '0 8px', border: '1px solid #D1D5DB', borderRadius: '8px', fontSize: '0.9rem', fontFamily: 'inherit' }} />
                 </div>
               </div>
 
