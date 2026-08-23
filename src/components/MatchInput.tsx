@@ -465,7 +465,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
             style={{ padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', flex: 1, minWidth: '120px', fontSize: '1rem' }}
           >
             <option value="">선수 선택</option>
-            {allMembers.filter(Boolean).map(m => (
+            {[...allMembers].filter(Boolean).sort((a, b) => a.name.localeCompare(b.name)).map(m => (
               <option key={m.id} value={m.id}>{m.name}</option>
             ))}
           </select>
