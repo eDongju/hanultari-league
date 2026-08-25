@@ -2,8 +2,8 @@ name: Daily Stock Screener
 
 on:
   schedule:
-    # 매일 오후 4시 30분 KST = 07:30 UTC
-    - cron: '30 7 * * *'
+    # 매일 오후 10시 00분 KST = 13:00 UTC
+    - cron: '0 13 * * 1-5'
   workflow_dispatch:
     inputs:
       target_date:
