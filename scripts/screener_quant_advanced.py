@@ -28,17 +28,34 @@ def get_bond_yield():
         return 3.5
 
 def get_kospi_top_200():
-    df_kospi = fdr.StockListing('KOSPI')
-    # 보통주(Common Stock)만 필터링: 한국 주식은 종목코드 마지막 자리가 '0'이면 보통주, 그 외(5, 7, K 등)는 우선주
-    df_kospi = df_kospi[df_kospi['Code'].str.endswith('0')]
-    df_kospi = df_kospi.head(200)
-    
     tickers = []
-    for _, row in df_kospi.iterrows():
-        tickers.append({
-            'ticker': str(row['Code']),
-            'name': row['Name']
-        })
+    page = 1
+    # 네이버 금융 시가총액 페이지 (KOSPI는 sosok=0)
+    # 우선주 제외 후 200개를 모으기 위해 최대 6~7페이지 탐색
+    while len(tickers) < 200 and page <= 7:
+        url = f"https://finance.naver.com/sise/sise_market_sum.naver?sosok=0&page={page}"
+        try:
+            res = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+            soup = BeautifulSoup(res.text, 'lxml')
+            
+            links = soup.select('a.tltle')
+            for link in links:
+                name = link.text.strip()
+                href = link.get('href', '')
+                if 'code=' in href:
+                    code = href.split('code=')[-1][:6]
+                    if code.endswith('0'):
+                        tickers.append({
+                            'ticker': code,
+                            'name': name
+                        })
+                        if len(tickers) == 200:
+                            break
+        except Exception as e:
+            print(f"네이버 시가총액 크롤링 오류 (page {page}): {e}")
+            break
+        page += 1
+        
     return tickers
 
 def parse_num(text):
