@@ -47,8 +47,7 @@ async function generateDailyPost() {
         try {
           console.log(`🤖 모델 시도 중: ${m}...`);
           const model = genAI.getGenerativeModel({ 
-            model: m,
-            tools: [{ googleSearch: {} }]
+            model: m
           });
           const finalPrompt = promptTemplate + `\n\n오늘의 요일은 ${todayStr}입니다. 이 요일에 맞는 주제로 글을 작성해 주세요.`;
           
