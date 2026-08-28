@@ -19,7 +19,10 @@ async function generateDailyPost() {
     const promptTemplate = fs.readFileSync(PROMPT_FILE, 'utf-8');
     
     // 2. 오늘의 요일 확인 (0: 일요일, 1: 월요일, ...)
-    const dayOfWeek = new Date().getDay();
+    // GitHub Actions는 UTC 기준이므로 한국 시간(KST, +9시간)으로 변환하여 요일 계산
+    const now = new Date();
+    const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+    const dayOfWeek = kstDate.getDay();
     const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
     const todayStr = days[dayOfWeek];
     
