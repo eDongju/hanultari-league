@@ -29,9 +29,23 @@ jobs:
         python -m pip install --upgrade pip
         pip install pandas firebase-admin requests beautifulsoup4 lxml finance-datareader
         
-    - name: Run Screener
+    - name: Run Screener with Auto-Retry
       env:
         FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         TARGET_DATE: ${{ github.event.inputs.target_date }}
       run: |
-        python scripts/screener_quant_advanced.py
+        n=0
+        max_attempts=3
+        until [ "$n" -ge "$max_attempts" ]
+        do
+           echo "Attempt $((n+1)) of $max_attempts..."
+           python scripts/screener_quant_advanced.py && break
+           n=$((n+1))
+           if [ "$n" -lt "$max_attempts" ]; then
+             echo "실행 실패. 3분(180초) 후 다시 시도합니다..."
+             sleep 180
+           else
+             echo "최대 재시도 횟수($max_attempts) 초과. 업데이트 실패."
+             exit 1
+           fi
+        done
