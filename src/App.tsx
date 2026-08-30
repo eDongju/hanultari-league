@@ -89,6 +89,11 @@ export const ProfileImage = ({ member, size = 45 }: { member: Member, size?: num
 
 function App() {
   const [activeTab, setActiveTab] = useState<'hanullog' | 'match' | 'members' | 'playerSetup' | 'matchInput' | 'rankings' | 'history' | 'stats' | 'meal' | 'aipick'>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab') as any;
+    if (tabParam) {
+      return tabParam;
+    }
     return (localStorage.getItem('activeTab') as any) || 'members';
   });
   const [slideDir, setSlideDir] = useState<'left'|'right'|''>('');

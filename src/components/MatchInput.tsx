@@ -462,7 +462,8 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
           <select 
             value={pointMemberId} 
             onChange={e => setPointMemberId(e.target.value)}
-            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', flex: 1, minWidth: '120px', fontSize: '1rem' }}
+            disabled={isFinished}
+            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', flex: 1, minWidth: '120px', fontSize: '1rem', background: isFinished ? '#F3F4F6' : 'white', color: isFinished ? '#9CA3AF' : 'inherit' }}
           >
             <option value="">선수 선택</option>
             {[...allMembers].filter(Boolean).sort((a, b) => a.name.localeCompare(b.name)).map(m => (
@@ -472,7 +473,8 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
           <select
             value={pointType}
             onChange={e => setPointType(e.target.value)}
-            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', width: '110px', fontSize: '1rem' }}
+            disabled={isFinished}
+            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', width: '110px', fontSize: '1rem', background: isFinished ? '#F3F4F6' : 'white', color: isFinished ? '#9CA3AF' : 'inherit' }}
           >
             <option value="G">G.Point</option>
             <option value="R">R.Point</option>
@@ -481,18 +483,21 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
             type="number"
             value={pointAmount}
             onChange={e => setPointAmount(e.target.value)}
-            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', width: '70px', textAlign: 'center', fontSize: '1rem' }}
+            disabled={isFinished}
+            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', width: '70px', textAlign: 'center', fontSize: '1rem', background: isFinished ? '#F3F4F6' : 'white', color: isFinished ? '#9CA3AF' : 'inherit' }}
           />
           <input
             type="text"
             placeholder="내역 (예: 화성배 우승, 커피)"
             value={pointDesc}
             onChange={e => setPointDesc(e.target.value)}
-            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', flex: 2, minWidth: '150px', fontSize: '1rem' }}
+            disabled={isFinished}
+            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', flex: 2, minWidth: '150px', fontSize: '1rem', background: isFinished ? '#F3F4F6' : 'white', color: isFinished ? '#9CA3AF' : 'inherit' }}
           />
           <button 
             onClick={handleAddPoint}
-            style={{ padding: '10px 18px', background: '#10B981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem' }}
+            disabled={isFinished}
+            style={{ padding: '10px 18px', background: isFinished ? '#9CA3AF' : '#10B981', color: 'white', border: 'none', borderRadius: '6px', cursor: isFinished ? 'not-allowed' : 'pointer', fontWeight: 'bold', fontSize: '1rem' }}
           >
             부여
           </button>
@@ -509,7 +514,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                     <span style={{ color: entry.amount > 0 ? '#10B981' : '#EF4444', marginLeft: '4px', fontWeight: 'bold' }}>{entry.amount > 0 ? `+${entry.amount}` : entry.amount}</span>
                     {entry.description && <span style={{ color: '#6B7280', marginLeft: '8px', fontSize: '0.85rem' }}>- {entry.description}</span>}
                   </span>
-                  <button onClick={() => handleRemovePoint(entry)} style={{ background: 'transparent', border: 'none', color: '#EF4444', cursor: 'pointer', padding: '2px' }} title="취소"><Trash2 size={16} /></button>
+                  <button onClick={() => handleRemovePoint(entry)} disabled={isFinished} style={{ background: 'transparent', border: 'none', color: isFinished ? '#9CA3AF' : '#EF4444', cursor: isFinished ? 'not-allowed' : 'pointer', padding: '2px' }} title="취소"><Trash2 size={16} /></button>
                 </li>
               ))}
             </ul>

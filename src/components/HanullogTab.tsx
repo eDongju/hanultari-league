@@ -109,16 +109,17 @@ const HanullogTab = () => {
   };
 
   const handleShare = async (post: any) => {
+    const shareUrl = window.location.origin + window.location.pathname + '?tab=hanullog';
     const shareData = {
       title: post.title,
       text: post.content.substring(0, 100) + '...',
-      url: window.location.href,
+      url: shareUrl,
     };
     try {
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        await navigator.clipboard.writeText(`${post.title}\n${window.location.href}`);
+        await navigator.clipboard.writeText(`${post.title}\n${shareUrl}`);
         alert('링크가 복사되었습니다!');
       }
     } catch (err) {
