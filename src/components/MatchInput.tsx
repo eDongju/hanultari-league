@@ -12,8 +12,8 @@ interface MatchInputProps {
   allMembers: any[];
   participatingMembers: any[];
   bracketOption: string;
-  matchScores: Record<string, { t1: string, t2: string }>;
-  setMatchScores: (scores: Record<string, { t1: string, t2: string }>) => void;
+  matchScores: Record<string, { t1: string, t2: string, video?: string }>;
+  setMatchScores: (scores: Record<string, { t1: string, t2: string, video?: string }>) => void;
   matchOverrides: Record<string, Record<number, string>>;
   setMatchOverrides: (overrides: Record<string, Record<number, string>>) => void;
   courtName: string;
@@ -114,6 +114,16 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
       [matchId]: {
         ...(matchScores[matchId] || { t1: '', t2: '' }),
         [team]: value
+      }
+    });
+  };
+
+  const handleVideoChange = (matchId: string, value: string) => {
+    setMatchScores({
+      ...matchScores,
+      [matchId]: {
+        ...(matchScores[matchId] || { t1: '', t2: '' }),
+        video: value
       }
     });
   };
@@ -321,29 +331,63 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
 
             return (
               <div key={matchIdx} style={{ border: '1px solid #E5E7EB', borderRadius: '8px', padding: '15px', overflow: 'hidden' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 10px 0' }}>
-                  <h4 style={{ margin: 0, color: '#374151' }}>{matchIdx + 1} 경기</h4>
-                  {matchesInRound.map((_, idx) => {
-                    const matchId = `${matchIdx}-${idx}`;
-                    const isEditing = editModes[matchId];
-                    return (
-                      <button 
-                        key={matchId}
-                        onClick={() => toggleEditMode(matchId)}
-                        style={{ 
-                          padding: '2px 8px', 
-                          fontSize: '0.8rem', 
-                          background: isEditing ? '#EF4444' : '#E5E7EB', 
-                          color: isEditing ? 'white' : '#4B5563', 
-                          border: 'none', 
-                          borderRadius: '4px', 
-                          cursor: 'pointer' 
-                        }}
-                      >
-                        {isEditing ? '완료' : (matchesInRound.length > 1 ? `${idx + 1}코트 선수수정` : '선수수정')}
-                      </button>
-                    );
-                  })}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 0 10px 0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <h4 style={{ margin: 0, color: '#374151' }}>{matchIdx + 1} 경기</h4>
+                    {matchesInRound.map((_, idx) => {
+                      const matchId = `${matchIdx}-${idx}`;
+                      const isEditing = editModes[matchId];
+                      return (
+                        <button 
+                          key={matchId}
+                          onClick={() => toggleEditMode(matchId)}
+                          style={{ 
+                            padding: '2px 8px', 
+                            fontSize: '0.8rem', 
+                            background: isEditing ? '#EF4444' : '#E5E7EB', 
+                            color: isEditing ? 'white' : '#4B5563', 
+                            border: 'none', 
+                            borderRadius: '4px', 
+                            cursor: 'pointer' 
+                          }}
+                        >
+                          {isEditing ? '완료' : (matchesInRound.length > 1 ? `${idx + 1}코트 선수수정` : '선수수정')}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    {matchesInRound.map((_, idx) => {
+                      const matchId = `${matchIdx}-${idx}`;
+                      const score = matchScores[matchId] || { t1: '', t2: '' };
+                      return (
+                        <div key={`video-${matchId}`} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          {matchesInRound.length > 1 && <span style={{ fontSize: '0.75rem', color: '#6B7280' }}>{idx + 1}코트:</span>}
+                          <input
+                            type="text"
+                            placeholder="유튜브 URL"
+                            value={score.video || ''}
+                            onChange={(e) => handleVideoChange(matchId, e.target.value)}
+                            disabled={isFinished}
+                            style={{
+                              width: '100px',
+                              padding: '4px 6px',
+                              fontSize: '0.75rem',
+                              borderRadius: '4px',
+                              border: '1px solid #D1D5DB',
+                              background: isFinished ? '#F3F4F6' : 'white',
+                              color: isFinished ? '#9CA3AF' : 'inherit'
+                            }}
+                          />
+                          {score.video && (
+                            <a href={score.video} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#EF4444', textDecoration: 'none', fontWeight: 'bold' }}>
+                              ▶ 영상보기
+                            </a>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div style={{ width: '100%' }}>
                   {matchesInRound.map((mStr, idx) => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Heart, MessageCircle, Send, Share2, PlusCircle, X } from 'lucide-react';
-import { collection, onSnapshot, query, orderBy, doc, updateDoc, addDoc } from 'firebase/firestore';
+import { Calendar, Heart, MessageCircle, Send, Share2, PlusCircle, X, Trash2, ChevronDown, ChevronRight, Edit2 } from 'lucide-react';
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const HanullogTab = () => {
@@ -14,7 +14,13 @@ const HanullogTab = () => {
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
 
   const [isWriting, setIsWriting] = useState(false);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [newPost, setNewPost] = useState({ title: '', tags: '', content: '' });
+  const [expandedPosts, setExpandedPosts] = useState<Record<string, boolean>>({});
+
+  const toggleExpand = (id: string) => {
+    setExpandedPosts(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   useEffect(() => {
     // Firebase Firestore에서 실시간으로 글 목록 가져오기 (최신순 정렬)
@@ -33,6 +39,16 @@ const HanullogTab = () => {
         initialComments[doc.id] = data.comments || [];
       });
       
+      // 공지사항(태그나 제목에 '공지' 포함)을 위로 올림
+      fetchedPosts.sort((a, b) => {
+        const aIsNotice = (a.tags && (a.tags.includes('공지사항') || a.tags.includes('공지'))) || (a.title && (a.title.includes('[공지]') || a.title.includes('공지사항')));
+        const bIsNotice = (b.tags && (b.tags.includes('공지사항') || b.tags.includes('공지'))) || (b.title && (b.title.includes('[공지]') || b.title.includes('공지사항')));
+        
+        if (aIsNotice && !bIsNotice) return -1;
+        if (!aIsNotice && bIsNotice) return 1;
+        return 0; // createdAt 기준 desc 정렬은 이미 Firestore 쿼리에서 적용됨
+      });
+
       setPosts(fetchedPosts);
       setLikes(initialLikes);
       setComments(initialComments);
@@ -84,6 +100,39 @@ const HanullogTab = () => {
     }
   };
 
+  const deleteComment = async (postId: string, commentIndex: number) => {
+    if (window.confirm("이 댓글을 삭제하시겠습니까?")) {
+      const updatedComments = [...(comments[postId] || [])];
+      updatedComments.splice(commentIndex, 1);
+      
+      setComments(prev => ({ ...prev, [postId]: updatedComments }));
+
+      try {
+        const postRef = doc(db, 'hanullog', postId);
+        await updateDoc(postRef, { comments: updatedComments });
+      } catch (error) {
+        console.error("Error deleting comment:", error);
+        alert("댓글 삭제에 실패했습니다.");
+      }
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    const pwd = window.prompt("게시물을 삭제하시려면 암호를 입력하세요.");
+    if (pwd === "1982") {
+      if (window.confirm("정말 게시글을 삭제하시겠습니까?")) {
+        try {
+          await deleteDoc(doc(db, 'hanullog', id));
+        } catch (error) {
+          console.error("Error deleting post:", error);
+          alert("삭제에 실패했습니다.");
+        }
+      }
+    } else if (pwd !== null) {
+      alert("암호가 일치하지 않습니다.");
+    }
+  };
+
   const submitPost = async () => {
     if (!newPost.title.trim() || !newPost.content.trim()) {
       alert("제목과 내용을 입력해주세요.");
@@ -91,20 +140,41 @@ const HanullogTab = () => {
     }
 
     try {
-      await addDoc(collection(db, 'hanullog'), {
-        title: newPost.title,
-        tags: newPost.tags.split(',').map(t => t.trim()).filter(t => t),
-        content: newPost.content,
-        createdAt: new Date().toISOString(),
-        date: new Date().toISOString(),
-        likes: 0,
-        comments: []
-      });
+      if (editingPostId) {
+        await updateDoc(doc(db, 'hanullog', editingPostId), {
+          title: newPost.title,
+          tags: newPost.tags.split(',').map(t => t.trim()).filter(t => t),
+          content: newPost.content,
+        });
+        setEditingPostId(null);
+      } else {
+        await addDoc(collection(db, 'hanullog'), {
+          title: newPost.title,
+          tags: newPost.tags.split(',').map(t => t.trim()).filter(t => t),
+          content: newPost.content,
+          createdAt: new Date().toISOString(),
+          date: new Date().toISOString(),
+          likes: 0,
+          comments: []
+        });
+      }
       setIsWriting(false);
       setNewPost({ title: '', tags: '', content: '' });
     } catch (error) {
-      console.error("Error adding document: ", error);
-      alert("게시글 작성에 실패했습니다.");
+      console.error("Error adding/updating document: ", error);
+      alert("게시글 저장에 실패했습니다.");
+    }
+  };
+
+  const startEdit = (post: any) => {
+    const pwd = window.prompt("게시물을 수정하시려면 암호를 입력하세요.");
+    if (pwd === "1982") {
+      setEditingPostId(post.id);
+      setNewPost({ title: post.title, tags: post.tags ? post.tags.join(', ') : '', content: post.content });
+      setIsWriting(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (pwd !== null) {
+      alert("암호가 일치하지 않습니다.");
     }
   };
 
@@ -144,8 +214,8 @@ const HanullogTab = () => {
         {isWriting && (
           <div style={{ background: 'white', borderRadius: '12px', padding: '16px', border: '1px solid #E5E7EB', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <h3 style={{ margin: 0, color: '#111827' }}>새 글 작성</h3>
-              <button onClick={() => setIsWriting(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280' }}><X size={20} /></button>
+              <h3 style={{ margin: 0, color: '#111827' }}>{editingPostId ? '글 수정' : '새 글 작성'}</h3>
+              <button onClick={() => { setIsWriting(false); setEditingPostId(null); setNewPost({ title: '', tags: '', content: '' }); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280' }}><X size={20} /></button>
             </div>
             <input 
               type="text" 
@@ -198,11 +268,39 @@ const HanullogTab = () => {
               boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
               border: '1px solid #E5E7EB'
             }}>
-              {/* 본문 타이틀 영역 */}
-              <h3 style={{ margin: '0 0 10px 0', fontSize: '1.1rem', color: '#111827', lineHeight: '1.4' }}>
-                {post.title}
-              </h3>
+              {/* 본문 타이틀 및 삭제 버튼 영역 */}
+              <div 
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', cursor: 'pointer', marginBottom: expandedPosts[post.id] ? '10px' : '0' }}
+                onClick={() => toggleExpand(post.id)}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', flex: 1 }}>
+                  <div style={{ marginTop: '2px' }}>
+                    {expandedPosts[post.id] ? <ChevronDown size={20} color="#6B7280" /> : <ChevronRight size={20} color="#6B7280" />}
+                  </div>
+                  <h3 style={{ margin: '0', fontSize: '1.1rem', color: '#111827', lineHeight: '1.4', flex: 1 }}>
+                    {post.title}
+                  </h3>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); startEdit(post); }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3B82F6', padding: '0 8px' }}
+                    title="수정"
+                  >
+                    <Edit2 size={18} />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDelete(post.id); }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', padding: '0 0 0 8px' }}
+                    title="삭제"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </div>
               
+              {expandedPosts[post.id] && (
+                <>
               {/* 태그 및 날짜 영역 */}
               <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
                 {(post.tags || []).map((tag: string, idx: number) => (
@@ -248,7 +346,22 @@ const HanullogTab = () => {
                       </div>
                     );
                   }
-                  return <React.Fragment key={i}>{line}<br/></React.Fragment>;
+                  const urlRegex = /(https?:\/\/[^\s]+)/g;
+                  const parts = line.split(urlRegex);
+                  return (
+                    <React.Fragment key={i}>
+                      {parts.map((part, index) => 
+                        urlRegex.test(part) ? (
+                          <a key={index} href={part} target="_blank" rel="noopener noreferrer" style={{ color: '#2563EB', textDecoration: 'underline' }} onClick={(e) => e.stopPropagation()}>
+                            {part}
+                          </a>
+                        ) : (
+                          part
+                        )
+                      )}
+                      <br/>
+                    </React.Fragment>
+                  );
                 })}
               </div>
 
@@ -281,9 +394,18 @@ const HanullogTab = () => {
               {(comments[post.id] && comments[post.id].length > 0) && (
                 <div style={{ background: '#F9FAFB', borderRadius: '8px', padding: '12px', marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {comments[post.id].map((c: any, idx: number) => (
-                    <div key={idx} style={{ fontSize: '0.9rem', color: '#374151' }}>
-                      <strong style={{ color: '#1E3A8A' }}>회원:</strong> {c.text} 
-                      <span style={{ fontSize: '0.75rem', color: '#9CA3AF', marginLeft: '6px' }}>{c.date}</span>
+                    <div key={idx} style={{ fontSize: '0.9rem', color: '#374151', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <strong style={{ color: '#1E3A8A' }}>회원:</strong> {c.text} 
+                        <span style={{ fontSize: '0.75rem', color: '#9CA3AF', marginLeft: '6px' }}>{c.date}</span>
+                      </div>
+                      <button
+                        onClick={() => deleteComment(post.id, idx)}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#EF4444', padding: '0 4px' }}
+                        title="댓글 삭제"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -306,6 +428,8 @@ const HanullogTab = () => {
                   <Send size={18} />
                 </button>
               </div>
+              </>
+              )}
 
             </div>
           );

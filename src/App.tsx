@@ -131,7 +131,7 @@ function App() {
     return localStorage.getItem('bracketOption') || "5";
   });
   
-  const [matchScores, setMatchScores] = useState<Record<string, { t1: string, t2: string }>>(() => {
+  const [matchScores, setMatchScores] = useState<Record<string, { t1: string, t2: string, video?: string }>>(() => {
     const saved = localStorage.getItem('matchScores');
     return saved ? JSON.parse(saved) : {};
   });
