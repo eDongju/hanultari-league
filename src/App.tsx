@@ -752,7 +752,7 @@ function App() {
     // 순위(RANK)는 이제 SumPoint(dynamic L.Point + GamePoint) 기준으로 계산합니다.
       const getSum = (m: Member) => {
         const sStats = globalStats[m.id] || { sessionMatches: 0, sessionWins: 0 };
-        const dynamicLPoint = (Number(m.score) || 0) + (sStats.sessionWins * 2) + (sStats.sessionMatches * 1);
+        const dynamicLPoint = (sStats.sessionWins * 2) + (sStats.sessionMatches * 0.5);
         const computedGPoint = memberPoints[m.name]?.g || 0;
         const computedRPoint = memberPoints[m.name]?.r || 0;
         return dynamicLPoint + computedGPoint + computedRPoint;
@@ -767,9 +767,9 @@ function App() {
 
       if (sortConfig.key === 'score') {
         const sStatsA = globalStats[a.id] || { sessionMatches: 0, sessionWins: 0 };
-        const lPointA = (Number(a.score) || 0) + (sStatsA.sessionWins * 2) + (sStatsA.sessionMatches * 1);
+        const lPointA = (sStatsA.sessionWins * 2) + (sStatsA.sessionMatches * 0.5);
         const sStatsB = globalStats[b.id] || { sessionMatches: 0, sessionWins: 0 };
-        const lPointB = (Number(b.score) || 0) + (sStatsB.sessionWins * 2) + (sStatsB.sessionMatches * 1);
+        const lPointB = (sStatsB.sessionWins * 2) + (sStatsB.sessionMatches * 0.5);
         if (lPointA < lPointB) return sortConfig.direction === 'asc' ? -1 : 1;
         if (lPointA > lPointB) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
@@ -1230,7 +1230,7 @@ function App() {
                   {sortedMembers.map((member) => {
                     const gStats = globalStats[member.id] || { matches: 0, wins: 0, losses: 0, sessionMatches: 0, sessionWins: 0, sessionLosses: 0 };
                     const winRate = gStats.matches > 0 ? ((gStats.wins / gStats.matches) * 100).toFixed(1) + '%' : '-';
-                    const baseLPoint = (gStats.sessionWins * 2) + (gStats.sessionMatches * 1) + (Number(member.score) || 0);
+                    const baseLPoint = (gStats.sessionWins * 2) + (gStats.sessionMatches * 0.5);
                     const roundPoint = memberPoints[member.name]?.r || 0;
                     const gamePoint = memberPoints[member.name]?.g || 0;
                     const sumPoint = baseLPoint + roundPoint + gamePoint;
@@ -1332,7 +1332,7 @@ function App() {
                   <div style={{ display: 'flex', gap: '6px' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <label style={{ display: 'block', fontSize: '0.72rem', color: '#6B7280', marginBottom: '3px' }}>L.Point</label>
-                      <input type="number" readOnly value={(() => { const s = globalStats[selectedMember.id] || { sessionWins: 0, sessionMatches: 0 }; return (Number(selectedMember.score) || 0) + s.sessionWins * 2 + s.sessionMatches; })()} style={{ width: '100%', padding: '6px 4px', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.9rem', background: '#F3F4F6' }} />
+                      <input type="number" readOnly value={(() => { const s = globalStats[selectedMember.id] || { sessionWins: 0, sessionMatches: 0 }; return s.sessionWins * 2 + s.sessionMatches * 0.5; })()} style={{ width: '100%', padding: '6px 4px', border: '1px solid #D1D5DB', borderRadius: '6px', fontSize: '0.9rem', background: '#F3F4F6' }} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <label style={{ display: 'block', fontSize: '0.72rem', color: '#6B7280', marginBottom: '3px' }}>R.Point</label>
