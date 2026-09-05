@@ -31,10 +31,39 @@ export default function PlayerSetup({ allMembers, participatingMembers, setParti
   // 포맷팅 헬퍼 함수
   const formatOptionLabel = (opt: string) => {
     const parts = opt.split('-');
-    const count = parts[0];
-    const court = parts[1] ? parts[1].replace('c', '코트') : '1코트';
+    const count = parseInt(parts[0], 10);
+    let court = '';
+
+    if (parts[1]) {
+      if (parts[1] === '23c') {
+        court = '2~3코트';
+      } else {
+        court = parts[1].replace('c', '코트');
+      }
+    } else {
+      if (count >= 5 && count <= 7) {
+        court = '1코트';
+      } else if (count >= 8 && count <= 11) {
+        court = '2코트';
+      } else if (count === 15) {
+        court = '3코트';
+      } else {
+        court = '1코트';
+      }
+    }
+
     return `${count}명 (${court})`;
   };
+
+  // 참가 옵션 정렬 (5명 ~ 16명 순서)
+  const sortedOptionKeys = Object.keys(combinations).sort((a, b) => {
+    const countA = parseInt(a.split('-')[0], 10);
+    const countB = parseInt(b.split('-')[0], 10);
+    if (countA !== countB) {
+      return countA - countB;
+    }
+    return a.localeCompare(b);
+  });
 
   // 시드 인덱스 계산
   const getSeedIndices = (opt: string) => {
@@ -89,7 +118,7 @@ export default function PlayerSetup({ allMembers, participatingMembers, setParti
           onChange={handleOptionChange}
           style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #D1D5DB', fontSize: '1rem', minWidth: '150px' }}
         >
-          {Object.keys(combinations).map(key => (
+          {sortedOptionKeys.map(key => (
             <option key={key} value={key}>{formatOptionLabel(key)}</option>
           ))}
         </select>
