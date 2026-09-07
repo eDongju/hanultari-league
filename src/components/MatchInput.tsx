@@ -33,7 +33,49 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
   
   const [editModes, setEditModes] = useState<Record<string, boolean>>({});
   const [scoreModal, setScoreModal] = useState<{ matchId: string, t1Name: string, t2Name: string } | null>(null);
+  const activeMatchIdRef = useRef<string | null>(null);
+  const savedScrollYRef = useRef<number | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleOpenScoreModal = (matchId: string, t1Name: string, t2Name: string) => {
+    if (isFinished) return;
+    savedScrollYRef.current = window.scrollY;
+    activeMatchIdRef.current = matchId;
+    setScoreModal({ matchId, t1Name, t2Name });
+  };
+
+  const handleCloseScoreModal = (save = false) => {
+    const currentMatchId = activeMatchIdRef.current;
+    const savedY = savedScrollYRef.current;
+
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    setScoreModal(null);
+
+    if (save && forceSave) {
+      forceSave();
+    }
+
+    const restoreScroll = () => {
+      if (currentMatchId) {
+        const el = document.getElementById(`match-row-${currentMatchId}`);
+        if (el) {
+          el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          return;
+        }
+      }
+      if (savedY !== null && savedY !== undefined) {
+        window.scrollTo({ top: savedY, behavior: 'smooth' });
+      }
+    };
+
+    requestAnimationFrame(restoreScroll);
+    setTimeout(restoreScroll, 50);
+    setTimeout(restoreScroll, 150);
+    setTimeout(restoreScroll, 300);
+  };
 
   const handleDownloadImage = async () => {
     if (!contentRef.current) return;
@@ -433,7 +475,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                   const score = matchScores[matchId] || { t1: '', t2: '' };
 
                   return (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#F9FAFB', padding: '10px', borderRadius: '6px', marginBottom: '10px' }}>
+                    <div key={idx} id={`match-row-${matchId}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#F9FAFB', padding: '10px', borderRadius: '6px', marginBottom: '10px', scrollMargin: '120px' }}>
                       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'flex-end', paddingRight: '5px' }}>
                         {isEditing ? (
                           <>
@@ -453,7 +495,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                       
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <button 
-                          onClick={() => { if (!isFinished) setScoreModal({ matchId, t1Name, t2Name }) }}
+                          onClick={() => handleOpenScoreModal(matchId, t1Name, t2Name)}
                           disabled={isFinished}
                           style={{ 
                             padding: '8px 12px', 
@@ -568,7 +610,14 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
 
       {/* 팝업 모달 */}
       {scoreModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+        <div 
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              handleCloseScoreModal(false);
+            }
+          }}
+          style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
+        >
           <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '500px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
             <h2 style={{ textAlign: 'center', marginBottom: '30px', fontSize: '1.8rem', color: '#1F2937' }}>점수 입력</h2>
             
@@ -580,6 +629,9 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                   min="0" max="6"
                   value={matchScores[scoreModal.matchId]?.t1 || ''} 
                   onChange={(e) => handleScoreChange(scoreModal.matchId, 't1', e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleCloseScoreModal(true);
+                  }}
                   style={{ width: '100px', padding: '15px', fontSize: '2.5rem', textAlign: 'center', border: '2px solid #0369A1', borderRadius: '8px' }}
                   autoFocus
                 />
@@ -592,6 +644,9 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                   min="0" max="6"
                   value={matchScores[scoreModal.matchId]?.t2 || ''} 
                   onChange={(e) => handleScoreChange(scoreModal.matchId, 't2', e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleCloseScoreModal(true);
+                  }}
                   style={{ width: '100px', padding: '15px', fontSize: '2.5rem', textAlign: 'center', border: '2px solid #6D28D9', borderRadius: '8px' }}
                 />
               </div>
@@ -599,16 +654,13 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
 
             <div style={{ display: 'flex', gap: '15px' }}>
               <button 
-                onClick={() => setScoreModal(null)}
+                onClick={() => handleCloseScoreModal(false)}
                 style={{ flex: 1, padding: '15px', fontSize: '1.2rem', background: '#E5E7EB', color: '#374151', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
               >
                 닫기
               </button>
               <button 
-                onClick={() => {
-                  setScoreModal(null);
-                  if (forceSave) forceSave();
-                }}
+                onClick={() => handleCloseScoreModal(true)}
                 style={{ flex: 1, padding: '15px', fontSize: '1.2rem', background: '#10B981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
               >
                 저장 완료
