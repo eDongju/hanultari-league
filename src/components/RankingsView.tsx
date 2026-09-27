@@ -1,8 +1,9 @@
 import { useMemo, useRef, useState } from 'react';
 import combinations from '../data/combinations.json';
 import html2canvas from 'html2canvas';
-import { Camera, Medal, Download, Share2, X } from 'lucide-react';
+import { Camera, Medal } from 'lucide-react';
 import hanulLogo from '../assets/hanul_logo.jpg';
+import ImagePreviewModal, { type ImagePreviewData } from './ImagePreviewModal';
 
 const charToIndex = (c: string) => {
   if (c >= '1' && c <= '9') return parseInt(c) - 1;
@@ -37,44 +38,12 @@ interface PlayerStats {
 export default function RankingsView({ allMembers, participatingMembers, bracketOption, matchScores, matchOverrides, courtName, courtType, courtEnv }: RankingsViewProps) {
   const tableRef = useRef<HTMLDivElement>(null);
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
-  const [previewImage, setPreviewImage] = useState<{ url: string; blob: Blob; filename: string } | null>(null);
+  const [previewImage, setPreviewImage] = useState<ImagePreviewData | null>(null);
 
   const handleClosePreview = () => {
     if (previewImage) {
       URL.revokeObjectURL(previewImage.url);
       setPreviewImage(null);
-    }
-  };
-
-  const handleDownloadDirect = () => {
-    if (!previewImage) return;
-    const link = document.createElement('a');
-    link.href = previewImage.url;
-    link.download = previewImage.filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const handleShareFromModal = async () => {
-    if (!previewImage) return;
-    if (navigator.share && navigator.canShare) {
-      const file = new File([previewImage.blob], previewImage.filename, { type: 'image/png' });
-      if (navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({
-            files: [file],
-            title: '한울타리 주말리그 결과',
-          });
-          return;
-        } catch (err: any) {
-          if (err.name !== 'AbortError') {
-            console.log('Share API error:', err);
-          }
-        }
-      }
-    } else {
-      alert('현재 브라우저에서는 공유 기능을 지원하지 않습니다. 이미지를 꾹 눌러 저장해 주세요.');
     }
   };
 
@@ -115,11 +84,24 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
     await new Promise(r => setTimeout(r, 200));
 
     try {
+      const pixelRatio = Math.min(3.5, Math.max(3, window.devicePixelRatio || 2));
       const canvas = await html2canvas(tableRef.current, {
-        scale: 2,
+        scale: pixelRatio,
         backgroundColor: '#ffffff',
+        useCORS: true,
+        logging: false,
         width: tableRef.current.scrollWidth,
-        windowWidth: tableRef.current.scrollWidth
+        windowWidth: tableRef.current.scrollWidth,
+        onclone: (clonedDoc) => {
+          const allText = clonedDoc.querySelectorAll('*');
+          allText.forEach((el) => {
+            const htmlEl = el as HTMLElement;
+            if (htmlEl.style) {
+              (htmlEl.style as any).webkitFontSmoothing = 'antialiased';
+              htmlEl.style.textRendering = 'optimizeLegibility';
+            }
+          });
+        }
       });
       
       tableRef.current.style.width = originalWidth;
@@ -486,187 +468,12 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
       </div>
 
       {/* 안드로이드 / 모바일용 이미지 저장 팝업 모달 */}
-      {previewImage && (
-        <div 
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              handleClosePreview();
-            }
-          }}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '12px',
-            boxSizing: 'border-box'
-          }}
-        >
-          <div 
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '16px',
-              width: '100%',
-              maxWidth: '540px',
-              maxHeight: '92vh',
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)',
-              overflow: 'hidden'
-            }}
-          >
-            {/* 모달 헤더 */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '14px 18px',
-              borderBottom: '1px solid #E5E7EB',
-              backgroundColor: '#F9FAFB'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Camera size={20} color="#1E3A8A" />
-                <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#1E3A8A', fontWeight: 'bold' }}>이미지 저장</h3>
-              </div>
-              <button
-                onClick={handleClosePreview}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '4px',
-                  borderRadius: '6px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#6B7280'
-                }}
-              >
-                <X size={22} />
-              </button>
-            </div>
-
-            {/* 모달 본문 */}
-            <div style={{ padding: '14px 18px', overflowY: 'auto', flex: 1, WebkitOverflowScrolling: 'touch' }}>
-              {/* 안드로이드 갤러리 저장 안내 */}
-              <div style={{
-                backgroundColor: '#EFF6FF',
-                border: '1px solid #BFDBFE',
-                borderRadius: '10px',
-                padding: '12px 14px',
-                marginBottom: '14px',
-                fontSize: '0.88rem',
-                color: '#1E40AF',
-                lineHeight: '1.5'
-              }}>
-                📱 <strong>안드로이드 갤러리 저장 방법:</strong><br />
-                아래 이미지를 <strong>1~2초간 꾹 길게 터치</strong>한 후 나타나는 메뉴에서 <strong>[이미지 저장]</strong> 또는 <strong>[이미지 다운로드]</strong>를 누르시면 사진첩(갤러리)에 바로 저장됩니다.
-              </div>
-
-              {/* 생성된 이미지 미리보기 */}
-              <div style={{
-                textAlign: 'center',
-                backgroundColor: '#F3F4F6',
-                padding: '8px',
-                borderRadius: '8px',
-                border: '1px solid #E5E7EB'
-              }}>
-                <img 
-                  src={previewImage.url} 
-                  alt="리그 순위 결과" 
-                  style={{
-                    maxWidth: '100%',
-                    height: 'auto',
-                    maxHeight: '52vh',
-                    objectFit: 'contain',
-                    borderRadius: '4px',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                    display: 'block',
-                    margin: '0 auto',
-                    userSelect: 'auto',
-                    WebkitTouchCallout: 'default'
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* 모달 하단 버튼 영역 */}
-            <div style={{
-              padding: '12px 18px',
-              borderTop: '1px solid #E5E7EB',
-              display: 'flex',
-              gap: '8px',
-              backgroundColor: '#F9FAFB',
-              flexWrap: 'wrap'
-            }}>
-              <button
-                onClick={handleDownloadDirect}
-                style={{
-                  flex: '1 1 120px',
-                  padding: '10px 14px',
-                  backgroundColor: '#10B981',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontWeight: 'bold',
-                  fontSize: '0.9rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px'
-                }}
-              >
-                <Download size={16} />
-                파일 다운로드
-              </button>
-              {typeof navigator !== 'undefined' && !!navigator.share && (
-                <button
-                  onClick={handleShareFromModal}
-                  style={{
-                    flex: '1 1 100px',
-                    padding: '10px 14px',
-                    backgroundColor: '#3B82F6',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontWeight: 'bold',
-                    fontSize: '0.9rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <Share2 size={16} />
-                  공유하기
-                </button>
-              )}
-              <button
-                onClick={handleClosePreview}
-                style={{
-                  padding: '10px 16px',
-                  backgroundColor: '#E5E7EB',
-                  color: '#374151',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontWeight: 'bold',
-                  fontSize: '0.9rem',
-                  cursor: 'pointer'
-                }}
-              >
-                닫기
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ImagePreviewModal
+        preview={previewImage}
+        onClose={handleClosePreview}
+        title="리그 결과 이미지 저장"
+        shareTitle="한울타리 주말리그 결과"
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ArrowUpDown, Edit, CheckCircle, Trash2, Camera } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import combinations from '../data/combinations.json';
+import ImagePreviewModal, { type ImagePreviewData } from './ImagePreviewModal';
 
 const charToIndex = (c: string) => {
   if (c >= '1' && c <= '9') return parseInt(c) - 1;
@@ -36,6 +37,15 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
   const activeMatchIdRef = useRef<string | null>(null);
   const savedScrollYRef = useRef<number | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [previewImage, setPreviewImage] = useState<ImagePreviewData | null>(null);
+
+  const handleClosePreview = () => {
+    if (previewImage) {
+      URL.revokeObjectURL(previewImage.url);
+      setPreviewImage(null);
+    }
+  };
 
   const handleOpenScoreModal = (matchId: string, t1Name: string, t2Name: string) => {
     if (isFinished) return;
@@ -78,47 +88,91 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
   };
 
   const handleDownloadImage = async () => {
-    if (!contentRef.current) return;
+    if (!contentRef.current || isCapturing) return;
+    setIsCapturing(true);
+
+    const originalScrollX = window.scrollX;
+    const originalScrollY = window.scrollY;
+
+    // 스크롤을 최상단으로 옮긴 후 렌더링 대기 (모바일 밀림 현상 방지)
+    window.scrollTo(0, 0);
+    await new Promise(r => setTimeout(r, 200));
+
     try {
+      const pixelRatio = Math.min(3.5, Math.max(3, window.devicePixelRatio || 2));
       const canvas = await html2canvas(contentRef.current, {
-        scale: 2,
+        scale: pixelRatio,
         backgroundColor: '#ffffff',
+        useCORS: true,
+        logging: false,
         width: contentRef.current.scrollWidth,
-        windowWidth: contentRef.current.scrollWidth
+        windowWidth: contentRef.current.scrollWidth,
+        onclone: (clonedDoc) => {
+          const allTextElements = clonedDoc.querySelectorAll('*');
+          allTextElements.forEach((el) => {
+            const htmlEl = el as HTMLElement;
+            if (htmlEl.style) {
+              (htmlEl.style as any).webkitFontSmoothing = 'antialiased';
+              htmlEl.style.textRendering = 'optimizeLegibility';
+            }
+          });
+        }
       });
+
+      window.scrollTo(originalScrollX, originalScrollY);
+
       const today = new Date();
       const dateStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-      const filename = `hanultari-match-input-${dateStr}.png`;
+      const filename = `한울타리_결과입력_${dateStr}.png`;
 
       canvas.toBlob(async (blob) => {
+        setIsCapturing(false);
         if (!blob) {
           alert('이미지 생성에 실패했습니다.');
           return;
         }
 
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        const isKakao = /KAKAOTALK/i.test(navigator.userAgent);
+        const imageUrl = URL.createObjectURL(blob);
+
+        // 1. 안드로이드 및 카카오톡 인앱 브라우저: 이미지 저장 화면(모달) 표시
+        if (isAndroid || isKakao) {
+          setPreviewImage({ url: imageUrl, blob, filename });
+          return;
+        }
+
+        // 2. iOS 등 Web Share API 지원 환경
         if (navigator.share && navigator.canShare) {
           const file = new File([blob], filename, { type: 'image/png' });
           if (navigator.canShare({ files: [file] })) {
             try {
               await navigator.share({
                 files: [file],
-                title: '하늘타리 결과 입력',
+                title: '한울타리 결과 입력',
               });
+              URL.revokeObjectURL(imageUrl);
               return;
-            } catch (err) {
-              console.log('Share API cancelled or failed:', err);
+            } catch (err: any) {
+              if (err?.name !== 'AbortError') {
+                console.log('Share API cancelled or failed:', err);
+              }
             }
           }
         }
 
-        const image = URL.createObjectURL(blob);
+        // 3. 데스크톱 등 일반 다운로드 (Fallback)
         const link = document.createElement('a');
-        link.href = image;
+        link.href = imageUrl;
         link.download = filename;
+        document.body.appendChild(link);
         link.click();
-        URL.revokeObjectURL(image);
-      }, 'image/png', 0.9);
+        document.body.removeChild(link);
+        URL.revokeObjectURL(imageUrl);
+      }, 'image/png');
     } catch (error) {
+      setIsCapturing(false);
+      window.scrollTo(originalScrollX, originalScrollY);
       console.error('Failed to generate image', error);
       alert('이미지 생성에 실패했습니다.');
     }
@@ -276,13 +330,14 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
           <h2 style={{ color: '#1E3A8A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Edit size={24} /> 결과 입력
           </h2>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '10px' }} data-html2canvas-ignore="true">
             <button 
               onClick={handleDownloadImage}
-              style={{ background: '#4B5563', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}
+              disabled={isCapturing}
+              style={{ background: isCapturing ? '#9CA3AF' : '#4B5563', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: isCapturing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}
             >
               <Camera size={18} />
-              이미지 저장
+              {isCapturing ? '이미지 생성 중...' : '이미지 저장'}
             </button>
             {isFinished && (
               <button 
@@ -669,6 +724,14 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
           </div>
         </div>
       )}
+
+      {/* 안드로이드 / 모바일용 고화질 이미지 저장 팝업 모달 */}
+      <ImagePreviewModal
+        preview={previewImage}
+        onClose={handleClosePreview}
+        title="결과 입력표 저장"
+        shareTitle="한울타리 결과 입력"
+      />
     </div>
   );
 }

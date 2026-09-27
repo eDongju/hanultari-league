@@ -15,6 +15,7 @@ import HanullogTab from './components/HanullogTab';
 import StockRecommendations from './components/StockRecommendations';
 import combinations from './data/combinations.json';
 import html2canvas from 'html2canvas';
+import ImagePreviewModal, { type ImagePreviewData } from './components/ImagePreviewModal';
 
 const charToIndex = (c: string) => {
   if (c >= '1' && c <= '9') return parseInt(c) - 1;
@@ -107,6 +108,16 @@ function App() {
     setActiveTab(newTab);
     // 안드로이드 뒤로가기 지원을 위해 history 에 탭 상태 기록
     history.pushState({ tab: newTab }, '', '');
+  };
+
+  const [isCapturingRanking, setIsCapturingRanking] = useState<boolean>(false);
+  const [previewImageRanking, setPreviewImageRanking] = useState<ImagePreviewData | null>(null);
+
+  const handleClosePreviewRanking = () => {
+    if (previewImageRanking) {
+      URL.revokeObjectURL(previewImageRanking.url);
+      setPreviewImageRanking(null);
+    }
   };
   
   // 저장된 리그 기록 상태
@@ -669,7 +680,8 @@ function App() {
   };
 
   const handleCaptureMembersRanking = async () => {
-    if (!rankingTableRef.current) return;
+    if (!rankingTableRef.current || isCapturingRanking) return;
+    setIsCapturingRanking(true);
     
     const originalScrollX = window.scrollX;
     const originalScrollY = window.scrollY;
@@ -686,16 +698,29 @@ function App() {
     rankingTableRef.current.style.width = 'max-content';
     rankingTableRef.current.style.margin = '0';
 
-    // 스크롤을 최상단으로 옮긴 후 렌더링을 기다림 (iOS 밀림 현상 방지)
+    // 스크롤을 최상단으로 옮긴 후 렌더링을 기다림 (iOS 및 모바일 밀림 방지)
     window.scrollTo(0, 0);
     await new Promise(r => setTimeout(r, 200));
 
     try {
+      const pixelRatio = Math.min(3.5, Math.max(3, window.devicePixelRatio || 2));
       const canvas = await html2canvas(rankingTableRef.current, {
-        scale: 2,
+        scale: pixelRatio,
         backgroundColor: '#ffffff',
+        useCORS: true,
+        logging: false,
         width: rankingTableRef.current.scrollWidth,
-        windowWidth: rankingTableRef.current.scrollWidth
+        windowWidth: rankingTableRef.current.scrollWidth,
+        onclone: (clonedDoc) => {
+          const allTextElements = clonedDoc.querySelectorAll('*');
+          allTextElements.forEach((el) => {
+            const htmlEl = el as HTMLElement;
+            if (htmlEl.style) {
+              (htmlEl.style as any).webkitFontSmoothing = 'antialiased';
+              htmlEl.style.textRendering = 'optimizeLegibility';
+            }
+          });
+        }
       });
       
       if (captureHeader) captureHeader.style.display = 'none';
@@ -703,14 +728,25 @@ function App() {
       rankingTableRef.current.style.margin = originalMargin;
       window.scrollTo(originalScrollX, originalScrollY);
 
-      const filename = `Hanultari_Members_Ranking_${new Date().toISOString().slice(0,10)}.png`;
+      const filename = `한울타리_회원랭킹_${new Date().toISOString().slice(0,10)}.png`;
       canvas.toBlob(async (blob) => {
+        setIsCapturingRanking(false);
         if (!blob) {
           alert('이미지 생성에 실패했습니다.');
           return;
         }
 
-        // 1. 모바일 및 iOS PWA 환경을 위한 Web Share API 시도
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        const isKakao = /KAKAOTALK/i.test(navigator.userAgent);
+        const imageUrl = URL.createObjectURL(blob);
+
+        // 1. 안드로이드 및 카카오톡 인앱 브라우저: 이미지 저장 화면(모달) 표시
+        if (isAndroid || isKakao) {
+          setPreviewImageRanking({ url: imageUrl, blob, filename });
+          return;
+        }
+
+        // 2. iOS 등 Web Share API 지원 환경
         if (navigator.share && navigator.canShare) {
           const file = new File([blob], filename, { type: 'image/png' });
           if (navigator.canShare({ files: [file] })) {
@@ -719,25 +755,27 @@ function App() {
                 files: [file],
                 title: '한울타리 랭킹',
               });
+              URL.revokeObjectURL(imageUrl);
               return; // 성공 시 종료
-            } catch (err) {
-              console.log('Share API cancelled or failed:', err);
-              // 실패 시 아래 fallback으로 이동
+            } catch (err: any) {
+              if (err?.name !== 'AbortError') {
+                console.log('Share API cancelled or failed:', err);
+              }
             }
           }
         }
 
-        // 2. 데스크톱 등 Share API 미지원 환경을 위한 일반 다운로드 (Fallback)
-        const image = URL.createObjectURL(blob);
+        // 3. 데스크톱 등 Share API 미지원 환경을 위한 일반 다운로드 (Fallback)
         const link = document.createElement('a');
-        link.href = image;
+        link.href = imageUrl;
         link.download = filename;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        URL.revokeObjectURL(image);
+        URL.revokeObjectURL(imageUrl);
       }, 'image/png');
     } catch (err) {
+      setIsCapturingRanking(false);
       console.error('Failed to capture ranking table', err);
       if (captureHeader) captureHeader.style.display = 'none';
       rankingTableRef.current.style.width = originalWidth;
@@ -1160,11 +1198,12 @@ function App() {
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button 
                   onClick={handleCaptureMembersRanking}
+                  disabled={isCapturingRanking}
                   style={{ 
-                    background: '#3B82F6', color: 'white', border: 'none', padding: '0.5rem 1rem', 
-                    borderRadius: '6px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', fontSize: '0.9rem'
+                    background: isCapturingRanking ? '#9CA3AF' : '#3B82F6', color: 'white', border: 'none', padding: '0.5rem 1rem', 
+                    borderRadius: '6px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', cursor: isCapturingRanking ? 'wait' : 'pointer', fontSize: '0.9rem'
                   }}>
-                  <Camera size={16} /> 전체캡처
+                  <Camera size={16} /> {isCapturingRanking ? '생성 중...' : '전체캡처'}
                 </button>
                 <button 
                   onClick={handleDownloadBackup}
@@ -1493,6 +1532,14 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* 한울랭킹 초고화질 이미지 저장 팝업 모달 */}
+      <ImagePreviewModal
+        preview={previewImageRanking}
+        onClose={handleClosePreviewRanking}
+        title="한울타리 랭킹표 저장"
+        shareTitle="한울타리 공식 랭킹"
+      />
 
     </div>
   );
