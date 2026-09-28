@@ -37,7 +37,7 @@ export default function MemberStats({ allMembers, globalStats, memberPoints }: M
     return allMembers.map(m => {
       const stats = globalStats[m.id] || { 
         matches: 0, wins: 0, losses: 0, 
-        deuceCount: 0, adCount: 0, duoStats: {}, attendances: 0 
+        deuceCount: 0, adCount: 0, duoStats: {}, attendances: 0, fourWinsCount: 0 
       };
       
       const winRate = stats.matches > 0 ? (stats.wins / stats.matches) * 100 : 0;
@@ -61,6 +61,7 @@ export default function MemberStats({ allMembers, globalStats, memberPoints }: M
         matches: stats.matches,
         wins: stats.wins,
         winRate: winRate,
+        fourWinsCount: stats.fourWinsCount || 0,
         bestDuo: bestDuoWins > 0 ? `${bestDuoName} (${bestDuoWins}승)` : '-',
         rPt: memberPoints[m.name]?.r || 0,
         gPt: memberPoints[m.name]?.g || 0,
@@ -72,6 +73,7 @@ export default function MemberStats({ allMembers, globalStats, memberPoints }: M
       let result = 0;
       if (sortKey === 'attendances') result = b.attendances - a.attendances;
       else if (sortKey === 'winRate') result = b.winRate - a.winRate || b.matches - a.matches;
+      else if (sortKey === 'fourWinsCount') result = b.fourWinsCount - a.fourWinsCount || b.winRate - a.winRate;
       else if (sortKey === 'rPt') result = b.rPt - a.rPt;
       else if (sortKey === 'gPt') result = b.gPt - a.gPt;
       else if (sortKey === 'deuceCount') result = b.deuceCount - a.deuceCount;
@@ -96,6 +98,7 @@ export default function MemberStats({ allMembers, globalStats, memberPoints }: M
               <th style={{ width: '60px' }}>선수</th>
               {renderHeader('참석', 'attendances')}
               {renderHeader('승률', 'winRate')}
+              {renderHeader('4승', 'fourWinsCount')}
               <th>베스트듀오</th>
               {renderHeader('대회(R.PT)', 'rPt')}
               {renderHeader('간식(G.PT)', 'gPt')}
@@ -120,6 +123,9 @@ export default function MemberStats({ allMembers, globalStats, memberPoints }: M
                   <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>
                     {m.wins}승 / {m.matches}전
                   </div>
+                </td>
+                <td style={{ fontWeight: 'bold', color: m.fourWinsCount > 0 ? '#7C3AED' : '#9CA3AF' }}>
+                  {m.fourWinsCount > 0 ? `${m.fourWinsCount}회` : '-'}
                 </td>
                 <td style={{ fontSize: '0.9rem', color: '#4B5563' }}>{m.bestDuo}</td>
                 <td style={{ fontWeight: 'bold', color: '#D97706' }}>{m.rPt > 0 ? m.rPt.toFixed(1) : '-'}</td>

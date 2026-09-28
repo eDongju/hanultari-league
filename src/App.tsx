@@ -457,7 +457,7 @@ function App() {
   }, [savedSessions]);
 
   const globalStats = useMemo(() => {
-    const stats: Record<string, { matches: number, wins: number, losses: number, sessionMatches: number, sessionWins: number, sessionLosses: number, deuceCount: number, adCount: number, duoStats: Record<string, { wins: number, matches: number }>, attendances: number }> = {};
+    const stats: Record<string, { matches: number, wins: number, losses: number, sessionMatches: number, sessionWins: number, sessionLosses: number, deuceCount: number, adCount: number, duoStats: Record<string, { wins: number, matches: number }>, attendances: number, fourWinsCount: number }> = {};
     allMembers.forEach(m => {
       const bWins = Number((m as any).baseWins) || 0;
       const bLosses = Number((m as any).baseLosses) || 0;
@@ -471,7 +471,8 @@ function App() {
         deuceCount: 0,
         adCount: 0,
         duoStats: {},
-        attendances: 0
+        attendances: 0,
+        fourWinsCount: 0
       };
     });
 
@@ -493,6 +494,8 @@ function App() {
           stats[m.id].attendances += 1;
         }
       });
+
+      const sessionPlayerWins: Record<string, number> = {};
 
       currentCombinations.forEach((matchStr, matchIdx) => {
         let matchSubIdx = 0;
@@ -541,6 +544,7 @@ function App() {
                   if (s1 > s2) {
                     stats[pid].wins += 1;
                     stats[pid].sessionWins += 1;
+                    sessionPlayerWins[pid] = (sessionPlayerWins[pid] || 0) + 1;
                   } else if (s1 < s2) {
                     stats[pid].losses += 1;
                     stats[pid].sessionLosses += 1;
@@ -555,6 +559,7 @@ function App() {
                   if (s2 > s1) {
                     stats[pid].wins += 1;
                     stats[pid].sessionWins += 1;
+                    sessionPlayerWins[pid] = (sessionPlayerWins[pid] || 0) + 1;
                   } else if (s2 < s1) {
                     stats[pid].losses += 1;
                     stats[pid].sessionLosses += 1;
@@ -564,6 +569,12 @@ function App() {
             }
             matchSubIdx++;
           }
+        }
+      });
+
+      Object.entries(sessionPlayerWins).forEach(([pid, wins]) => {
+        if (wins >= 4 && stats[pid]) {
+          stats[pid].fourWinsCount += 1;
         }
       });
     });
