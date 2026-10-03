@@ -214,33 +214,129 @@ export default function MealCalculator({
     
     if (N === 0) return { results: [], gap: 0, base: 0 };
     
-    // N명이 먹을 때, 1등은 0원. 나머지 N-1명이 낸다.
-    // offsets = mealCosts[N][rank] (rank: 1 to N)
-    // Base = (C - sum(offsets)) / (N-1)
+    const C_total = C + coffee * Math.max(0, N - 1);
     
-    // 수학적 공식: 각 순위(r)의 오프셋 = (r - (N+1)/2) * costGap
-    // N-1명(2등~N등)의 오프셋 총합 = ((N-1) / 2) * costGap
-    const sumOffsets = ((N - 1) / 2) * costGap;
-    
-    let base = 0;
-    if (N > 1) {
-      // 정확한 기준 금액 계산 (여기서는 절사하지 않음)
-      base = (C - sumOffsets) / (N - 1);
+    if (N === 1) {
+      return {
+        results: eaters.map(p => ({ ...p, mealRank: 1, pay: 0 })),
+        gap: C_total,
+        base: 0
+      };
     }
-    
+
+    if (N === 2) {
+      return {
+        results: eaters.map((p, idx) => ({
+          ...p,
+          mealRank: idx + 1,
+          pay: idx === 0 ? 0 : C_total
+        })),
+        gap: 0,
+        base: C_total
+      };
+    }
+
+    const payingCount = N - 1; // 2위 ~ N위 (1위는 면제)
+    const avg = C_total / payingCount;
+
+    // 1. 2위 기본 타깃 결정 (사용자 요구: 10,000 ~ 12,000원 선)
+    let p2Target = 11000;
+    if (avg <= 10000) {
+      p2Target = Math.max(1000, Math.round((avg * 0.5) / 1000) * 1000);
+    } else if (avg <= 15000) {
+      p2Target = 10000;
+    } else if (avg <= 20000) {
+      p2Target = 11000;
+    } else {
+      p2Target = 12000;
+    }
+
+    // 2. 꼴찌 상한선 (사용자 요구: 최대 25,000원이 넘지 않게)
+    // 인당 평균 자체가 23,000원을 초과하는 고액 식비 시 유연하게 자동 상한 보정
+    const maxLast = avg <= 23000 ? 25000 : Math.max(25000, Math.round((avg + 3000) / 1000) * 1000);
+
+    // 3. 목표 꼴찌 금액 설정 (선형 기대치와 maxLast 중 최솟값)
+    const idealLast = Math.min(maxLast, Math.max(p2Target + 2000, Math.round((2 * avg - p2Target) / 1000) * 1000));
+
+    // 4. 순위별 초기 금액 계산 (선형 보간)
+    const rawPays: number[] = [];
+    for (let i = 0; i < payingCount; i++) {
+      const ratio = payingCount > 1 ? i / (payingCount - 1) : 0;
+      const val = p2Target + ratio * (idealLast - p2Target);
+      rawPays.push(val);
+    }
+
+    // 1,000원 단위 반올림
+    let pays = rawPays.map(p => Math.round(p / 1000) * 1000);
+
+    // 사용자 설정 순위별 갭(costGap) 반영 (순위 간 최소 간격 확보)
+    if (costGap > 1000) {
+      for (let i = 1; i < payingCount; i++) {
+        if (pays[i] < pays[i - 1] + costGap) {
+          pays[i] = pays[i - 1] + costGap;
+        }
+      }
+    }
+
+    // 꼴찌 상한(25,000원) 및 단조 증가(역전 방지) 보정
+    for (let i = 0; i < payingCount; i++) {
+      if (pays[i] > maxLast) pays[i] = maxLast;
+    }
+    for (let i = payingCount - 2; i >= 0; i--) {
+      if (pays[i] > pays[i + 1]) pays[i] = pays[i + 1];
+    }
+
+    // 2위 금액 가이드 (avg > 12000일 때 10,000 ~ 12,000원 유지)
+    if (avg > 12000) {
+      pays[0] = Math.min(12000, Math.max(10000, pays[0]));
+    }
+
+    // 5. 총액 100% 일치 보정 (diff를 1,000원씩 분배)
+    let currentSum = pays.reduce((acc, curr) => acc + curr, 0);
+    let diff = C_total - currentSum;
+
+    let maxLoops = 100;
+    while (diff !== 0 && maxLoops > 0) {
+      maxLoops--;
+      if (diff > 0) {
+        // 총액 부족: 꼴찌 쪽부터(단, maxLast 안 넘게) 1,000원씩 보충
+        let added = false;
+        for (let i = payingCount - 1; i > 0; i--) {
+          if (pays[i] + 1000 <= maxLast) {
+            if (i === payingCount - 1 || pays[i] + 1000 <= pays[i + 1]) {
+              pays[i] += 1000;
+              diff -= 1000;
+              added = true;
+              if (diff === 0) break;
+            }
+          }
+        }
+        if (!added) {
+          // 꼴찌 쪽이 다 찼으면 2위~중간 순위 순차 증가 (2위 12,000원 이하 우선)
+          for (let i = 0; i < payingCount; i++) {
+            if (i === 0 && pays[0] >= 12000 && avg <= 22000) continue;
+            if (i === payingCount - 1 && pays[i] >= maxLast) continue;
+            pays[i] += 1000;
+            diff -= 1000;
+            if (diff === 0) break;
+          }
+        }
+      } else {
+        // 총액 초과: 꼴찌 쪽부터 1,000원씩 차감 (앞 순위보다 낮아지지 않게)
+        for (let i = payingCount - 1; i > 0; i--) {
+          if (pays[i] - 1000 >= pays[i - 1]) {
+            pays[i] -= 1000;
+            diff += 1000;
+            if (diff === 0) break;
+          }
+        }
+      }
+    }
+
+    // 최종 결과 매핑: 1위 = 0원, 2위~N위 = pays
     const results = eaters.map((p, idx) => {
       const mealRank = idx + 1;
-      let pay = 0;
-      if (mealRank === 1) {
-        // 항상 1위만 면제
-        pay = 0;
-      } else {
-        const offset = (mealRank - (N + 1) / 2) * costGap;
-        const rawPay = Math.ceil((base + offset + coffee) / 1000) * 1000;
-        // 1위만 면제 원칙: 2위 이하는 최소 1,000원 보장
-        pay = Math.max(1000, rawPay);
-      }
-      
+      const pay = mealRank === 1 ? 0 : pays[idx - 1];
       return {
         ...p,
         mealRank,
@@ -248,18 +344,13 @@ export default function MealCalculator({
       };
     });
 
-    const sumPay = results.reduce((acc, curr) => acc + curr.pay, 0);
-    const expectedTotal = C + coffee * (N - 1);
-    const gap = expectedTotal - sumPay;
+    const finalSum = results.reduce((acc, curr) => acc + curr.pay, 0);
+    const gap = C_total - finalSum;
 
-    // 만약 gap이 발생하면? (차액 발생 시 2등에게 얹거나 n빵)
-    // 1000원 단위 절사로 인해 보통 양수의 gap이 발생함.
-    // 여기서는 가장 많이 내야하는(혹은 2등) 사람에게 더하거나, 결과를 그대로 보여주고 gap을 표기
-    
     return {
       results,
       gap,
-      base
+      base: p2Target
     };
   }, [combinedRankings, eatingMembers, totalCost, costGap, coffeeCost]);
 
@@ -269,7 +360,7 @@ export default function MealCalculator({
         <Utensils size={24} /> 밥값 정산
       </h2>
       <p style={{ color: '#6B7280', fontSize: '0.9rem', marginBottom: '20px' }}>
-        경기가 끝난 후 식사 비용을 등수에 따라 차등 계산합니다. 1등은 식사비가 면제되며, 식사하지 않은 인원은 제외할 수 있습니다. 계산할 리그(세션)를 복수 선택하여 합산할 수 있습니다.
+        경기가 끝난 후 식사 비용을 등수에 따라 차등 계산합니다. 1등은 식사비가 전액 면제(0원)되며, 2등은 1만~1.2만원 선으로 완화하고 꼴찌는 최대 2.5만원 상한을 적용합니다. 순위별 갭(Gap)을 조절하여 세부 분담금을 조정할 수 있습니다.
       </p>
 
       {/* 세션 선택 */}
@@ -385,7 +476,7 @@ export default function MealCalculator({
             <div className="table-wrapper" style={{ border: '2px solid #1E3A8A', borderRadius: '8px', overflowX: 'auto' }}>
               <div style={{ background: '#1E3A8A', color: 'white', padding: '15px', textAlign: 'center' }}>
                 <h3 style={{ margin: 0, fontSize: '1.2rem' }}>밥값 정산 결과</h3>
-                <p style={{ margin: '5px 0 0 0', fontSize: '0.9rem', color: '#93C5FD' }}>총 {eatingMembers.length}명 식사 (1위 무료)</p>
+                <p style={{ margin: '5px 0 0 0', fontSize: '0.9rem', color: '#93C5FD' }}>총 {eatingMembers.length}명 식사 (1위 무료 · 2위 1만~1.2만 선 · 꼴찌 최대 2.5만 상한)</p>
               </div>
               <table style={{ margin: 0 }}>
                 <thead>
