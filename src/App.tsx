@@ -714,14 +714,13 @@ function App() {
     await new Promise(r => setTimeout(r, 200));
 
     try {
-      const pixelRatio = Math.min(3.5, Math.max(3, window.devicePixelRatio || 2));
+      const captureWidth = Math.max(760, rankingTableRef.current.scrollWidth);
       const canvas = await html2canvas(rankingTableRef.current, {
-        scale: pixelRatio,
+        scale: 3,
         backgroundColor: '#ffffff',
         useCORS: true,
         logging: false,
-        width: rankingTableRef.current.scrollWidth,
-        windowWidth: rankingTableRef.current.scrollWidth,
+        windowWidth: captureWidth,
         onclone: (clonedDoc) => {
           const allTextElements = clonedDoc.querySelectorAll('*');
           allTextElements.forEach((el) => {

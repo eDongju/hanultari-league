@@ -84,15 +84,19 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
     await new Promise(r => setTimeout(r, 200));
 
     try {
-      const pixelRatio = Math.min(3.5, Math.max(3, window.devicePixelRatio || 2));
+      const captureWidth = Math.max(760, tableRef.current.scrollWidth);
       const canvas = await html2canvas(tableRef.current, {
-        scale: pixelRatio,
+        scale: 3,
         backgroundColor: '#ffffff',
         useCORS: true,
         logging: false,
-        width: tableRef.current.scrollWidth,
-        windowWidth: tableRef.current.scrollWidth,
+        windowWidth: captureWidth,
         onclone: (clonedDoc) => {
+          const clonedTableContainer = clonedDoc.querySelector('.ranking-scroll-container') as HTMLElement;
+          if (clonedTableContainer) {
+            clonedTableContainer.style.overflowX = 'visible';
+            clonedTableContainer.style.width = '100%';
+          }
           const allText = clonedDoc.querySelectorAll('*');
           allText.forEach((el) => {
             const htmlEl = el as HTMLElement;

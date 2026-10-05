@@ -3,6 +3,7 @@ import { ArrowUpDown, Edit, CheckCircle, Trash2, Camera } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import combinations from '../data/combinations.json';
 import ImagePreviewModal, { type ImagePreviewData } from './ImagePreviewModal';
+import hanulLogo from '../assets/hanul_logo.jpg';
 
 const charToIndex = (c: string) => {
   if (c >= '1' && c <= '9') return parseInt(c) - 1;
@@ -98,16 +99,56 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
     window.scrollTo(0, 0);
     await new Promise(r => setTimeout(r, 200));
 
+    const CAPTURE_WIDTH = 760;
+
     try {
-      const pixelRatio = Math.min(3.5, Math.max(3, window.devicePixelRatio || 2));
+      // 모바일 기기에서도 고정 너비(760px) 기준 3배수(2280px) 초고해상도로 렌더링
       const canvas = await html2canvas(contentRef.current, {
-        scale: pixelRatio,
+        scale: 3,
         backgroundColor: '#ffffff',
         useCORS: true,
         logging: false,
-        width: contentRef.current.scrollWidth,
-        windowWidth: contentRef.current.scrollWidth,
+        windowWidth: CAPTURE_WIDTH,
         onclone: (clonedDoc) => {
+          // 1. 헤더 전환: 저장용 고화질 헤더 표시, 앱 상단 헤더 숨김
+          const printTitle = clonedDoc.querySelector('.match-print-title') as HTMLElement;
+          if (printTitle) printTitle.style.display = 'flex';
+
+          const appHeader = clonedDoc.querySelector('.match-app-header') as HTMLElement;
+          if (appHeader) appHeader.style.display = 'none';
+
+          // 2. 포인트 내역이 비어있으면 포인트 섹션 전체 숨기기
+          const pointSection = clonedDoc.querySelector('.match-point-section') as HTMLElement;
+          if (pointSection && (!pointHistory || pointHistory.length === 0)) {
+            pointSection.style.display = 'none';
+          }
+
+          // 3. 캡처 대상 컨테이너를 가로 760px 고정으로 설정하여 모바일에서도 데스크톱 비율로 정돈
+          const clonedCard = clonedDoc.querySelector('.match-input-container') as HTMLElement || clonedDoc.querySelector('.content-card') as HTMLElement;
+          if (clonedCard) {
+            clonedCard.style.width = `${CAPTURE_WIDTH}px`;
+            clonedCard.style.maxWidth = `${CAPTURE_WIDTH}px`;
+            clonedCard.style.minWidth = `${CAPTURE_WIDTH}px`;
+            clonedCard.style.margin = '0 auto';
+            clonedCard.style.padding = '20px';
+            clonedCard.style.boxSizing = 'border-box';
+            clonedCard.style.background = '#ffffff';
+          }
+
+          if (clonedDoc.body) {
+            clonedDoc.body.style.width = `${CAPTURE_WIDTH}px`;
+            clonedDoc.body.style.minWidth = `${CAPTURE_WIDTH}px`;
+          }
+
+          // 4. 점수 버튼 투명도 복원 (마감 상태에서도 선명한 그린으로 표시)
+          const scoreBtns = clonedDoc.querySelectorAll('button');
+          scoreBtns.forEach((btn) => {
+            if (btn.style && btn.style.opacity) {
+              btn.style.opacity = '1';
+            }
+          });
+
+          // 5. 텍스트 안티앨리어싱
           const allTextElements = clonedDoc.querySelectorAll('*');
           allTextElements.forEach((el) => {
             const htmlEl = el as HTMLElement;
@@ -325,41 +366,58 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
   };
 
   return (
-    <div className="content-card" ref={contentRef}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', marginBottom: '20px' }}>
-          <h2 style={{ color: '#1E3A8A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Edit size={24} /> 결과 입력
-          </h2>
-          <div style={{ display: 'flex', gap: '10px' }} data-html2canvas-ignore="true">
-            <button 
-              onClick={handleDownloadImage}
-              disabled={isCapturing}
-              style={{ background: isCapturing ? '#9CA3AF' : '#4B5563', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: isCapturing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}
-            >
-              <Camera size={18} />
-              {isCapturing ? '이미지 생성 중...' : '이미지 저장'}
-            </button>
-            {isFinished && (
-              <button 
-                onClick={handleEditMode}
-                style={{ background: '#3B82F6', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}
-              >
-                <Edit size={18} />
-                수정
-              </button>
-            )}
-            <button 
-              onClick={handleFinishMatches}
-              disabled={isFinished}
-              style={{ background: isFinished ? '#9CA3AF' : '#10B981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: isFinished ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}
-            >
-              <CheckCircle size={18} />
-              {isFinished ? '마감됨' : '마감'}
-            </button>
+    <div className="content-card match-input-container" ref={contentRef}>
+      {/* 캡처/저장용 고화질 상단 헤더 */}
+      <div className="match-print-title" style={{ display: 'none', alignItems: 'center', justifyContent: 'center', gap: '15px', padding: '10px 0 16px 0', borderBottom: '2px solid #E5E7EB', marginBottom: '16px' }}>
+        <img src={hanulLogo} alt="Hanul Logo" style={{ height: '48px', flexShrink: 0, borderRadius: '8px', objectFit: 'cover' }} />
+        <div>
+          <h1 style={{ margin: 0, color: '#1E3A8A', fontSize: '1.6rem', fontWeight: '800' }}>한울타리 주말리그 경기 결과</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', fontSize: '0.9rem', color: '#4B5563', flexWrap: 'wrap' }}>
+            <span>📅 {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}</span>
+            <span>·</span>
+            <span>👥 참가 {participatingMembers.filter(Boolean).length}명 ({bracketOption})</span>
+            <span>·</span>
+            <span style={{ fontWeight: '600', color: '#1E40AF' }}>📍 {courtName ? `${courtName} (${courtType}, ${courtEnv})` : `${courtType} (${courtEnv})`}</span>
           </div>
         </div>
+      </div>
+
+      {/* 웹 화면용 상단 헤더 */}
+      <div className="match-app-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', marginBottom: '20px' }}>
+        <h2 style={{ color: '#1E3A8A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Edit size={24} /> 결과 입력
+        </h2>
+        <div style={{ display: 'flex', gap: '10px' }} data-html2canvas-ignore="true">
+          <button 
+            onClick={handleDownloadImage}
+            disabled={isCapturing}
+            style={{ background: isCapturing ? '#9CA3AF' : '#4B5563', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: isCapturing ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}
+          >
+            <Camera size={18} />
+            {isCapturing ? '이미지 생성 중...' : '이미지 저장'}
+          </button>
+          {isFinished && (
+            <button 
+              onClick={handleEditMode}
+              style={{ background: '#3B82F6', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}
+            >
+              <Edit size={18} />
+              수정
+            </button>
+          )}
+          <button 
+            onClick={handleFinishMatches}
+            disabled={isFinished}
+            style={{ background: isFinished ? '#9CA3AF' : '#10B981', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: isFinished ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}
+          >
+            <CheckCircle size={18} />
+            {isFinished ? '마감됨' : '마감'}
+          </button>
+        </div>
+      </div>
       
-      <div style={{ marginBottom: '20px', background: '#F3F4F6', padding: '15px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* 안내 박스 - 캡처 시 무시 */}
+      <div data-html2canvas-ignore="true" style={{ marginBottom: '20px', background: '#F3F4F6', padding: '15px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h3 style={{ margin: '0 0 5px 0' }}>현재 참가 인원: {participatingMembers.length}명 (설정: {bracketOption})</h3>
           <p style={{ color: '#6B7280', margin: 0, fontSize: '0.9rem' }}>자동 생성된 대진표에 각 라운드의 경기 결과를 입력하세요.</p>
@@ -370,8 +428,8 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
         <p>선택된 대진이 없습니다. 1번 탭에서 인원을 설정해주세요.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          {/* 코트 정보 입력 */}
-          <div style={{ display: 'flex', gap: '15px', background: '#EFF6FF', padding: '15px', borderRadius: '8px', border: '1px solid #BFDBFE', flexWrap: 'wrap' }}>
+          {/* 코트 정보 입력 - 캡처 시 무시 (헤더에 이미 포함됨) */}
+          <div className="match-court-input-section" data-html2canvas-ignore="true" style={{ display: 'flex', gap: '15px', background: '#EFF6FF', padding: '15px', borderRadius: '8px', border: '1px solid #BFDBFE', flexWrap: 'wrap' }}>
             <div style={{ flex: '1 1 200px' }}>
               <label style={{ display: 'block', fontSize: '0.9rem', color: '#1E3A8A', fontWeight: 'bold', marginBottom: '5px' }}>코트명 입력</label>
               <input 
@@ -437,6 +495,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                       return (
                         <button 
                           key={matchId}
+                          data-html2canvas-ignore="true"
                           onClick={() => toggleEditMode(matchId)}
                           style={{ 
                             padding: '2px 8px', 
@@ -459,23 +518,25 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                       const score = matchScores[matchId] || { t1: '', t2: '' };
                       return (
                         <div key={`video-${matchId}`} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                          {matchesInRound.length > 1 && <span style={{ fontSize: '0.75rem', color: '#6B7280' }}>{idx + 1}코트:</span>}
-                          <input
-                            type="text"
-                            placeholder="유튜브 URL"
-                            value={score.video || ''}
-                            onChange={(e) => handleVideoChange(matchId, e.target.value)}
-                            disabled={isFinished}
-                            style={{
-                              width: '100px',
-                              padding: '4px 6px',
-                              fontSize: '0.75rem',
-                              borderRadius: '4px',
-                              border: '1px solid #D1D5DB',
-                              background: isFinished ? '#F3F4F6' : 'white',
-                              color: isFinished ? '#9CA3AF' : 'inherit'
-                            }}
-                          />
+                          <div data-html2canvas-ignore="true" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            {matchesInRound.length > 1 && <span style={{ fontSize: '0.75rem', color: '#6B7280' }}>{idx + 1}코트:</span>}
+                            <input
+                              type="text"
+                              placeholder="유튜브 URL"
+                              value={score.video || ''}
+                              onChange={(e) => handleVideoChange(matchId, e.target.value)}
+                              disabled={isFinished}
+                              style={{
+                                width: '100px',
+                                padding: '4px 6px',
+                                fontSize: '0.75rem',
+                                borderRadius: '4px',
+                                border: '1px solid #D1D5DB',
+                                background: isFinished ? '#F3F4F6' : 'white',
+                                color: isFinished ? '#9CA3AF' : 'inherit'
+                              }}
+                            />
+                          </div>
                           {score.video && (
                             <a href={score.video} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#EF4444', textDecoration: 'none', fontWeight: 'bold' }}>
                               ▶ 영상보기
@@ -543,7 +604,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                               <span style={{ fontWeight: 'bold', color: '#0369A1', whiteSpace: 'nowrap' }}><span style={{color:'#6B7280', marginRight:'4px'}}>(A)</span>{p1NameStr}</span>
                               <span style={{ fontWeight: 'bold', color: '#0369A1', whiteSpace: 'nowrap' }}><span style={{color:'#6B7280', marginRight:'4px'}}>(D)</span>{p2NameStr}</span>
                             </div>
-                            <button onClick={() => handleSwapCourt(matchId, 0, 1, p1Id || '', p2Id || '')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', color: '#9CA3AF' }} title="듀스/애드 변경"><ArrowUpDown size={14} /></button>
+                            <button data-html2canvas-ignore="true" onClick={() => handleSwapCourt(matchId, 0, 1, p1Id || '', p2Id || '')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', color: '#9CA3AF' }} title="듀스/애드 변경"><ArrowUpDown size={14} /></button>
                           </div>
                         )}
                       </div>
@@ -578,7 +639,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                           </>
                         ) : (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <button onClick={() => handleSwapCourt(matchId, 2, 3, p3Id || '', p4Id || '')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', color: '#9CA3AF' }} title="듀스/애드 변경"><ArrowUpDown size={14} /></button>
+                            <button data-html2canvas-ignore="true" onClick={() => handleSwapCourt(matchId, 2, 3, p3Id || '', p4Id || '')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', color: '#9CA3AF' }} title="듀스/애드 변경"><ArrowUpDown size={14} /></button>
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '5px' }}>
                               <span style={{ fontWeight: 'bold', color: '#6D28D9', whiteSpace: 'nowrap' }}>{p3NameStr}<span style={{color:'#6B7280', marginLeft:'4px'}}>(D)</span></span>
                               <span style={{ fontWeight: 'bold', color: '#6D28D9', whiteSpace: 'nowrap' }}>{p4NameStr}<span style={{color:'#6B7280', marginLeft:'4px'}}>(A)</span></span>
@@ -597,9 +658,9 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
       )}
 
       {/* 포인트 부여 미니 입력창 */}
-      <div style={{ marginTop: '30px', padding: '15px', background: '#F9FAFB', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
+      <div className="match-point-section" style={{ marginTop: '30px', padding: '15px', background: '#F9FAFB', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
         <h3 style={{ margin: '0 0 15px 0', color: '#1F2937', fontSize: '1.1rem' }}>🎁 일일 포인트 추가</h3>
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div data-html2canvas-ignore="true" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
           <select 
             value={pointMemberId} 
             onChange={e => setPointMemberId(e.target.value)}
@@ -655,7 +716,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
                     <span style={{ color: entry.amount > 0 ? '#10B981' : '#EF4444', marginLeft: '4px', fontWeight: 'bold' }}>{entry.amount > 0 ? `+${entry.amount}` : entry.amount}</span>
                     {entry.description && <span style={{ color: '#6B7280', marginLeft: '8px', fontSize: '0.85rem' }}>- {entry.description}</span>}
                   </span>
-                  <button onClick={() => handleRemovePoint(entry)} disabled={isFinished} style={{ background: 'transparent', border: 'none', color: isFinished ? '#9CA3AF' : '#EF4444', cursor: isFinished ? 'not-allowed' : 'pointer', padding: '2px' }} title="취소"><Trash2 size={16} /></button>
+                  <button data-html2canvas-ignore="true" onClick={() => handleRemovePoint(entry)} disabled={isFinished} style={{ background: 'transparent', border: 'none', color: isFinished ? '#9CA3AF' : '#EF4444', cursor: isFinished ? 'not-allowed' : 'pointer', padding: '2px' }} title="취소"><Trash2 size={16} /></button>
                 </li>
               ))}
             </ul>
