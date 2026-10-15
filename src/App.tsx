@@ -823,6 +823,14 @@ function App() {
         return 0;
       }
 
+      if (sortConfig.key === 'roundPoint') {
+        let vA = memberPoints[a.name]?.r || 0;
+        let vB = memberPoints[b.name]?.r || 0;
+        if (vA < vB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (vA > vB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      }
+
       if (sortConfig.key === 'gamePoint') {
         let vA = memberPoints[a.name]?.g || 0;
         let vB = memberPoints[b.name]?.g || 0;
@@ -861,7 +869,7 @@ function App() {
     });
   }, [allMembers, sortConfig, globalStats]);
 
-  const handleSort = (key: keyof Member | 'rank' | 'sumPoint' | 'winRate' | 'totalWins' | 'totalLosses') => {
+  const handleSort = (key: keyof Member | 'rank' | 'score' | 'roundPoint' | 'gamePoint' | 'sumPoint' | 'winRate' | 'totalWins' | 'totalLosses') => {
     let direction: 'asc' | 'desc' = 'asc';
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
       direction = 'desc';
@@ -1255,8 +1263,8 @@ function App() {
                     <th onClick={() => handleSort('score')} style={{ padding: '8px 4px', borderBottom: '2px solid #E5E7EB', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
                       L.PT <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
-                    <th style={{ padding: '8px 4px', borderBottom: '2px solid #E5E7EB', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right' }}>
-                      R.PT
+                    <th onClick={() => handleSort('roundPoint')} style={{ padding: '8px 4px', borderBottom: '2px solid #E5E7EB', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
+                      R.PT <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
                     </th>
                     <th onClick={() => handleSort('gamePoint')} style={{ padding: '8px 4px', borderBottom: '2px solid #E5E7EB', width: '11%', color: '#6B7280', fontSize: '0.85rem', textAlign: 'right', cursor: 'pointer' }}>
                       G.PT <ArrowUpDown size={12} style={{display:'inline', marginLeft:'2px'}}/>
