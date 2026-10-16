@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Utensils } from 'lucide-react';
 import combinations from '../data/combinations.json';
 import { type Member } from '../App';
@@ -20,12 +20,16 @@ export default function MealCalculator({
   const [selectedSessions, setSelectedSessions] = useState<string[]>(() => {
     const saved = localStorage.getItem('meal_selectedSessions');
     if (saved) {
-      const parsed = JSON.parse(saved).filter((id: string) => id !== 'current');
-      if (parsed.length > 0) return parsed;
+      try {
+        const parsed = JSON.parse(saved).filter((id: string) => id !== 'current');
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        // ignore
+      }
     }
-    const newest = Object.keys(savedSessions).sort((a, b) => b.localeCompare(a)).slice(0, 1);
-    return newest;
+    return [];
   });
+
   const [eatingMembers, setEatingMembers] = useState<string[]>(() => {
     const saved = localStorage.getItem('meal_eatingMembers');
     return saved ? JSON.parse(saved) : [];
@@ -40,11 +44,7 @@ export default function MealCalculator({
     const saved = localStorage.getItem('meal_costGap');
     return saved ? JSON.parse(saved) : 1000;
   });
-  
-  // 최초 한 번만 디폴트로 모두 식사한다고 설정하기 위한 플래그
-  const [initializedEaters, setInitializedEaters] = useState(() => {
-    return localStorage.getItem('meal_initializedEaters') === 'true';
-  });
+  const [showAllSessions, setShowAllSessions] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('meal_selectedSessions', JSON.stringify(selectedSessions));
@@ -66,20 +66,73 @@ export default function MealCalculator({
     localStorage.setItem('meal_costGap', JSON.stringify(costGap));
   }, [costGap]);
 
-  useEffect(() => {
-    localStorage.setItem('meal_initializedEaters', String(initializedEaters));
-  }, [initializedEaters]);
-
-
-
   const allAvailableSessions = useMemo(() => {
     const list = Object.entries(savedSessions).map(([id, s]) => ({
       id,
       date: s.date || '날짜없음',
-      label: `저장된 리그: ${s.date || id} (${(s.participatingMembers||[]).filter((m:any)=>m).length}인)`
-    })).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
+      label: `저장된 리그: ${s.date || id} (${(s.participatingMembers || []).filter((m: any) => m).length}인)`
+    })).sort((a, b) => {
+      const dateDiff = (b.date || '').localeCompare(a.date || '');
+      if (dateDiff !== 0) return dateDiff;
+      return b.id.localeCompare(a.id);
+    });
     return list;
   }, [savedSessions]);
+
+  const visibleSessions = useMemo(() => {
+    if (showAllSessions || allAvailableSessions.length <= 5) {
+      return allAvailableSessions;
+    }
+    return allAvailableSessions.slice(0, 5);
+  }, [allAvailableSessions, showAllSessions]);
+
+  const isInitializedRef = useRef(false);
+
+  // 세션 목록이 로드되거나 변경되었을 때 유효성 검증 및 기본 선택 동기화
+  useEffect(() => {
+    if (allAvailableSessions.length === 0) return;
+
+    if (!isInitializedRef.current) {
+      isInitializedRef.current = true;
+
+      // 1. 현재 selectedSessions 중 존재하는 세션 ID 확인
+      const validCurrent = selectedSessions.filter(id => 
+        allAvailableSessions.some(s => s.id === id)
+      );
+
+      if (validCurrent.length > 0) {
+        setSelectedSessions(validCurrent);
+      } else {
+        // localStorage 재확인
+        const saved = localStorage.getItem('meal_selectedSessions');
+        let validSaved: string[] = [];
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved).filter((id: string) => id !== 'current');
+            validSaved = parsed.filter((id: string) => allAvailableSessions.some(s => s.id === id));
+          } catch (e) {
+            validSaved = [];
+          }
+        }
+
+        if (validSaved.length > 0) {
+          setSelectedSessions(validSaved);
+        } else {
+          // 유효한 저장값이 없거나 이전 세션이 목록에 없으면 최신 리그 1개를 기본 선택
+          setSelectedSessions([allAvailableSessions[0].id]);
+        }
+      }
+    } else {
+      // 이미 초기화된 이후: 만약 목록에서 없어진 유령 세션 ID가 남아있다면 제거
+      setSelectedSessions(prev => {
+        const cleaned = prev.filter(id => allAvailableSessions.some(s => s.id === id));
+        if (cleaned.length !== prev.length) {
+          return cleaned;
+        }
+        return prev;
+      });
+    }
+  }, [allAvailableSessions]);
 
   const handleSessionToggle = (id: string) => {
     if (selectedSessions.includes(id)) {
@@ -90,6 +143,8 @@ export default function MealCalculator({
   };
 
   const combinedRankings = useMemo(() => {
+    if (selectedSessions.length === 0) return [];
+
     const playerStatsMap: Record<string, any> = {};
 
     const initPlayer = (member: any) => {
@@ -191,11 +246,25 @@ export default function MealCalculator({
     return sortedStats;
   }, [selectedSessions, savedSessions, allMembers]);
 
-  // 첫 렌더링 시, 또는 세션이 변경되어 참가자가 바뀌었을 때 먹는 사람 목록 초기화
-  if (!initializedEaters && combinedRankings.length > 0) {
-    setEatingMembers(combinedRankings.map(p => p.id));
-    setInitializedEaters(true);
-  }
+  const lastSessionKeyRef = useRef<string>('');
+
+  useEffect(() => {
+    const currentKey = selectedSessions.slice().sort().join(',');
+    if (selectedSessions.length === 0) {
+      setEatingMembers([]);
+      lastSessionKeyRef.current = '';
+      return;
+    }
+
+    if (currentKey !== lastSessionKeyRef.current) {
+      lastSessionKeyRef.current = currentKey;
+      if (combinedRankings.length > 0) {
+        setEatingMembers(combinedRankings.map(p => p.id));
+      }
+    } else {
+      setEatingMembers(prev => prev.filter(id => combinedRankings.some(p => p.id === id)));
+    }
+  }, [selectedSessions, combinedRankings]);
 
   const toggleEating = (id: string) => {
     if (eatingMembers.includes(id)) {
@@ -364,25 +433,80 @@ export default function MealCalculator({
       </p>
 
       {/* 세션 선택 */}
-      <div style={{ marginBottom: '20px', background: '#F9FAFB', padding: '15px', borderRadius: '8px' }}>
-        <h3 style={{ fontSize: '1rem', marginTop: 0, marginBottom: '10px', color: '#374151' }}>계산에 포함할 리그 선택</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-
-          {allAvailableSessions.map(s => (
-            <label key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-              <input 
-                type="checkbox" 
-                checked={selectedSessions.includes(s.id)} 
-                onChange={() => handleSessionToggle(s.id)}
-              />
-              <span style={{ color: '#4B5563' }}>{s.label}</span>
-            </label>
-          ))}
+      <div style={{ marginBottom: '20px', background: '#F9FAFB', padding: '15px', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <h3 style={{ fontSize: '1rem', margin: 0, color: '#374151' }}>계산에 포함할 리그 선택</h3>
+          {selectedSessions.length > 0 && (
+            <button
+              onClick={() => setSelectedSessions([])}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#6B7280',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                padding: '2px 6px'
+              }}
+            >
+              선택 모두 해제
+            </button>
+          )}
         </div>
+
+        {allAvailableSessions.length === 0 ? (
+          <p style={{ color: '#9CA3AF', fontSize: '0.9rem', margin: 0 }}>저장된 리그 기록을 불러오는 중입니다...</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {visibleSessions.map(s => {
+              const isChecked = selectedSessions.includes(s.id);
+              return (
+                <label key={s.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={isChecked} 
+                    onChange={() => handleSessionToggle(s.id)}
+                  />
+                  <span style={{ color: isChecked ? '#1E3A8A' : '#4B5563', fontWeight: isChecked ? 'bold' : 'normal' }}>
+                    {s.label}
+                  </span>
+                </label>
+              );
+            })}
+
+            {allAvailableSessions.length > 5 && (
+              <button
+                onClick={() => setShowAllSessions(!showAllSessions)}
+                style={{
+                  alignSelf: 'flex-start',
+                  marginTop: '4px',
+                  background: '#F3F4F6',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '4px',
+                  padding: '4px 10px',
+                  fontSize: '0.8rem',
+                  color: '#4B5563',
+                  cursor: 'pointer'
+                }}
+              >
+                {showAllSessions ? '접기 ▲' : `이전 리그 더보기 (${allAvailableSessions.length}개) ▼`}
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 밥값 및 갭 입력 */}
-      {combinedRankings.length > 0 ? (
+      {selectedSessions.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '40px 20px', background: '#F9FAFB', borderRadius: '8px', color: '#4B5563', border: '1px dashed #D1D5DB' }}>
+          <p style={{ margin: 0, fontWeight: 'bold', fontSize: '1.05rem', color: '#1E3A8A' }}>
+            선택된 리그가 없습니다
+          </p>
+          <p style={{ margin: '8px 0 0 0', fontSize: '0.9rem', color: '#6B7280' }}>
+            위의 '계산에 포함할 리그 선택'에서 정산할 리그를 체크해 주세요.
+          </p>
+        </div>
+      ) : combinedRankings.length > 0 ? (
         <>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '20px', overflow: 'hidden' }}>
             <div style={{ flex: '1 1 200px', background: '#EFF6FF', padding: '10px', borderRadius: '8px', border: '1px solid #BFDBFE' }}>
