@@ -696,9 +696,14 @@ function App() {
       .sort((a, b) => b.sumPoint - a.sumPoint)
       .slice(0, 3);
 
-    const shareUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    const rawUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? `${window.location.origin}${window.location.pathname}?tab=members`
       : 'https://edongju.github.io/hanultari-league/?tab=members';
+
+    // 카카오톡 링크 미리보기(하단 스크랩 말풍선 '한울타리 주말리그')가 추가로 생성되는 것을 방지하기 위해
+    // URL 앞에 제로 너비 공백(Zero-Width Space, \u200B)을 삽입합니다.
+    // 텍스트 상으로는 링크가 정상 작동(클릭 시 이동)하면서 카카오톡 스크랩 봇의 미리보기 생성을 차단합니다.
+    const shareUrl = `\u200B${rawUrl}`;
 
     const p1 = topRankers[0] ? `🥇 1위: ${topRankers[0].name} (${topRankers[0].sumPoint}점)` : '';
     const p2 = topRankers[1] ? `🥈 2위: ${topRankers[1].name} (${topRankers[1].sumPoint}점)` : '';
@@ -713,9 +718,6 @@ ${shareUrl}
 ${top3Text}`;
 
     // 1. 모바일 기기 등 Web Share API 지원 환경 (카카오톡 등으로 바로 공유)
-    // NOTE: shareData에 url과 text를 따로 넘기면 카카오톡이 링크 카드와 말풍선을 2개로 나누어 전송합니다.
-    // text에 전체 내용과 링크를 하나로 묶어서 전달하면 1개의 통합 메시지로 전송되며,
-    // 메시지 하단에 index.html의 Open Graph 태그에 설정된 1~3위 대표 이미지가 자동 첨부됩니다.
     if (navigator.share) {
       try {
         await navigator.share({
@@ -741,9 +743,9 @@ ${top3Text}`;
       }
       setIsCopiedRankingLink(true);
       setTimeout(() => setIsCopiedRankingLink(false), 2000);
-      alert('한울랭킹 안내 문구와 링크가 복사되었습니다.\n카카오톡 대화창에 붙여넣기(Ctrl+V)하여 공유할 수 있습니다.');
+      alert('한울랭킹 안내 문구와 링크가 복사되었습니다.\n카카오톡 대화창에 붙여넣기(Ctrl+V)하여 공유할 수 있습니다.\n\n※ PC 카카오톡 대화창에서 하단 링크 미리보기 상자가 뜰 경우, 상자 우측의 ✕ 버튼을 누르고 전송하시면 미리보기 없이 깔끔하게 전송됩니다.');
     } catch (err) {
-      alert(`링크 복사에 실패했습니다. 아래 주소를 직접 복사해주세요:\n${shareUrl}`);
+      alert(`링크 복사에 실패했습니다. 아래 주소를 직접 복사해주세요:\n${rawUrl}`);
     }
   };
 
