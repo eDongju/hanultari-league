@@ -3,6 +3,30 @@ import { Calendar, Heart, MessageCircle, Send, Share2, PlusCircle, X, Trash2, Ch
 import { collection, onSnapshot, query, orderBy, doc, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
+const renderInlineFormatting = (text: string) => {
+  if (!text) return null;
+  // Match bold (**text**) or URLs
+  const regex = /(\*\*[^*]+\*\*|https?:\/\/[^\s]+)/g;
+  const parts = text.split(regex);
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+      return (
+        <strong key={index} style={{ color: '#1E3A8A', fontWeight: 'bold' }}>
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    if (/^https?:\/\/[^\s]+$/.test(part)) {
+      return (
+        <a key={index} href={part} target="_blank" rel="noopener noreferrer" style={{ color: '#2563EB', textDecoration: 'underline' }} onClick={(e) => e.stopPropagation()}>
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
 const renderFormattedContent = (content: string) => {
   if (!content) return null;
   const lines = content.split('\n');
@@ -24,12 +48,14 @@ const renderFormattedContent = (content: string) => {
       const dataRows = validRows.slice(1);
       
       elements.push(
-        <div key={keyPrefix} style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '12px 0', borderRadius: '8px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-          <table style={{ width: '100%', minWidth: '320px', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'center', background: '#FFFFFF' }}>
+        <div key={keyPrefix} style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '12px 0', borderRadius: '8px', border: '1px solid #CBD5E1', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <table style={{ width: '100%', minWidth: '340px', borderCollapse: 'collapse', fontSize: '0.84rem', textAlign: 'center', background: '#FFFFFF' }}>
             <thead>
-              <tr style={{ background: '#F1F5F9', borderBottom: '2px solid #CBD5E1', color: '#1E3A8A' }}>
+              <tr style={{ background: '#F1F5F9', borderBottom: '2px solid #94A3B8', color: '#1E3A8A' }}>
                 {header.map((col, idx) => (
-                  <th key={idx} style={{ padding: '8px 10px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{col}</th>
+                  <th key={idx} style={{ padding: '9px 12px', fontWeight: 'bold', whiteSpace: 'nowrap', borderRight: idx < header.length - 1 ? '1px solid #E2E8F0' : 'none' }}>
+                    {renderInlineFormatting(col)}
+                  </th>
                 ))}
               </tr>
             </thead>
@@ -37,7 +63,9 @@ const renderFormattedContent = (content: string) => {
               {dataRows.map((row, rIdx) => (
                 <tr key={rIdx} style={{ borderBottom: '1px solid #E2E8F0', background: rIdx % 2 === 1 ? '#F8FAFC' : '#FFFFFF' }}>
                   {row.map((cell, cIdx) => (
-                    <td key={cIdx} style={{ padding: '7px 10px', whiteSpace: 'nowrap', color: '#334155' }}>{cell}</td>
+                    <td key={cIdx} style={{ padding: '8px 12px', whiteSpace: 'nowrap', color: '#334155', borderRight: cIdx < row.length - 1 ? '1px solid #F1F5F9' : 'none' }}>
+                      {renderInlineFormatting(cell)}
+                    </td>
                   ))}
                 </tr>
               ))}
@@ -61,10 +89,15 @@ const renderFormattedContent = (content: string) => {
       flushTable(`table-${i}`);
     }
 
+    if (trimmed === '---') {
+      elements.push(<hr key={i} style={{ border: 'none', borderTop: '1px solid #E2E8F0', margin: '14px 0' }} />);
+      return;
+    }
+
     if (trimmed.startsWith('### ')) {
       elements.push(
-        <h4 key={i} style={{ margin: '16px 0 6px 0', color: '#1D4ED8', fontSize: '0.98rem', fontWeight: 'bold' }}>
-          {trimmed.replace(/^###\s+/, '')}
+        <h4 key={i} style={{ margin: '16px 0 6px 0', color: '#1D4ED8', fontSize: '1rem', fontWeight: 'bold' }}>
+          {renderInlineFormatting(trimmed.replace(/^###\s+/, ''))}
         </h4>
       );
       return;
@@ -72,8 +105,8 @@ const renderFormattedContent = (content: string) => {
 
     if (trimmed.startsWith('## ')) {
       elements.push(
-        <h3 key={i} style={{ margin: '20px 0 8px 0', color: '#1E3A8A', fontSize: '1.08rem', fontWeight: 'bold', borderBottom: '2px solid #DBEAFE', paddingBottom: '4px' }}>
-          {trimmed.replace(/^##\s+/, '')}
+        <h3 key={i} style={{ margin: '20px 0 8px 0', color: '#1E3A8A', fontSize: '1.1rem', fontWeight: 'bold', borderBottom: '2px solid #DBEAFE', paddingBottom: '4px' }}>
+          {renderInlineFormatting(trimmed.replace(/^##\s+/, ''))}
         </h3>
       );
       return;
@@ -82,25 +115,16 @@ const renderFormattedContent = (content: string) => {
     if (trimmed.startsWith('# ')) {
       elements.push(
         <h2 key={i} style={{ margin: '22px 0 10px 0', color: '#1E3A8A', fontSize: '1.2rem', fontWeight: 'bold' }}>
-          {trimmed.replace(/^#\s+/, '')}
+          {renderInlineFormatting(trimmed.replace(/^#\s+/, ''))}
         </h2>
-      );
-      return;
-    }
-
-    if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
-      elements.push(
-        <strong key={i} style={{ display: 'block', marginTop: '10px', color: '#1E3A8A' }}>
-          {trimmed.replace(/\*\*/g, '')}
-        </strong>
       );
       return;
     }
 
     if (line.includes('💡')) {
       elements.push(
-        <div key={i} style={{ marginTop: '12px', marginBottom: '8px', padding: '10px 14px', background: '#FEF3C7', borderRadius: '8px', color: '#92400E', fontWeight: 'bold', fontSize: '0.9rem' }}>
-          {line.replace(/\*\*/g, '')}
+        <div key={i} style={{ marginTop: '12px', marginBottom: '8px', padding: '10px 14px', background: '#FEF3C7', borderRadius: '8px', color: '#92400E', fontWeight: '500', fontSize: '0.9rem', lineHeight: '1.5' }}>
+          {renderInlineFormatting(line)}
         </div>
       );
       return;
@@ -111,19 +135,9 @@ const renderFormattedContent = (content: string) => {
       return;
     }
 
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const parts = line.split(urlRegex);
     elements.push(
       <div key={i} style={{ lineHeight: '1.6', wordBreak: 'break-word' }}>
-        {parts.map((part, index) => 
-          urlRegex.test(part) ? (
-            <a key={index} href={part} target="_blank" rel="noopener noreferrer" style={{ color: '#2563EB', textDecoration: 'underline' }} onClick={(e) => e.stopPropagation()}>
-              {part}
-            </a>
-          ) : (
-            part
-          )
-        )}
+        {renderInlineFormatting(line)}
       </div>
     );
   });
