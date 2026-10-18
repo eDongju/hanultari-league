@@ -681,17 +681,46 @@ function App() {
   const [isCopiedRankingLink, setIsCopiedRankingLink] = useState(false);
 
   const handleShareMembersRanking = async () => {
-    const shareUrl = `${window.location.origin}${window.location.pathname}?tab=members`;
-    const shareData = {
-      title: '한울타리 공식 랭킹',
-      text: '[한울타리 테니스클럽] 최신 회원 랭킹 현황입니다.',
-      url: shareUrl,
-    };
+    // 1~3위 랭킹 추출
+    const topRankers = [...allMembers]
+      .map(m => {
+        const sStats = globalStats[m.id] || { sessionMatches: 0, sessionWins: 0 };
+        const dynamicLPoint = (sStats.sessionWins * 2) + (sStats.sessionMatches * 1);
+        const computedGPoint = memberPoints[m.name]?.g || 0;
+        const computedRPoint = memberPoints[m.name]?.r || 0;
+        return {
+          name: m.name,
+          sumPoint: dynamicLPoint + computedGPoint + computedRPoint,
+        };
+      })
+      .sort((a, b) => b.sumPoint - a.sumPoint)
+      .slice(0, 3);
+
+    const shareUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? `${window.location.origin}${window.location.pathname}?tab=members`
+      : 'https://edongju.github.io/hanultari-league/?tab=members';
+
+    const p1 = topRankers[0] ? `🥇 1위: ${topRankers[0].name} (${topRankers[0].sumPoint}점)` : '';
+    const p2 = topRankers[1] ? `🥈 2위: ${topRankers[1].name} (${topRankers[1].sumPoint}점)` : '';
+    const p3 = topRankers[2] ? `🥉 3위: ${topRankers[2].name} (${topRankers[2].sumPoint}점)` : '';
+    const top3Text = [p1, p2, p3].filter(Boolean).join('\n');
+
+    const shareText = `한울타리 주말리그 랭킹
+여기 링크를 눌러 전체 랭킹을 확인하세요.
+${shareUrl}
+
+🏆 1~3위 랭킹
+${top3Text}`;
 
     // 1. 모바일 기기 등 Web Share API 지원 환경 (카카오톡 등으로 바로 공유)
+    // NOTE: shareData에 url과 text를 따로 넘기면 카카오톡이 링크 카드와 말풍선을 2개로 나누어 전송합니다.
+    // text에 전체 내용과 링크를 하나로 묶어서 전달하면 1개의 통합 메시지로 전송되며,
+    // 메시지 하단에 index.html의 Open Graph 태그에 설정된 1~3위 대표 이미지가 자동 첨부됩니다.
     if (navigator.share) {
       try {
-        await navigator.share(shareData);
+        await navigator.share({
+          text: shareText,
+        });
         return;
       } catch (err: any) {
         if (err?.name === 'AbortError') return;
@@ -701,10 +730,10 @@ function App() {
     // 2. PC 또는 Share API 미지원 환경: 클립보드 복사
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(shareUrl);
+        await navigator.clipboard.writeText(shareText);
       } else {
         const textarea = document.createElement('textarea');
-        textarea.value = shareUrl;
+        textarea.value = shareText;
         document.body.appendChild(textarea);
         textarea.select();
         document.execCommand('copy');
@@ -712,7 +741,7 @@ function App() {
       }
       setIsCopiedRankingLink(true);
       setTimeout(() => setIsCopiedRankingLink(false), 2000);
-      alert('한울랭킹 링크가 복사되었습니다.\n카카오톡 등에 붙여넣기(Ctrl+V)하여 공유할 수 있습니다.');
+      alert('한울랭킹 안내 문구와 링크가 복사되었습니다.\n카카오톡 대화창에 붙여넣기(Ctrl+V)하여 공유할 수 있습니다.');
     } catch (err) {
       alert(`링크 복사에 실패했습니다. 아래 주소를 직접 복사해주세요:\n${shareUrl}`);
     }
