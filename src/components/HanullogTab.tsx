@@ -3,6 +3,138 @@ import { Calendar, Heart, MessageCircle, Send, Share2, PlusCircle, X, Trash2, Ch
 import { collection, onSnapshot, query, orderBy, doc, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
+const renderFormattedContent = (content: string) => {
+  if (!content) return null;
+  const lines = content.split('\n');
+  const elements: React.ReactNode[] = [];
+  let tableBuffer: string[] = [];
+
+  const flushTable = (keyPrefix: string) => {
+    if (tableBuffer.length === 0) return;
+    
+    // Parse table rows
+    const rows = tableBuffer.map(row => 
+      row.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim())
+    );
+    // filter out separator lines (e.g. |---|---|)
+    const validRows = rows.filter(r => !r.every(c => /^[-:\s]+$/.test(c)));
+    
+    if (validRows.length > 0) {
+      const header = validRows[0];
+      const dataRows = validRows.slice(1);
+      
+      elements.push(
+        <div key={keyPrefix} style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '12px 0', borderRadius: '8px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <table style={{ width: '100%', minWidth: '320px', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'center', background: '#FFFFFF' }}>
+            <thead>
+              <tr style={{ background: '#F1F5F9', borderBottom: '2px solid #CBD5E1', color: '#1E3A8A' }}>
+                {header.map((col, idx) => (
+                  <th key={idx} style={{ padding: '8px 10px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>{col}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {dataRows.map((row, rIdx) => (
+                <tr key={rIdx} style={{ borderBottom: '1px solid #E2E8F0', background: rIdx % 2 === 1 ? '#F8FAFC' : '#FFFFFF' }}>
+                  {row.map((cell, cIdx) => (
+                    <td key={cIdx} style={{ padding: '7px 10px', whiteSpace: 'nowrap', color: '#334155' }}>{cell}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+    tableBuffer = [];
+  };
+
+  lines.forEach((line, i) => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+      tableBuffer.push(trimmed);
+      return;
+    }
+    
+    // Flush pending table
+    if (tableBuffer.length > 0) {
+      flushTable(`table-${i}`);
+    }
+
+    if (trimmed.startsWith('### ')) {
+      elements.push(
+        <h4 key={i} style={{ margin: '16px 0 6px 0', color: '#1D4ED8', fontSize: '0.98rem', fontWeight: 'bold' }}>
+          {trimmed.replace(/^###\s+/, '')}
+        </h4>
+      );
+      return;
+    }
+
+    if (trimmed.startsWith('## ')) {
+      elements.push(
+        <h3 key={i} style={{ margin: '20px 0 8px 0', color: '#1E3A8A', fontSize: '1.08rem', fontWeight: 'bold', borderBottom: '2px solid #DBEAFE', paddingBottom: '4px' }}>
+          {trimmed.replace(/^##\s+/, '')}
+        </h3>
+      );
+      return;
+    }
+
+    if (trimmed.startsWith('# ')) {
+      elements.push(
+        <h2 key={i} style={{ margin: '22px 0 10px 0', color: '#1E3A8A', fontSize: '1.2rem', fontWeight: 'bold' }}>
+          {trimmed.replace(/^#\s+/, '')}
+        </h2>
+      );
+      return;
+    }
+
+    if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+      elements.push(
+        <strong key={i} style={{ display: 'block', marginTop: '10px', color: '#1E3A8A' }}>
+          {trimmed.replace(/\*\*/g, '')}
+        </strong>
+      );
+      return;
+    }
+
+    if (line.includes('💡')) {
+      elements.push(
+        <div key={i} style={{ marginTop: '12px', marginBottom: '8px', padding: '10px 14px', background: '#FEF3C7', borderRadius: '8px', color: '#92400E', fontWeight: 'bold', fontSize: '0.9rem' }}>
+          {line.replace(/\*\*/g, '')}
+        </div>
+      );
+      return;
+    }
+
+    if (trimmed === '') {
+      elements.push(<div key={i} style={{ height: '6px' }} />);
+      return;
+    }
+
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = line.split(urlRegex);
+    elements.push(
+      <div key={i} style={{ lineHeight: '1.6', wordBreak: 'break-word' }}>
+        {parts.map((part, index) => 
+          urlRegex.test(part) ? (
+            <a key={index} href={part} target="_blank" rel="noopener noreferrer" style={{ color: '#2563EB', textDecoration: 'underline' }} onClick={(e) => e.stopPropagation()}>
+              {part}
+            </a>
+          ) : (
+            part
+          )
+        )}
+      </div>
+    );
+  });
+
+  if (tableBuffer.length > 0) {
+    flushTable('table-end');
+  }
+
+  return elements;
+};
+
 const HanullogTab = () => {
   const [posts, setPosts] = useState<any[]>([]);
   const [likes, setLikes] = useState<Record<string, number>>({});
@@ -52,6 +184,18 @@ const HanullogTab = () => {
       setPosts(fetchedPosts);
       setLikes(initialLikes);
       setComments(initialComments);
+
+      // 공지사항은 기본으로 펼침 상태로 설정하여 바로 볼 수 있도록 함
+      setExpandedPosts(prev => {
+        const next = { ...prev };
+        fetchedPosts.forEach(post => {
+          const isNotice = (post.tags && (post.tags.includes('공지사항') || post.tags.includes('공지'))) || (post.title && (post.title.includes('[공지]') || post.title.includes('공지사항')));
+          if (isNotice && next[post.id] === undefined) {
+            next[post.id] = true;
+          }
+        });
+        return next;
+      });
     });
 
     return () => unsubscribe();
@@ -259,14 +403,15 @@ const HanullogTab = () => {
         {posts.map((post) => {
           const dateObj = new Date(post.date);
           const formattedDate = `${dateObj.getFullYear()}.${String(dateObj.getMonth() + 1).padStart(2, '0')}.${String(dateObj.getDate()).padStart(2, '0')}`;
+          const isNotice = (post.tags && (post.tags.includes('공지사항') || post.tags.includes('공지'))) || (post.title && (post.title.includes('[공지]') || post.title.includes('공지사항')));
 
           return (
             <div key={post.id} style={{
-              background: 'white',
+              background: isNotice ? '#FAFCFF' : 'white',
               borderRadius: '12px',
               padding: '16px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-              border: '1px solid #E5E7EB'
+              boxShadow: isNotice ? '0 4px 12px rgba(37, 99, 235, 0.08)' : '0 2px 8px rgba(0,0,0,0.05)',
+              border: isNotice ? '1.5px solid #3B82F6' : '1px solid #E5E7EB'
             }}>
               {/* 본문 타이틀 및 삭제 버튼 영역 */}
               <div 
@@ -277,9 +422,16 @@ const HanullogTab = () => {
                   <div style={{ marginTop: '2px' }}>
                     {expandedPosts[post.id] ? <ChevronDown size={20} color="#6B7280" /> : <ChevronRight size={20} color="#6B7280" />}
                   </div>
-                  <h3 style={{ margin: '0', fontSize: '1.1rem', color: '#111827', lineHeight: '1.4', flex: 1 }}>
-                    {post.title}
-                  </h3>
+                  <div style={{ flex: 1 }}>
+                    {isNotice && (
+                      <span style={{ display: 'inline-block', background: '#EF4444', color: 'white', fontSize: '0.7rem', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', marginBottom: '4px' }}>
+                        공지사항
+                      </span>
+                    )}
+                    <h3 style={{ margin: '0', fontSize: '1.08rem', color: isNotice ? '#1E3A8A' : '#111827', lineHeight: '1.4' }}>
+                      {post.title}
+                    </h3>
+                  </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                   <button
@@ -329,40 +481,9 @@ const HanullogTab = () => {
                 color: '#4B5563', 
                 fontSize: '0.95rem', 
                 lineHeight: '1.6',
-                whiteSpace: 'pre-wrap',
                 marginBottom: '10px'
               }}>
-                {(post.content || '').split('\n').map((line: string, i: number) => {
-                  if (line.startsWith('**') && line.endsWith('**')) {
-                    return <strong key={i} style={{ display: 'block', marginTop: '10px', color: '#1E3A8A' }}>{line.replace(/\*\*/g, '')}</strong>;
-                  }
-                  if (line.includes('💡')) {
-                    return (
-                      <div key={i} style={{ 
-                        marginTop: '15px', padding: '12px', background: '#FEF3C7', 
-                        borderRadius: '8px', color: '#92400E', fontWeight: 'bold' 
-                      }}>
-                        {line.replace(/\*\*/g, '')}
-                      </div>
-                    );
-                  }
-                  const urlRegex = /(https?:\/\/[^\s]+)/g;
-                  const parts = line.split(urlRegex);
-                  return (
-                    <React.Fragment key={i}>
-                      {parts.map((part, index) => 
-                        urlRegex.test(part) ? (
-                          <a key={index} href={part} target="_blank" rel="noopener noreferrer" style={{ color: '#2563EB', textDecoration: 'underline' }} onClick={(e) => e.stopPropagation()}>
-                            {part}
-                          </a>
-                        ) : (
-                          part
-                        )
-                      )}
-                      <br/>
-                    </React.Fragment>
-                  );
-                })}
+                {renderFormattedContent(post.content || '')}
               </div>
 
               {/* 구분선 */}
