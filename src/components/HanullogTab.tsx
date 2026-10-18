@@ -198,18 +198,6 @@ const HanullogTab = () => {
       setPosts(fetchedPosts);
       setLikes(initialLikes);
       setComments(initialComments);
-
-      // 공지사항은 기본으로 펼침 상태로 설정하여 바로 볼 수 있도록 함
-      setExpandedPosts(prev => {
-        const next = { ...prev };
-        fetchedPosts.forEach(post => {
-          const isNotice = (post.tags && (post.tags.includes('공지사항') || post.tags.includes('공지'))) || (post.title && (post.title.includes('[공지]') || post.title.includes('공지사항')));
-          if (isNotice && next[post.id] === undefined) {
-            next[post.id] = true;
-          }
-        });
-        return next;
-      });
     });
 
     return () => unsubscribe();
