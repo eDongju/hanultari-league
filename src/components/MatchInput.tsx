@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowUpDown, Edit, CheckCircle, Trash2, Camera } from 'lucide-react';
+import { ArrowUpDown, Edit, CheckCircle, Trash2, Camera, Share2, Check } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import combinations from '../data/combinations.json';
 import ImagePreviewModal, { type ImagePreviewData } from './ImagePreviewModal';
@@ -40,11 +40,60 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
   const contentRef = useRef<HTMLDivElement>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [previewImage, setPreviewImage] = useState<ImagePreviewData | null>(null);
+  const [isCopiedLink, setIsCopiedLink] = useState(false);
 
   const handleClosePreview = () => {
     if (previewImage) {
       URL.revokeObjectURL(previewImage.url);
       setPreviewImage(null);
+    }
+  };
+
+  const handleShareLink = async () => {
+    const shareUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? `${window.location.origin}${window.location.pathname}?tab=matchInput`
+      : 'https://edongju.github.io/hanultari-league/?tab=matchInput';
+
+    const count = participatingMembers.filter(Boolean).length;
+    const courtInfo = courtName ? `${courtName} (${courtType}, ${courtEnv})` : `${courtType} (${courtEnv})`;
+    const todayStr = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+
+    const shareText = `🎾 한울타리 주말리그 경기 결과 입력
+📅 ${todayStr}
+👥 참가 ${count}명 (${bracketOption})
+📍 ${courtInfo}
+
+아래 링크를 눌러 실시간 경기 대진 및 결과를 확인하세요:
+${shareUrl}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: '한울타리 주말리그 결과 입력',
+          text: shareText,
+        });
+        return;
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
+      }
+    }
+
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareText);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = shareText;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setIsCopiedLink(true);
+      setTimeout(() => setIsCopiedLink(false), 2000);
+      alert('결과입력 안내 문구와 링크가 복사되었습니다.\n카카오톡 대화창에 붙여넣기(Ctrl+V)하여 공유할 수 있습니다.');
+    } catch (err) {
+      alert(`링크 복사에 실패했습니다. 아래 주소를 직접 복사해주세요:\n${shareUrl}`);
     }
   };
 
@@ -387,7 +436,7 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
         <h2 style={{ color: '#1E3A8A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Edit size={24} /> 결과 입력
         </h2>
-        <div style={{ display: 'flex', gap: '10px' }} data-html2canvas-ignore="true">
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }} data-html2canvas-ignore="true">
           <button 
             onClick={handleDownloadImage}
             disabled={isCapturing}
@@ -395,6 +444,14 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
           >
             <Camera size={18} />
             {isCapturing ? '이미지 생성 중...' : '이미지 저장'}
+          </button>
+          <button 
+            onClick={handleShareLink}
+            style={{ background: isCopiedLink ? '#059669' : '#2563EB', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}
+            title="결과입력 링크 공유하기"
+          >
+            {isCopiedLink ? <Check size={18} /> : <Share2 size={18} />}
+            {isCopiedLink ? '복사됨!' : '링크공유'}
           </button>
           {isFinished && (
             <button 
