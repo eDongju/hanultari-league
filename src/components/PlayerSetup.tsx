@@ -3,6 +3,7 @@ import { Users } from 'lucide-react';
 import combinations from '../data/combinations.json';
 
 interface PlayerSetupProps {
+  currentSessionId?: string | null;
   allMembers: any[];
   participatingMembers: any[];
   setParticipatingMembers: (members: any[]) => void;

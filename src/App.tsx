@@ -573,7 +573,7 @@ function App() {
   }, [savedSessions, allMembers]);
 
   // 리그 불러오기 함수
-  const loadSession = (session: any) => {
+  const loadSession = (session: any, changeTab: boolean = true) => {
     setCurrentSessionId(session.id);
     setCurrentSessionDate(session.date);
     setParticipatingMembers(session.participatingMembers || Array(5).fill(null));
@@ -584,7 +584,10 @@ function App() {
     setCourtType(session.courtType || '인조잔디');
     setCourtEnv(session.courtEnv || '야외');
     setPointHistory(session.pointHistory || []);
-    setActiveTab('rankings'); // 불러오면 결과 화면으로 이동
+    const isClosed = !!(session.isLeagueClosed ?? session.isFinished);
+    setIsFinished(isClosed);
+    localStorage.setItem('matchInput_isFinished', isClosed.toString());
+    if (changeTab) setActiveTab('rankings'); // 불러오면 결과 화면으로 이동
 
     localStorage.setItem('currentSessionId', session.id);
     localStorage.setItem('currentSessionDate', session.date);
@@ -596,6 +599,45 @@ function App() {
     localStorage.setItem('courtType', session.courtType || '인조잔디');
     localStorage.setItem('courtEnv', session.courtEnv || '야외');
   };
+
+  // URL 세션 파라미터 또는 오늘/최신 세션 자동 동기화 (카톡 공유 링크 등 타 기기 접속 대응)
+  useEffect(() => {
+    if (Object.keys(savedSessions).length === 0) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const sessionParam = params.get('session');
+
+    // 1. URL에 session 파라미터가 명시된 경우 (카톡 공유 링크 등)
+    if (sessionParam && savedSessions[sessionParam]) {
+      if (currentSessionId !== sessionParam) {
+        loadSession(savedSessions[sessionParam], false);
+      }
+      return;
+    }
+
+    // 2. 현재 로컬스토리지에 currentSessionId가 없거나, 저장된 세션 목록에 없는 경우
+    if (!currentSessionId || !savedSessions[currentSessionId]) {
+      const sessionsList = Object.entries(savedSessions)
+        .map(([id, s]) => ({ id, ...(s as any) }));
+
+      const today = new Date();
+      const todayStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      const todaySessions = sessionsList.filter(s => s.date === todayStr);
+
+      let targetSession: any = null;
+      if (todaySessions.length > 0) {
+        todaySessions.sort((a, b) => b.id.localeCompare(a.id));
+        targetSession = todaySessions[0];
+      } else if (sessionsList.length > 0) {
+        sessionsList.sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.id.localeCompare(a.id));
+        targetSession = sessionsList[0];
+      }
+
+      if (targetSession) {
+        loadSession(targetSession, false);
+      }
+    }
+  }, [savedSessions]);
 
   // 리그 삭제 함수 (30일 보관을 위한 백업 포함)
   const deleteSession = async (id: string) => {
@@ -1089,6 +1131,7 @@ ${top3Text}`;
           <div style={isReadOnly ? { pointerEvents: 'none', opacity: 0.8 } : {}}>
             {isReadOnly && <div style={{ padding: '10px', background: '#FEE2E2', color: '#991B1B', textAlign: 'center', fontWeight: 'bold', marginBottom: '15px', borderRadius: '8px' }}>⚠️ 7일이 지난 리그는 읽기 전용입니다. (수정 불가)</div>}
             <PlayerSetup 
+              currentSessionId={currentSessionId}
               allMembers={allMembers} 
               participatingMembers={participatingMembers} 
               setParticipatingMembers={setParticipatingMembers}
@@ -1101,6 +1144,7 @@ ${top3Text}`;
           <div style={isReadOnly ? { pointerEvents: 'none', opacity: 0.8 } : {}}>
             {isReadOnly && <div style={{ padding: '10px', background: '#FEE2E2', color: '#991B1B', textAlign: 'center', fontWeight: 'bold', marginBottom: '15px', borderRadius: '8px' }}>⚠️ 7일이 지난 리그는 읽기 전용입니다. (수정 불가)</div>}
             <MatchInput 
+              currentSessionId={currentSessionId}
               allMembers={allMembers}
               participatingMembers={participatingMembers}
               bracketOption={bracketOption}

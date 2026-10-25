@@ -11,6 +11,7 @@ const charToIndex = (c: string) => {
 };
 
 interface MatchInputProps {
+  currentSessionId?: string | null;
   allMembers: any[];
   participatingMembers: any[];
   bracketOption: string;
@@ -31,7 +32,7 @@ interface MatchInputProps {
   forceSave?: () => void;
 }
 
-export default function MatchInput({ allMembers, participatingMembers, bracketOption, matchScores, setMatchScores, matchOverrides, setMatchOverrides, courtName, setCourtName, courtType, setCourtType, courtEnv, setCourtEnv, pointHistory, setPointHistory, isFinished = false, setIsFinished, forceSave }: MatchInputProps) {
+export default function MatchInput({ currentSessionId, allMembers, participatingMembers, bracketOption, matchScores, setMatchScores, matchOverrides, setMatchOverrides, courtName, setCourtName, courtType, setCourtType, courtEnv, setCourtEnv, pointHistory, setPointHistory, isFinished = false, setIsFinished, forceSave }: MatchInputProps) {
   
   const [editModes, setEditModes] = useState<Record<string, boolean>>({});
   const [scoreModal, setScoreModal] = useState<{ matchId: string, t1Name: string, t2Name: string } | null>(null);
@@ -50,9 +51,15 @@ export default function MatchInput({ allMembers, participatingMembers, bracketOp
   };
 
   const handleShareLink = async () => {
+    // 공유 전 최신 대진표 및 설정 내용을 즉시 클라우드에 강제 저장
+    if (forceSave) {
+      forceSave();
+    }
+
+    const sessionQuery = currentSessionId ? `&session=${encodeURIComponent(currentSessionId)}` : '';
     const shareUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? `${window.location.origin}${window.location.pathname}?tab=matchInput`
-      : 'https://edongju.github.io/hanultari-league/?tab=matchInput';
+      ? `${window.location.origin}${window.location.pathname}?tab=matchInput${sessionQuery}`
+      : `https://edongju.github.io/hanultari-league/?tab=matchInput${sessionQuery}`;
 
     const count = participatingMembers.filter(Boolean).length;
     const courtInfo = courtName ? `${courtName} (${courtType}, ${courtEnv})` : `${courtType} (${courtEnv})`;
