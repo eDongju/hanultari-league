@@ -322,6 +322,10 @@ ${shareUrl}`;
   };
 
   const handleOverrideChange = (matchId: string, posIdx: number, memberId: string) => {
+    if (isFinished) {
+      alert('마감된 리그는 선수를 변경할 수 없습니다.\n[수정] 버튼(암호 필요)을 통해 마감을 해제한 후 변경해주세요.');
+      return;
+    }
     setMatchOverrides({
       ...matchOverrides,
       [matchId]: {
@@ -332,6 +336,10 @@ ${shareUrl}`;
   };
 
   const toggleEditMode = (matchId: string) => {
+    if (isFinished) {
+      alert('마감된 리그는 선수를 수정할 수 없습니다.\n[수정] 버튼(암호 필요)을 통해 마감을 해제한 후 수정해주세요.');
+      return;
+    }
     setEditModes({
       ...editModes,
       [matchId]: !editModes[matchId]
@@ -339,6 +347,10 @@ ${shareUrl}`;
   };
 
   const handleSwapCourt = (matchId: string, pos1: number, pos2: number, id1: string, id2: string) => {
+    if (isFinished) {
+      alert('마감된 리그는 듀스/애드를 변경할 수 없습니다.\n[수정] 버튼(암호 필요)을 통해 마감을 해제한 후 변경해주세요.');
+      return;
+    }
     setMatchOverrides({
       ...matchOverrides,
       [matchId]: {
@@ -643,7 +655,17 @@ ${shareUrl}`;
                     <select 
                       value={val || ''}
                       onChange={(e) => handleOverrideChange(matchId, posIdx, e.target.value)}
-                      style={{ padding: '2px 4px', borderRadius: '4px', border: '1px solid #D1D5DB', fontSize: '0.85rem', width: '80px' }}
+                      disabled={isFinished}
+                      style={{ 
+                        padding: '2px 4px', 
+                        borderRadius: '4px', 
+                        border: '1px solid #D1D5DB', 
+                        fontSize: '0.85rem', 
+                        width: '80px',
+                        backgroundColor: isFinished ? '#F3F4F6' : '#fff',
+                        color: isFinished ? '#6B7280' : '#000',
+                        cursor: isFinished ? 'not-allowed' : 'pointer'
+                      }}
                     >
                       <option value="">--선택--</option>
                       {[...allMembers].sort((a, b) => a.name.localeCompare(b.name)).map(m => (
@@ -668,7 +690,15 @@ ${shareUrl}`;
                               <span style={{ fontWeight: 'bold', color: '#0369A1', whiteSpace: 'nowrap' }}><span style={{color:'#6B7280', marginRight:'4px'}}>(A)</span>{p1NameStr}</span>
                               <span style={{ fontWeight: 'bold', color: '#0369A1', whiteSpace: 'nowrap' }}><span style={{color:'#6B7280', marginRight:'4px'}}>(D)</span>{p2NameStr}</span>
                             </div>
-                            <button data-html2canvas-ignore="true" onClick={() => handleSwapCourt(matchId, 0, 1, p1Id || '', p2Id || '')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', color: '#9CA3AF' }} title="듀스/애드 변경"><ArrowUpDown size={14} /></button>
+                            <button 
+                              data-html2canvas-ignore="true" 
+                              onClick={() => handleSwapCourt(matchId, 0, 1, p1Id || '', p2Id || '')} 
+                              disabled={isFinished}
+                              style={{ background: 'transparent', border: 'none', cursor: isFinished ? 'not-allowed' : 'pointer', padding: '2px', color: isFinished ? '#D1D5DB' : '#9CA3AF' }} 
+                              title={isFinished ? '마감됨 (수정 불가)' : '듀스/애드 변경'}
+                            >
+                              <ArrowUpDown size={14} />
+                            </button>
                           </div>
                         )}
                       </div>
@@ -703,7 +733,15 @@ ${shareUrl}`;
                           </>
                         ) : (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <button data-html2canvas-ignore="true" onClick={() => handleSwapCourt(matchId, 2, 3, p3Id || '', p4Id || '')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px', color: '#9CA3AF' }} title="듀스/애드 변경"><ArrowUpDown size={14} /></button>
+                            <button 
+                              data-html2canvas-ignore="true" 
+                              onClick={() => handleSwapCourt(matchId, 2, 3, p3Id || '', p4Id || '')} 
+                              disabled={isFinished}
+                              style={{ background: 'transparent', border: 'none', cursor: isFinished ? 'not-allowed' : 'pointer', padding: '2px', color: isFinished ? '#D1D5DB' : '#9CA3AF' }} 
+                              title={isFinished ? '마감됨 (수정 불가)' : '듀스/애드 변경'}
+                            >
+                              <ArrowUpDown size={14} />
+                            </button>
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '5px' }}>
                               <span style={{ fontWeight: 'bold', color: '#6D28D9', whiteSpace: 'nowrap' }}>{p3NameStr}<span style={{color:'#6B7280', marginLeft:'4px'}}>(D)</span></span>
                               <span style={{ fontWeight: 'bold', color: '#6D28D9', whiteSpace: 'nowrap' }}>{p4NameStr}<span style={{color:'#6B7280', marginLeft:'4px'}}>(A)</span></span>

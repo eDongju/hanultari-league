@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users } from 'lucide-react';
+import { Users, Lock } from 'lucide-react';
 import combinations from '../data/combinations.json';
 
 interface PlayerSetupProps {
@@ -9,12 +9,18 @@ interface PlayerSetupProps {
   setParticipatingMembers: (members: any[]) => void;
   bracketOption: string;
   setBracketOption: (opt: string) => void;
+  isFinished?: boolean;
+  isReadOnly?: boolean;
 }
 
-export default function PlayerSetup({ allMembers, participatingMembers, setParticipatingMembers, bracketOption, setBracketOption }: PlayerSetupProps) {
+export default function PlayerSetup({ allMembers, participatingMembers, setParticipatingMembers, bracketOption, setBracketOption, isFinished = false, isReadOnly = false }: PlayerSetupProps) {
   
   // 참가 옵션(인원 및 코트) 변경 처리
   const handleOptionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (isFinished || isReadOnly) {
+      alert('마감된 리그는 참가 인원 및 옵션을 수정할 수 없습니다.\n수정이 필요한 경우 [결과 입력] 탭에서 마감을 해제한 후 수정해주세요.');
+      return;
+    }
     const selectedOption = e.target.value;
     setBracketOption(selectedOption);
     
@@ -100,24 +106,54 @@ export default function PlayerSetup({ allMembers, participatingMembers, setParti
 
   // 특정 슬롯의 선수 선택 처리
   const handleSelectMember = (index: number, memberId: string) => {
+    if (isFinished || isReadOnly) {
+      alert('마감된 리그는 참가선수를 수정할 수 없습니다.\n수정이 필요한 경우 [결과 입력] 탭에서 마감을 해제한 후 수정해주세요.');
+      return;
+    }
     const selectedMember = allMembers.find(m => m.id === memberId) || null;
     const newMembers = [...participatingMembers];
     newMembers[index] = selectedMember;
     setParticipatingMembers(newMembers);
   };
 
+  const isLocked = isFinished || isReadOnly;
+
   return (
     <div className="content-card">
-      <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <Users size={24} /> 참가선수 설정
+      <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Users size={24} /> 참가선수 설정
+        </div>
+        {isFinished && (
+          <span style={{ fontSize: '0.85rem', background: '#FEF3C7', color: '#92400E', border: '1px solid #F59E0B', padding: '4px 10px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold' }}>
+            <Lock size={14} /> 마감됨 (수정 불가)
+          </span>
+        )}
       </h2>
+
+      {isFinished && (
+        <div style={{ padding: '12px 16px', background: '#FEF3C7', border: '1px solid #F59E0B', color: '#92400E', borderRadius: '8px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>
+          <Lock size={18} style={{ flexShrink: 0 }} />
+          <span>리그가 마감되어 참가선수 및 옵션을 변경할 수 없습니다. 수정이 필요하신 경우 [결과 입력] 탭에서 [수정] 버튼(암호 필요)을 통해 마감을 해제해주세요.</span>
+        </div>
+      )}
       
-      <div style={{ marginBottom: '20px', background: '#F3F4F6', padding: '15px', borderRadius: '8px' }}>
-        <label style={{ fontWeight: 'bold', marginRight: '10px' }}>참가 인원 및 코트 옵션:</label>
+      <div style={{ marginBottom: '20px', background: isLocked ? '#E5E7EB' : '#F3F4F6', padding: '15px', borderRadius: '8px', opacity: isLocked ? 0.9 : 1 }}>
+        <label style={{ fontWeight: 'bold', marginRight: '10px', color: isLocked ? '#4B5563' : '#111827' }}>참가 인원 및 코트 옵션:</label>
         <select 
           value={bracketOption} 
           onChange={handleOptionChange}
-          style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #D1D5DB', fontSize: '1rem', minWidth: '150px' }}
+          disabled={isLocked}
+          style={{ 
+            padding: '8px 12px', 
+            borderRadius: '6px', 
+            border: '1px solid #D1D5DB', 
+            fontSize: '1rem', 
+            minWidth: '150px',
+            backgroundColor: isLocked ? '#F3F4F6' : '#fff',
+            color: isLocked ? '#6B7280' : '#000',
+            cursor: isLocked ? 'not-allowed' : 'pointer'
+          }}
         >
           {sortedOptionKeys.map(key => (
             <option key={key} value={key}>{formatOptionLabel(key)}</option>
@@ -138,7 +174,8 @@ export default function PlayerSetup({ allMembers, participatingMembers, setParti
               padding: '15px',
               display: 'flex',
               alignItems: 'center',
-              background: isSeed ? '#FEF3C7' : (member ? '#EFF6FF' : 'white')
+              background: isSeed ? '#FEF3C7' : (member ? '#EFF6FF' : 'white'),
+              opacity: isLocked ? 0.95 : 1
             }}>
               <div style={{ display: 'flex', alignItems: 'center', marginRight: '15px' }}>
                 <div style={{ 
@@ -161,7 +198,17 @@ export default function PlayerSetup({ allMembers, participatingMembers, setParti
                 <select 
                   value={member ? member.id : ""}
                   onChange={(e) => handleSelectMember(index, e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', fontSize: '16px', color: '#000', backgroundColor: '#fff' }}
+                  disabled={isLocked}
+                  style={{ 
+                    width: '100%', 
+                    padding: '10px', 
+                    borderRadius: '6px', 
+                    border: '1px solid #D1D5DB', 
+                    fontSize: '16px', 
+                    color: isLocked ? '#4B5563' : '#000', 
+                    backgroundColor: isLocked ? '#F3F4F6' : '#fff',
+                    cursor: isLocked ? 'not-allowed' : 'pointer'
+                  }}
                 >
                   <option value="">-- 선수를 선택하세요 --</option>
                   {[...allMembers].sort((a, b) => a.name.localeCompare(b.name)).map(m => (

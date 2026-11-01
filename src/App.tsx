@@ -1134,9 +1134,23 @@ ${top3Text}`;
               currentSessionId={currentSessionId}
               allMembers={allMembers} 
               participatingMembers={participatingMembers} 
-              setParticipatingMembers={setParticipatingMembers}
+              setParticipatingMembers={(members) => {
+                if (isFinished || isReadOnly) {
+                  alert('마감된 리그는 참가선수를 수정할 수 없습니다.\n[결과 입력] 탭에서 마감을 해제한 후 수정해주세요.');
+                  return;
+                }
+                setParticipatingMembers(members);
+              }}
               bracketOption={bracketOption}
-              setBracketOption={setBracketOption}
+              setBracketOption={(opt) => {
+                if (isFinished || isReadOnly) {
+                  alert('마감된 리그는 옵션을 수정할 수 없습니다.\n[결과 입력] 탭에서 마감을 해제한 후 수정해주세요.');
+                  return;
+                }
+                setBracketOption(opt);
+              }}
+              isFinished={isFinished}
+              isReadOnly={isReadOnly}
             />
           </div>
         )}
