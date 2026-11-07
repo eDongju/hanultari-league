@@ -147,6 +147,8 @@ function App() {
   const [courtEnv, setCourtEnv] = useState<string>(() => localStorage.getItem('courtEnv') || '야외');
 
   const [isFinished, setIsFinished] = useState<boolean>(() => {
+    // 세션 ID가 저장되어 있지 않은 새 리그 상태일 때는 마감 상태가 아님
+    if (!localStorage.getItem('currentSessionId')) return false;
     return localStorage.getItem('matchInput_isFinished') === 'true';
   });
 
@@ -360,6 +362,7 @@ function App() {
   };
 
   const isInitialMount = useRef(true);
+  const initialSessionLoadedRef = useRef(false);
 
   // Sync isFinished from DB
   useEffect(() => {
@@ -616,25 +619,29 @@ function App() {
     }
 
     // 2. 현재 로컬스토리지에 currentSessionId가 없거나, 저장된 세션 목록에 없는 경우
-    if (!currentSessionId || !savedSessions[currentSessionId]) {
-      const sessionsList = Object.entries(savedSessions)
-        .map(([id, s]) => ({ id, ...(s as any) }));
+    // 단, 앱 최초 마운트 시에만 1회 자동 로드하고, 사용자가 명시적으로 '새 리그 시작'을 눌러 비워둔 경우에는 다시 자동 로드하지 않음
+    if (!initialSessionLoadedRef.current) {
+      initialSessionLoadedRef.current = true;
+      if (!currentSessionId || !savedSessions[currentSessionId]) {
+        const sessionsList = Object.entries(savedSessions)
+          .map(([id, s]) => ({ id, ...(s as any) }));
 
-      const today = new Date();
-      const todayStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-      const todaySessions = sessionsList.filter(s => s.date === todayStr);
+        const today = new Date();
+        const todayStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        const todaySessions = sessionsList.filter(s => s.date === todayStr);
 
-      let targetSession: any = null;
-      if (todaySessions.length > 0) {
-        todaySessions.sort((a, b) => b.id.localeCompare(a.id));
-        targetSession = todaySessions[0];
-      } else if (sessionsList.length > 0) {
-        sessionsList.sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.id.localeCompare(a.id));
-        targetSession = sessionsList[0];
-      }
+        let targetSession: any = null;
+        if (todaySessions.length > 0) {
+          todaySessions.sort((a, b) => b.id.localeCompare(a.id));
+          targetSession = todaySessions[0];
+        } else if (sessionsList.length > 0) {
+          sessionsList.sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.id.localeCompare(a.id));
+          targetSession = sessionsList[0];
+        }
 
-      if (targetSession) {
-        loadSession(targetSession, false);
+        if (targetSession) {
+          loadSession(targetSession, false);
+        }
       }
     }
   }, [savedSessions]);
@@ -666,6 +673,7 @@ function App() {
       setCourtType('인조잔디');
       setCourtEnv('야외');
       setPointHistory([]);
+      setIsFinished(false);
       
       const today = new Date();
       const todayStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
@@ -681,6 +689,7 @@ function App() {
       localStorage.removeItem('courtType');
       localStorage.removeItem('courtEnv');
       localStorage.removeItem('pointHistory');
+      localStorage.setItem('matchInput_isFinished', 'false');
     }
     } catch (err) {
       console.error('Failed to delete session:', err);
@@ -1088,26 +1097,29 @@ ${top3Text}`;
                         setBracketOption('5');
                         setMatchScores({});
                         setMatchOverrides({});
-                      setCourtName('');
-                      setCourtType('인조잔디');
-                      setCourtEnv('야외');
-                      setPointHistory([]);
-                      setActiveTab('playerSetup');
-                      
-                      const today = new Date();
-                      const todayStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-                      setCurrentSessionDate(todayStr);
-                      
-                      localStorage.removeItem('currentSessionId');
-                      localStorage.removeItem('currentSessionDate');
-                      localStorage.removeItem('participatingMembers');
-                      localStorage.removeItem('bracketOption');
-                      localStorage.removeItem('matchScores');
-                      localStorage.removeItem('matchOverrides');
-                      localStorage.removeItem('courtName');
-                      localStorage.removeItem('courtType');
-                      localStorage.removeItem('courtEnv');
-      localStorage.removeItem('pointHistory');
+                        setCourtName('');
+                        setCourtType('인조잔디');
+                        setCourtEnv('야외');
+                        setPointHistory([]);
+                        setIsFinished(false);
+                        initialSessionLoadedRef.current = true;
+                        setActiveTab('playerSetup');
+                        
+                        const today = new Date();
+                        const todayStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                        setCurrentSessionDate(todayStr);
+                        
+                        localStorage.removeItem('currentSessionId');
+                        localStorage.removeItem('currentSessionDate');
+                        localStorage.removeItem('participatingMembers');
+                        localStorage.removeItem('bracketOption');
+                        localStorage.removeItem('matchScores');
+                        localStorage.removeItem('matchOverrides');
+                        localStorage.removeItem('courtName');
+                        localStorage.removeItem('courtType');
+                        localStorage.removeItem('courtEnv');
+                        localStorage.removeItem('pointHistory');
+                        localStorage.setItem('matchInput_isFinished', 'false');
                       } else if (pwd !== null) {
                         window.alert("암호가 틀렸습니다.");
                       }
@@ -1135,7 +1147,7 @@ ${top3Text}`;
               allMembers={allMembers} 
               participatingMembers={participatingMembers} 
               setParticipatingMembers={(members) => {
-                if (isFinished || isReadOnly) {
+                if ((currentSessionId && isFinished) || isReadOnly) {
                   alert('마감된 리그는 참가선수를 수정할 수 없습니다.\n[결과 입력] 탭에서 마감을 해제한 후 수정해주세요.');
                   return;
                 }
@@ -1143,13 +1155,13 @@ ${top3Text}`;
               }}
               bracketOption={bracketOption}
               setBracketOption={(opt) => {
-                if (isFinished || isReadOnly) {
+                if ((currentSessionId && isFinished) || isReadOnly) {
                   alert('마감된 리그는 옵션을 수정할 수 없습니다.\n[결과 입력] 탭에서 마감을 해제한 후 수정해주세요.');
                   return;
                 }
                 setBracketOption(opt);
               }}
-              isFinished={isFinished}
+              isFinished={Boolean(currentSessionId && isFinished)}
               isReadOnly={isReadOnly}
             />
           </div>
@@ -1174,7 +1186,7 @@ ${top3Text}`;
               setCourtEnv={setCourtEnv}
               pointHistory={pointHistory}
               setPointHistory={setPointHistory}
-              isFinished={isFinished}
+              isFinished={Boolean(currentSessionId && isFinished)}
               setIsFinished={setIsFinished}
               forceSave={forceSaveSession}
             />

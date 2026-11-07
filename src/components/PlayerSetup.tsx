@@ -13,11 +13,15 @@ interface PlayerSetupProps {
   isReadOnly?: boolean;
 }
 
-export default function PlayerSetup({ allMembers, participatingMembers, setParticipatingMembers, bracketOption, setBracketOption, isFinished = false, isReadOnly = false }: PlayerSetupProps) {
+export default function PlayerSetup({ currentSessionId, allMembers, participatingMembers, setParticipatingMembers, bracketOption, setBracketOption, isFinished = false, isReadOnly = false }: PlayerSetupProps) {
   
+  // 세션 ID가 없는 새 리그 시작 상태일 때는 마감 잠금을 적용하지 않음
+  const isEffectivelyFinished = Boolean(currentSessionId && isFinished);
+  const isLocked = isEffectivelyFinished || isReadOnly;
+
   // 참가 옵션(인원 및 코트) 변경 처리
   const handleOptionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (isFinished || isReadOnly) {
+    if (isLocked) {
       alert('마감된 리그는 참가 인원 및 옵션을 수정할 수 없습니다.\n수정이 필요한 경우 [결과 입력] 탭에서 마감을 해제한 후 수정해주세요.');
       return;
     }
@@ -106,7 +110,7 @@ export default function PlayerSetup({ allMembers, participatingMembers, setParti
 
   // 특정 슬롯의 선수 선택 처리
   const handleSelectMember = (index: number, memberId: string) => {
-    if (isFinished || isReadOnly) {
+    if (isLocked) {
       alert('마감된 리그는 참가선수를 수정할 수 없습니다.\n수정이 필요한 경우 [결과 입력] 탭에서 마감을 해제한 후 수정해주세요.');
       return;
     }
@@ -116,22 +120,20 @@ export default function PlayerSetup({ allMembers, participatingMembers, setParti
     setParticipatingMembers(newMembers);
   };
 
-  const isLocked = isFinished || isReadOnly;
-
   return (
     <div className="content-card">
       <h2 style={{ color: '#1E3A8A', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Users size={24} /> 참가선수 설정
         </div>
-        {isFinished && (
+        {isEffectivelyFinished && (
           <span style={{ fontSize: '0.85rem', background: '#FEF3C7', color: '#92400E', border: '1px solid #F59E0B', padding: '4px 10px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold' }}>
             <Lock size={14} /> 마감됨 (수정 불가)
           </span>
         )}
       </h2>
 
-      {isFinished && (
+      {isEffectivelyFinished && (
         <div style={{ padding: '12px 16px', background: '#FEF3C7', border: '1px solid #F59E0B', color: '#92400E', borderRadius: '8px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>
           <Lock size={18} style={{ flexShrink: 0 }} />
           <span>리그가 마감되어 참가선수 및 옵션을 변경할 수 없습니다. 수정이 필요하신 경우 [결과 입력] 탭에서 [수정] 버튼(암호 필요)을 통해 마감을 해제해주세요.</span>
