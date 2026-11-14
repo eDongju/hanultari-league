@@ -130,7 +130,20 @@ async function buildReport() {
   let totalSepDeuceWins = 0;
   let totalSepAdWins = 0;
 
+  const courtStats = {
+    names: {} as Record<string, number>,
+    types: {} as Record<string, number>,
+    envs: {} as Record<string, number>,
+  };
+
   savedSessions.forEach(session => {
+    const cName = session.courtName?.trim() || '기타 코트';
+    const cType = session.courtType?.trim() || '인조잔디';
+    const cEnv = session.courtEnv?.trim() || '야외';
+    courtStats.names[cName] = (courtStats.names[cName] || 0) + 1;
+    courtStats.types[cType] = (courtStats.types[cType] || 0) + 1;
+    courtStats.envs[cEnv] = (courtStats.envs[cEnv] || 0) + 1;
+
     const date = session.date || '';
     if (date) {
       const monthKey = date.substring(0, 7);
@@ -265,6 +278,8 @@ async function buildReport() {
       }
     });
   });
+
+  console.log('Court Stats:', JSON.stringify(courtStats, null, 2));
 
   // ========================================================
   // ① 월별 테니스 횟수 & 전체 누적 횟수
@@ -497,6 +512,57 @@ async function buildReport() {
 
   const overallDeuceRate = totalSepMatches > 0 ? ((totalSepDeuceWins / totalSepMatches) * 100).toFixed(1) : '50.0';
   const overallAdRate = totalSepMatches > 0 ? ((totalSepAdWins / totalSepMatches) * 100).toFixed(1) : '50.0';
+
+  // ========================================================
+  // ⑨ 올해 이용한 코트 장소 및 코트 종류별 개최 통계
+  // ========================================================
+  const venueMap: Record<string, { count: number; dates: string[] }> = {};
+  const surfaceMap: Record<string, number> = { '인조잔디': 0, '하드코트': 0 };
+  const envMap: Record<string, number> = { '야외': 0, '실내': 0 };
+
+  savedSessions.forEach((session: any) => {
+    let rawName = (session.courtName || '').trim();
+    let normName = '한울타리 홈코트 / 정기 대관';
+    if (rawName.includes('상신리')) normName = '화성 상신리 테니스장';
+    else if (rawName.includes('북중')) normName = '수원 북중 테니스장';
+    else if (rawName.includes('루트82')) normName = '화성 루트82 테니스장';
+    else if (rawName.includes('팔탄')) normName = '화성 팔탄 테니스장';
+    else if (rawName.includes('테니스연구소')) normName = '화성 테니스연구소';
+    else if (rawName.includes('순성')) normName = '순성 체육공원 테니스장';
+    else if (rawName.includes('향남')) normName = '향남 하수처리장 코트';
+    else if (rawName.includes('프로원')) normName = '프로원 실내 테니스장';
+    else if (rawName) normName = rawName;
+
+    if (!venueMap[normName]) venueMap[normName] = { count: 0, dates: [] };
+    venueMap[normName].count += 1;
+    if (session.date) venueMap[normName].dates.push(session.date);
+
+    let rawType = (session.courtType || '').trim();
+    if (rawType.includes('하드')) surfaceMap['하드코트'] = (surfaceMap['하드코트'] || 0) + 1;
+    else surfaceMap['인조잔디'] = (surfaceMap['인조잔디'] || 0) + 1;
+
+    let rawEnv = (session.courtEnv || '').trim();
+    if (rawEnv.includes('실내') || normName.includes('실내')) envMap['실내'] = (envMap['실내'] || 0) + 1;
+    else envMap['야외'] = (envMap['야외'] || 0) + 1;
+  });
+
+  const sortedVenues = Object.entries(venueMap)
+    .map(([name, data]) => ({
+      name,
+      count: data.count,
+      rate: ((data.count / totalSessionsCount) * 100).toFixed(1),
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  const turfCount = surfaceMap['인조잔디'] || 0;
+  const hardCount = surfaceMap['하드코트'] || 0;
+  const turfRate = ((turfCount / totalSessionsCount) * 100).toFixed(1);
+  const hardRate = ((hardCount / totalSessionsCount) * 100).toFixed(1);
+
+  const outdoorCount = envMap['야외'] || 0;
+  const indoorCount = envMap['실내'] || 0;
+  const outdoorRate = ((outdoorCount / totalSessionsCount) * 100).toFixed(1);
+  const indoorRate = ((indoorCount / totalSessionsCount) * 100).toFixed(1);
 
   console.log('Generating comprehensive HTML Dashboard...');
 
@@ -1523,6 +1589,133 @@ async function buildReport() {
     }
 
     /* ========================================================
+       박스 ⑨: 코트 장소 & 코트 종류별 통계 스타일
+       ======================================================== */
+    .court-analytics-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 0.85fr 0.85fr;
+      gap: 22px;
+    }
+
+    @media (max-width: 1024px) {
+      .court-analytics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .analytics-panel {
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .analytics-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 12px;
+    }
+
+    .venue-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .venue-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .venue-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.92rem;
+    }
+
+    .venue-name {
+      font-weight: 700;
+      color: #F1F5F9;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .venue-count-badge {
+      font-weight: 800;
+      color: var(--tennis-ball);
+      font-size: 0.95rem;
+    }
+
+    .venue-bar-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .venue-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #3B82F6 0%, #10B981 100%);
+      transition: width 1s ease-in-out;
+    }
+
+    .ratio-breakdown-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .ratio-stat-row {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ratio-stat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ratio-label {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ratio-val {
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: #38BDF8;
+    }
+
+    .ratio-desc {
+      font-size: 0.82rem;
+      color: #94A3B8;
+      line-height: 1.45;
+    }
+
+    /* ========================================================
        피날레 송년회 축하 배너
        ======================================================== */
     .party-banner {
@@ -2399,6 +2592,122 @@ async function buildReport() {
               `).join('')}
             </tbody>
           </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         네모 박스 ⑨: 올해 이용한 코트 장소 & 코트 종류별 개최 통계
+         ======================================================== -->
+    <section class="dashboard-card" id="section-courts-venues">
+      <!-- 우측 상단 로고 -->
+      <div class="card-logo-badge">
+        <img src="${logoBase64}" alt="한울타리 로고">
+        <span>한울타리 테니스</span>
+      </div>
+
+      <div class="card-header">
+        <div class="card-title-group">
+          <span class="card-icon">🏟️</span>
+          <h2 class="card-title">⑨ 2026 시즌 이용 코트 장소 & 코트 종류별 통계 (Courts & Venues)</h2>
+        </div>
+        <p class="card-desc">올 한 해 회원들이 땀 흘리며 열정적인 랠리를 펼친 구장 장소, 바닥 재질(인조잔디 vs 하드), 환경(야외 vs 실내) 전수 분석</p>
+      </div>
+
+      <div class="court-analytics-grid">
+        <!-- 1. 구장 장소별 개최 현황 -->
+        <div class="analytics-panel">
+          <h3 class="analytics-title">
+            <span>📍</span> <span>구장 장소별 개최 순위 (${sortedVenues.length}개 장소)</span>
+          </h3>
+          <div class="venue-list">
+            ${sortedVenues.map((v, idx) => {
+              const barWidth = Math.max(Math.round((v.count / totalSessionsCount) * 100), 5);
+              let medalIcon = '🎾';
+              if (idx === 0) medalIcon = '🥇';
+              else if (idx === 1) medalIcon = '🥈';
+              else if (idx === 2) medalIcon = '🥉';
+
+              return `
+              <div class="venue-item">
+                <div class="venue-item-top">
+                  <span class="venue-name">
+                    <span>${medalIcon}</span>
+                    <span>${v.name}</span>
+                  </span>
+                  <span class="venue-count-badge">${v.count}회 <span style="font-size: 0.8rem; color: #94A3B8;">(${v.rate}%)</span></span>
+                </div>
+                <div class="venue-bar-track">
+                  <div class="venue-bar-fill" style="width: ${barWidth}%;"></div>
+                </div>
+              </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- 2. 코트 바닥 재질별 분포 -->
+        <div class="analytics-panel">
+          <h3 class="analytics-title">
+            <span>🌱</span> <span>코트 바닥 재질별 분포</span>
+          </h3>
+          <div class="ratio-breakdown-card">
+            <!-- 인조잔디 -->
+            <div class="ratio-stat-row">
+              <div class="ratio-stat-header">
+                <span class="ratio-label"><span>🌿</span> 인조잔디 (Turf)</span>
+                <span class="ratio-val" style="color: #34D399;">${turfCount}회 <span style="font-size: 0.95rem; color: #94A3B8;">(${turfRate}%)</span></span>
+              </div>
+              <div class="venue-bar-track">
+                <div class="venue-bar-fill" style="width: ${turfRate}%; background: linear-gradient(90deg, #10B981 0%, #34D399 100%);"></div>
+              </div>
+              <p class="ratio-desc">회원들의 관절 및 무릎 부담을 최소화하는 한울타리 최다 이용 주력 코트 재질</p>
+            </div>
+
+            <!-- 하드코트 -->
+            <div class="ratio-stat-row">
+              <div class="ratio-stat-header">
+                <span class="ratio-label"><span>🟦</span> 하드코트 (Hard)</span>
+                <span class="ratio-val" style="color: #60A5FA;">${hardCount}회 <span style="font-size: 0.95rem; color: #94A3B8;">(${hardRate}%)</span></span>
+              </div>
+              <div class="venue-bar-track">
+                <div class="venue-bar-fill" style="width: ${hardRate}%; background: linear-gradient(90deg, #2563EB 0%, #60A5FA 100%);"></div>
+              </div>
+              <p class="ratio-desc">KATA, KATO 등 전국 테니스 대회 실전 감각 적응 및 스피디한 바운드 랠리 연습 구장</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 코트 환경별 분포 (야외 vs 실내) -->
+        <div class="analytics-panel">
+          <h3 class="analytics-title">
+            <span>🌤️</span> <span>코트 환경별 분포</span>
+          </h3>
+          <div class="ratio-breakdown-card">
+            <!-- 야외 코트 -->
+            <div class="ratio-stat-row">
+              <div class="ratio-stat-header">
+                <span class="ratio-label"><span>☀️</span> 야외 코트 (Outdoor)</span>
+                <span class="ratio-val" style="color: #F59E0B;">${outdoorCount}회 <span style="font-size: 0.95rem; color: #94A3B8;">(${outdoorRate}%)</span></span>
+              </div>
+              <div class="venue-bar-track">
+                <div class="venue-bar-fill" style="width: ${outdoorRate}%; background: linear-gradient(90deg, #D97706 0%, #F59E0B 100%);"></div>
+              </div>
+              <p class="ratio-desc">맑은 공기와 푸른 하늘 아래서 사계절 내내 활기차게 즐긴 야외 테니스 페스티벌</p>
+            </div>
+
+            <!-- 실내 코트 -->
+            <div class="ratio-stat-row">
+              <div class="ratio-stat-header">
+                <span class="ratio-label"><span>🏢</span> 실내 코트 (Indoor)</span>
+                <span class="ratio-val" style="color: #A78BFA;">${indoorCount}회 <span style="font-size: 0.95rem; color: #94A3B8;">(${indoorRate}%)</span></span>
+              </div>
+              <div class="venue-bar-track">
+                <div class="venue-bar-fill" style="width: ${indoorRate}%; background: linear-gradient(90deg, #7C3AED 0%, #A78BFA 100%);"></div>
+              </div>
+              <p class="ratio-desc">혹서기 및 날씨 영향을 받지 않고 쾌적하게 진행된 실내 특별 대관 리그</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
