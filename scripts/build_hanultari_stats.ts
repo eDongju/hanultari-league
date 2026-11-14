@@ -1839,84 +1839,73 @@ async function buildReport() {
     }
 
     /* ========================================================
-       총회 순서 (Agenda) 섹션 스타일
+       총회 순서 (Agenda) 섹션 스타일 - 세로 순차 정렬
        ======================================================== */
-    .agenda-timeline-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-      gap: 20px;
-      margin-top: 10px;
-    }
-
-    .agenda-step-card {
-      background: linear-gradient(145deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.92) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 20px;
-      padding: 24px 22px;
+    .agenda-vertical-list {
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      gap: 16px;
+      margin-top: 10px;
+      width: 100%;
     }
 
-    .agenda-step-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 14px 30px rgba(0,0,0,0.5);
+    .agenda-step-row {
+      background: linear-gradient(90deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.28s ease;
+    }
+
+    .agenda-step-row:hover {
+      transform: translateX(8px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.45);
       border-color: var(--tennis-ball);
     }
 
-    .agenda-step-card::before {
+    .agenda-step-row::before {
       content: "";
       position: absolute;
       top: 0;
       left: 0;
-      width: 5px;
+      width: 6px;
       height: 100%;
       background: linear-gradient(180deg, #3B82F6 0%, #10B981 100%);
       border-radius: 4px 0 0 4px;
     }
 
-    .agenda-card-top {
+    .agenda-step-left {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
     }
 
     .agenda-step-num {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.82rem;
+      justify-content: center;
+      font-size: 0.88rem;
       font-weight: 900;
       letter-spacing: 1.5px;
-      padding: 4px 12px;
+      padding: 6px 14px;
       border-radius: 14px;
       background: rgba(204, 255, 0, 0.15);
       color: var(--tennis-ball);
       border: 1px solid rgba(204, 255, 0, 0.35);
-    }
-
-    .agenda-presenter-badge {
-      font-size: 0.82rem;
-      font-weight: 800;
-      padding: 4px 12px;
-      border-radius: 14px;
-      background: rgba(59, 130, 246, 0.2);
-      color: #93C5FD;
-      border: 1px solid rgba(59, 130, 246, 0.4);
-    }
-
-    .agenda-step-main {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
+      min-width: 95px;
+      text-align: center;
     }
 
     .agenda-step-icon {
-      width: 52px;
-      height: 52px;
+      width: 50px;
+      height: 50px;
       border-radius: 16px;
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -1928,45 +1917,73 @@ async function buildReport() {
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
 
-    .agenda-step-info {
+    .agenda-step-center {
       flex: 1;
     }
 
     .agenda-step-title {
-      font-size: 1.25rem;
+      font-size: 1.3rem;
       font-weight: 900;
       color: #FFFFFF;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       line-height: 1.3;
     }
 
     .agenda-step-desc {
-      font-size: 0.88rem;
+      font-size: 0.92rem;
       color: #94A3B8;
-      line-height: 1.5;
+      line-height: 1.45;
       font-weight: 500;
     }
 
-    .agenda-step-card.highlight {
-      border-color: #F59E0B;
-      background: linear-gradient(145deg, rgba(245, 158, 11, 0.16) 0%, rgba(15, 23, 42, 0.95) 80%);
-      box-shadow: 0 10px 26px rgba(245, 158, 11, 0.22);
+    .agenda-step-right {
+      flex-shrink: 0;
     }
 
-    .agenda-step-card.highlight::before {
+    .agenda-presenter-badge {
+      font-size: 0.88rem;
+      font-weight: 800;
+      padding: 6px 16px;
+      border-radius: 20px;
+      background: rgba(59, 130, 246, 0.2);
+      color: #93C5FD;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      white-space: nowrap;
+    }
+
+    /* 마지막 7번 신임회장님 인사말 하이라이트 */
+    .agenda-step-row.highlight {
+      border-color: #F59E0B;
+      background: linear-gradient(90deg, rgba(245, 158, 11, 0.18) 0%, rgba(15, 23, 42, 0.98) 100%);
+      box-shadow: 0 10px 28px rgba(245, 158, 11, 0.25);
+    }
+
+    .agenda-step-row.highlight::before {
       background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%);
     }
 
-    .agenda-step-card.highlight .agenda-step-num {
+    .agenda-step-row.highlight .agenda-step-num {
       background: rgba(245, 158, 11, 0.25);
       color: #FDE047;
       border-color: rgba(245, 158, 11, 0.55);
     }
 
-    .agenda-step-card.highlight .agenda-presenter-badge {
+    .agenda-step-row.highlight .agenda-presenter-badge {
       background: rgba(245, 158, 11, 0.25);
       color: #FDE047;
       border-color: #F59E0B;
+    }
+
+    @media (max-width: 768px) {
+      .agenda-step-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px 18px;
+      }
+      .agenda-step-right {
+        align-self: flex-end;
+      }
     }
 
     @media (max-width: 900px) {
@@ -2020,109 +2037,109 @@ async function buildReport() {
         <p class="card-desc">2026년 한 해의 열정을 돌아보고 2027년의 새로운 도약과 번영을 의결하는 정기 총회 공식 식순입니다.</p>
       </div>
 
-      <div class="agenda-timeline-grid">
+      <div class="agenda-vertical-list">
         <!-- 1. 회장님 인사말 -->
-        <div class="agenda-step-card">
-          <div class="agenda-card-top">
+        <div class="agenda-step-row">
+          <div class="agenda-step-left">
             <span class="agenda-step-num">STEP 01</span>
-            <span class="agenda-presenter-badge">진행: 회장</span>
-          </div>
-          <div class="agenda-step-main">
             <div class="agenda-step-icon">🎤</div>
-            <div class="agenda-step-info">
-              <h3 class="agenda-step-title">1. 회장님 인사말</h3>
-              <p class="agenda-step-desc">2026년 한 해 동안 함께 코트를 누빈 회원 여러분께 드리는 감사의 말씀과 총회 개회 선언</p>
-            </div>
+          </div>
+          <div class="agenda-step-center">
+            <h3 class="agenda-step-title">1. 회장님 인사말</h3>
+            <p class="agenda-step-desc">2026년 한 해 동안 함께 코트를 누빈 회원 여러분께 드리는 감사의 말씀과 총회 개회 선언</p>
+          </div>
+          <div class="agenda-step-right">
+            <span class="agenda-presenter-badge">진행: 회장</span>
           </div>
         </div>
 
         <!-- 2. 26년 돌아보기 (경기이사) -->
-        <div class="agenda-step-card">
-          <div class="agenda-card-top">
+        <div class="agenda-step-row">
+          <div class="agenda-step-left">
             <span class="agenda-step-num">STEP 02</span>
-            <span class="agenda-presenter-badge" style="background: rgba(16, 185, 129, 0.2); color: #6EE7B7; border-color: rgba(16, 185, 129, 0.4);">진행: 경기이사</span>
-          </div>
-          <div class="agenda-step-main">
             <div class="agenda-step-icon">🎾</div>
-            <div class="agenda-step-info">
-              <h3 class="agenda-step-title">2. 26년 돌아보기</h3>
-              <p class="agenda-step-desc">총 112회 세션의 발자취, 4승 챔피언, 베스트 듀오, 승률 랭킹 등 시즌 8대 테니스 결산 통계 발표</p>
-            </div>
+          </div>
+          <div class="agenda-step-center">
+            <h3 class="agenda-step-title">2. 26년 돌아보기</h3>
+            <p class="agenda-step-desc">총 112회 세션의 발자취, 4승 챔피언, 베스트 듀오, 승률 랭킹 등 시즌 9대 테니스 결산 통계 발표</p>
+          </div>
+          <div class="agenda-step-right">
+            <span class="agenda-presenter-badge" style="background: rgba(16, 185, 129, 0.2); color: #6EE7B7; border-color: rgba(16, 185, 129, 0.4);">진행: 경기이사</span>
           </div>
         </div>
 
         <!-- 3. 26년 결산보고 (총무이사) -->
-        <div class="agenda-step-card">
-          <div class="agenda-card-top">
+        <div class="agenda-step-row">
+          <div class="agenda-step-left">
             <span class="agenda-step-num">STEP 03</span>
-            <span class="agenda-presenter-badge" style="background: rgba(245, 158, 11, 0.2); color: #FCD34D; border-color: rgba(245, 158, 11, 0.4);">진행: 총무이사</span>
-          </div>
-          <div class="agenda-step-main">
             <div class="agenda-step-icon">📊</div>
-            <div class="agenda-step-info">
-              <h3 class="agenda-step-title">3. 26년 결산보고</h3>
-              <p class="agenda-step-desc">올 한 해 클럽 회비 수입 및 지출 내역, 잔액 결산 및 재정 집행 투명성 보고</p>
-            </div>
+          </div>
+          <div class="agenda-step-center">
+            <h3 class="agenda-step-title">3. 26년 결산보고</h3>
+            <p class="agenda-step-desc">올 한 해 클럽 회비 수입 및 지출 내역, 잔액 결산 및 재정 집행 투명성 보고</p>
+          </div>
+          <div class="agenda-step-right">
+            <span class="agenda-presenter-badge" style="background: rgba(245, 158, 11, 0.2); color: #FCD34D; border-color: rgba(245, 158, 11, 0.4);">진행: 총무이사</span>
           </div>
         </div>
 
         <!-- 4. 26년 신규 회원 인사 (총무이사) -->
-        <div class="agenda-step-card">
-          <div class="agenda-card-top">
+        <div class="agenda-step-row">
+          <div class="agenda-step-left">
             <span class="agenda-step-num">STEP 04</span>
-            <span class="agenda-presenter-badge" style="background: rgba(245, 158, 11, 0.2); color: #FCD34D; border-color: rgba(245, 158, 11, 0.4);">진행: 총무이사</span>
-          </div>
-          <div class="agenda-step-main">
             <div class="agenda-step-icon">🤝</div>
-            <div class="agenda-step-info">
-              <h3 class="agenda-step-title">4. 26년 신규 회원 인사</h3>
-              <p class="agenda-step-desc">2026년 한울타리 가족으로 새롭게 합류한 신규 회원 소개 및 환영과 포부 발표</p>
-            </div>
+          </div>
+          <div class="agenda-step-center">
+            <h3 class="agenda-step-title">4. 26년 신규 회원 인사</h3>
+            <p class="agenda-step-desc">2026년 한울타리 가족으로 새롭게 합류한 신규 회원 소개 및 환영과 포부 발표</p>
+          </div>
+          <div class="agenda-step-right">
+            <span class="agenda-presenter-badge" style="background: rgba(245, 158, 11, 0.2); color: #FCD34D; border-color: rgba(245, 158, 11, 0.4);">진행: 총무이사</span>
           </div>
         </div>
 
         <!-- 5. 총회 안건 논의 (카페이사) -->
-        <div class="agenda-step-card">
-          <div class="agenda-card-top">
+        <div class="agenda-step-row">
+          <div class="agenda-step-left">
             <span class="agenda-step-num">STEP 05</span>
-            <span class="agenda-presenter-badge" style="background: rgba(139, 92, 246, 0.2); color: #C4B5FD; border-color: rgba(139, 92, 246, 0.4);">진행: 카페이사</span>
-          </div>
-          <div class="agenda-step-main">
             <div class="agenda-step-icon">💡</div>
-            <div class="agenda-step-info">
-              <h3 class="agenda-step-title">5. 총회 안건 논의</h3>
-              <p class="agenda-step-desc">클럽 회칙 및 운영 개선, 코트 대여 및 배정 규칙, 카페 활성화 방안 등 주요 안건 토의 및 의결</p>
-            </div>
+          </div>
+          <div class="agenda-step-center">
+            <h3 class="agenda-step-title">5. 총회 안건 논의</h3>
+            <p class="agenda-step-desc">클럽 회칙 및 운영 개선, 코트 대여 및 배정 규칙, 카페 활성화 방안 등 주요 안건 토의 및 의결</p>
+          </div>
+          <div class="agenda-step-right">
+            <span class="agenda-presenter-badge" style="background: rgba(139, 92, 246, 0.2); color: #C4B5FD; border-color: rgba(139, 92, 246, 0.4);">진행: 카페이사</span>
           </div>
         </div>
 
         <!-- 6. 27년 회장/감사 선출 (총무이사) -->
-        <div class="agenda-step-card">
-          <div class="agenda-card-top">
+        <div class="agenda-step-row">
+          <div class="agenda-step-left">
             <span class="agenda-step-num">STEP 06</span>
-            <span class="agenda-presenter-badge" style="background: rgba(245, 158, 11, 0.2); color: #FCD34D; border-color: rgba(245, 158, 11, 0.4);">진행: 총무이사</span>
-          </div>
-          <div class="agenda-step-main">
             <div class="agenda-step-icon">🗳️</div>
-            <div class="agenda-step-info">
-              <h3 class="agenda-step-title">6. 27년 회장/감사 선출</h3>
-              <p class="agenda-step-desc">2027년 한울타리 테니스클럽을 이끌어갈 차기 신임 회장 및 감사 후보 추천과 투표 선출</p>
-            </div>
+          </div>
+          <div class="agenda-step-center">
+            <h3 class="agenda-step-title">6. 27년 회장/감사 선출</h3>
+            <p class="agenda-step-desc">2027년 한울타리 테니스클럽을 이끌어갈 차기 신임 회장 및 감사 후보 추천과 투표 선출</p>
+          </div>
+          <div class="agenda-step-right">
+            <span class="agenda-presenter-badge" style="background: rgba(245, 158, 11, 0.2); color: #FCD34D; border-color: rgba(245, 158, 11, 0.4);">진행: 총무이사</span>
           </div>
         </div>
 
         <!-- 7. 27년 신임회장님 인사말 -->
-        <div class="agenda-step-card highlight">
-          <div class="agenda-card-top">
+        <div class="agenda-step-row highlight">
+          <div class="agenda-step-left">
             <span class="agenda-step-num">STEP 07 (피날레)</span>
-            <span class="agenda-presenter-badge">진행: 27년 신임회장</span>
-          </div>
-          <div class="agenda-step-main">
             <div class="agenda-step-icon">👑</div>
-            <div class="agenda-step-info">
-              <h3 class="agenda-step-title">7. 27년 신임회장님 인사말</h3>
-              <p class="agenda-step-desc">신임 회장 당선 소감, 2027년 클럽 운영 비전 발표 및 회원 화합과 도약을 위한 다짐</p>
-            </div>
+          </div>
+          <div class="agenda-step-center">
+            <h3 class="agenda-step-title" style="color: #FDE047;">7. 27년 신임회장님 인사말</h3>
+            <p class="agenda-step-desc" style="color: #FEF08A;">신임 회장 당선 소감, 2027년 클럽 운영 비전 발표 및 회원 화합과 도약을 위한 다짐</p>
+          </div>
+          <div class="agenda-step-right">
+            <span class="agenda-presenter-badge">진행: 27년 신임회장</span>
           </div>
         </div>
       </div>
