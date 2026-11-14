@@ -1498,6 +1498,137 @@ async function buildReport() {
       font-weight: 500;
     }
 
+    /* ========================================================
+       총회 순서 (Agenda) 섹션 스타일
+       ======================================================== */
+    .agenda-timeline-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 20px;
+      margin-top: 10px;
+    }
+
+    .agenda-step-card {
+      background: linear-gradient(145deg, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.92) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 24px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .agenda-step-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 14px 30px rgba(0,0,0,0.5);
+      border-color: var(--tennis-ball);
+    }
+
+    .agenda-step-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 5px;
+      height: 100%;
+      background: linear-gradient(180deg, #3B82F6 0%, #10B981 100%);
+      border-radius: 4px 0 0 4px;
+    }
+
+    .agenda-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .agenda-step-num {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      padding: 4px 12px;
+      border-radius: 14px;
+      background: rgba(204, 255, 0, 0.15);
+      color: var(--tennis-ball);
+      border: 1px solid rgba(204, 255, 0, 0.35);
+    }
+
+    .agenda-presenter-badge {
+      font-size: 0.82rem;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 14px;
+      background: rgba(59, 130, 246, 0.2);
+      color: #93C5FD;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+    }
+
+    .agenda-step-main {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .agenda-step-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .agenda-step-info {
+      flex: 1;
+    }
+
+    .agenda-step-title {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #FFFFFF;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .agenda-step-desc {
+      font-size: 0.88rem;
+      color: #94A3B8;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    .agenda-step-card.highlight {
+      border-color: #F59E0B;
+      background: linear-gradient(145deg, rgba(245, 158, 11, 0.16) 0%, rgba(15, 23, 42, 0.95) 80%);
+      box-shadow: 0 10px 26px rgba(245, 158, 11, 0.22);
+    }
+
+    .agenda-step-card.highlight::before {
+      background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%);
+    }
+
+    .agenda-step-card.highlight .agenda-step-num {
+      background: rgba(245, 158, 11, 0.25);
+      color: #FDE047;
+      border-color: rgba(245, 158, 11, 0.55);
+    }
+
+    .agenda-step-card.highlight .agenda-presenter-badge {
+      background: rgba(245, 158, 11, 0.25);
+      color: #FDE047;
+      border-color: #F59E0B;
+    }
+
     @media (max-width: 900px) {
       .hero-title { font-size: 2.2rem; }
       .card-title { font-size: 1.5rem; }
@@ -1528,8 +1659,134 @@ async function buildReport() {
     <header class="hero-header">
       <div class="hero-badge">HANULTARI TENNIS CLUB • 2026 ANNUAL FESTIVAL</div>
       <h1 class="hero-title">🎾 2026 한울타리 연말 결산 대시보드 🏆</h1>
-      <p class="hero-subtitle">열정과 랠리로 코트를 뜨겁게 달군 2026년 한울타리 테니스클럽 8대 결산 통계 명예의 전당</p>
+      <p class="hero-subtitle">열정과 랠리로 코트를 뜨겁게 달군 2026년 한울타리 테니스클럽 8대 결산 통계 & 정기 총회</p>
     </header>
+
+    <!-- ========================================================
+         네모 박스 0: 2026 한울타리 연말 정기 총회 순서 (Agenda)
+         ======================================================== -->
+    <section class="dashboard-card" id="section-agenda">
+      <!-- 우측 상단 로고 -->
+      <div class="card-logo-badge">
+        <img src="${logoBase64}" alt="한울타리 로고">
+        <span>한울타리 테니스</span>
+      </div>
+
+      <div class="card-header">
+        <div class="card-title-group">
+          <span class="card-icon">📋</span>
+          <h2 class="card-title">한울타리 연말 정기 총회 순서 (Agenda)</h2>
+        </div>
+        <p class="card-desc">2026년 한 해의 열정을 돌아보고 2027년의 새로운 도약과 번영을 의결하는 정기 총회 공식 식순입니다.</p>
+      </div>
+
+      <div class="agenda-timeline-grid">
+        <!-- 1. 회장님 인사말 -->
+        <div class="agenda-step-card">
+          <div class="agenda-card-top">
+            <span class="agenda-step-num">STEP 01</span>
+            <span class="agenda-presenter-badge">진행: 회장</span>
+          </div>
+          <div class="agenda-step-main">
+            <div class="agenda-step-icon">🎤</div>
+            <div class="agenda-step-info">
+              <h3 class="agenda-step-title">1. 회장님 인사말</h3>
+              <p class="agenda-step-desc">2026년 한 해 동안 함께 코트를 누빈 회원 여러분께 드리는 감사의 말씀과 총회 개회 선언</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 26년 돌아보기 (경기이사) -->
+        <div class="agenda-step-card">
+          <div class="agenda-card-top">
+            <span class="agenda-step-num">STEP 02</span>
+            <span class="agenda-presenter-badge" style="background: rgba(16, 185, 129, 0.2); color: #6EE7B7; border-color: rgba(16, 185, 129, 0.4);">진행: 경기이사</span>
+          </div>
+          <div class="agenda-step-main">
+            <div class="agenda-step-icon">🎾</div>
+            <div class="agenda-step-info">
+              <h3 class="agenda-step-title">2. 26년 돌아보기</h3>
+              <p class="agenda-step-desc">총 112회 세션의 발자취, 4승 챔피언, 베스트 듀오, 승률 랭킹 등 시즌 8대 테니스 결산 통계 발표</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 26년 결산보고 (총무이사) -->
+        <div class="agenda-step-card">
+          <div class="agenda-card-top">
+            <span class="agenda-step-num">STEP 03</span>
+            <span class="agenda-presenter-badge" style="background: rgba(245, 158, 11, 0.2); color: #FCD34D; border-color: rgba(245, 158, 11, 0.4);">진행: 총무이사</span>
+          </div>
+          <div class="agenda-step-main">
+            <div class="agenda-step-icon">📊</div>
+            <div class="agenda-step-info">
+              <h3 class="agenda-step-title">3. 26년 결산보고</h3>
+              <p class="agenda-step-desc">올 한 해 클럽 회비 수입 및 지출 내역, 잔액 결산 및 재정 집행 투명성 보고</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. 26년 신규 회원 인사 (총무이사) -->
+        <div class="agenda-step-card">
+          <div class="agenda-card-top">
+            <span class="agenda-step-num">STEP 04</span>
+            <span class="agenda-presenter-badge" style="background: rgba(245, 158, 11, 0.2); color: #FCD34D; border-color: rgba(245, 158, 11, 0.4);">진행: 총무이사</span>
+          </div>
+          <div class="agenda-step-main">
+            <div class="agenda-step-icon">🤝</div>
+            <div class="agenda-step-info">
+              <h3 class="agenda-step-title">4. 26년 신규 회원 인사</h3>
+              <p class="agenda-step-desc">2026년 한울타리 가족으로 새롭게 합류한 신규 회원 소개 및 환영과 포부 발표</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. 총회 안건 논의 (카페이사) -->
+        <div class="agenda-step-card">
+          <div class="agenda-card-top">
+            <span class="agenda-step-num">STEP 05</span>
+            <span class="agenda-presenter-badge" style="background: rgba(139, 92, 246, 0.2); color: #C4B5FD; border-color: rgba(139, 92, 246, 0.4);">진행: 카페이사</span>
+          </div>
+          <div class="agenda-step-main">
+            <div class="agenda-step-icon">💡</div>
+            <div class="agenda-step-info">
+              <h3 class="agenda-step-title">5. 총회 안건 논의</h3>
+              <p class="agenda-step-desc">클럽 회칙 및 운영 개선, 코트 대여 및 배정 규칙, 카페 활성화 방안 등 주요 안건 토의 및 의결</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. 27년 회장/감사 선출 (총무이사) -->
+        <div class="agenda-step-card">
+          <div class="agenda-card-top">
+            <span class="agenda-step-num">STEP 06</span>
+            <span class="agenda-presenter-badge" style="background: rgba(245, 158, 11, 0.2); color: #FCD34D; border-color: rgba(245, 158, 11, 0.4);">진행: 총무이사</span>
+          </div>
+          <div class="agenda-step-main">
+            <div class="agenda-step-icon">🗳️</div>
+            <div class="agenda-step-info">
+              <h3 class="agenda-step-title">6. 27년 회장/감사 선출</h3>
+              <p class="agenda-step-desc">2027년 한울타리 테니스클럽을 이끌어갈 차기 신임 회장 및 감사 후보 추천과 투표 선출</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. 27년 신임회장님 인사말 -->
+        <div class="agenda-step-card highlight">
+          <div class="agenda-card-top">
+            <span class="agenda-step-num">STEP 07 (피날레)</span>
+            <span class="agenda-presenter-badge">진행: 27년 신임회장</span>
+          </div>
+          <div class="agenda-step-main">
+            <div class="agenda-step-icon">👑</div>
+            <div class="agenda-step-info">
+              <h3 class="agenda-step-title">7. 27년 신임회장님 인사말</h3>
+              <p class="agenda-step-desc">신임 회장 당선 소감, 2027년 클럽 운영 비전 발표 및 회원 화합과 도약을 위한 다짐</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- ========================================================
          네모 박스 ①: 올해(2026) 월별 테니스 횟수 & 전체 누적 횟수 통계
