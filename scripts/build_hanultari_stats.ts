@@ -45,17 +45,31 @@ async function buildReport() {
     : '';
 
   // 1. 포인트 집계 (memberPoints: G.PT, R.PT)
-  const memberPoints: Record<string, { g: number; r: number }> = {};
+  const memberPoints: Record<string, { g: number; r: number; rDetails: { desc: string; pts: number; date?: string }[]; gDetails: string[] }> = {};
   savedSessions.forEach((session: any) => {
     if (session.pointHistory && Array.isArray(session.pointHistory)) {
       session.pointHistory.forEach((p: any) => {
         const name = p.memberName;
         if (!name) return;
-        if (!memberPoints[name]) memberPoints[name] = { g: 0, r: 0 };
+        if (!memberPoints[name]) memberPoints[name] = { g: 0, r: 0, rDetails: [], gDetails: [] };
         const amt = Number(p.amount) || 0;
-        if (p.type === 'G') memberPoints[name].g += amt;
-        if (p.type === 'R') memberPoints[name].r += amt;
+        const desc = p.description ? p.description.trim() : '';
+        if (p.type === 'G') {
+          memberPoints[name].g += amt;
+          if (desc) memberPoints[name].gDetails.push(desc);
+        }
+        if (p.type === 'R') {
+          memberPoints[name].r += amt;
+          const cleanDesc = desc ? desc.replace(/_/g, ' ') : '전국대회 출전';
+          memberPoints[name].rDetails.push({ desc: cleanDesc, pts: amt, date: session.date });
+        }
       });
+    }
+  });
+
+  allMembers.forEach(m => {
+    if (m.nationalPrize) {
+      console.log(`[Member nationalPrize] ${m.name}: "${m.nationalPrize}"`);
     }
   });
 
@@ -394,12 +408,14 @@ async function buildReport() {
   const sortedRPt = allMembers
     .map(m => {
       const rVal = memberPoints[m.name]?.r || 0;
+      const rDetails = (memberPoints[m.name]?.rDetails || []).sort((a, b) => b.pts - a.pts);
       const s = stats[m.id];
       return {
         id: m.id,
         name: m.name,
         photoBase64: getMemberPhotoBase64(m, logoBase64),
         rPt: rVal,
+        rDetails,
         stats: s,
       };
     })
@@ -1331,6 +1347,72 @@ async function buildReport() {
       color: #93C5FD;
     }
 
+    /* 전국대회 입상 내역 상세 상자 */
+    #section-rpt .ranking-cards-grid {
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+
+    .leader-prize-box {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.45);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-top: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      text-align: left;
+    }
+
+    .leader-prize-title {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: #FBBF24;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      letter-spacing: 0.5px;
+    }
+
+    .leader-prize-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .leader-prize-item {
+      font-size: 0.8rem;
+      line-height: 1.4;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+      padding-bottom: 5px;
+    }
+
+    .leader-prize-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .prize-desc {
+      color: #E2E8F0;
+      font-weight: 500;
+      word-break: keep-all;
+    }
+
+    .prize-pts {
+      color: #F59E0B;
+      font-weight: 800;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
     /* ========================================================
        박스 ⑧: 코트 위치별(듀스 vs 애드) 승률 통계
        ======================================================== */
@@ -2146,6 +2228,25 @@ async function buildReport() {
             <div class="leader-main-val" style="color: #F59E0B;">${player.rPt.toFixed(1)}<span style="font-size: 1rem; color: #94A3B8;">점</span></div>
             <div class="leader-sub-text">전국대회 입상 누적 포인트</div>
             <span class="leader-tag">${praise}</span>
+
+            <div class="leader-prize-box">
+              <div class="leader-prize-title">
+                <span>🏆</span> <span>대회 입상 및 성적 내역 (${player.rDetails.length}건)</span>
+              </div>
+              <ul class="leader-prize-list">
+                ${player.rDetails && player.rDetails.length > 0 ? player.rDetails.map((item: any) => `
+                  <li class="leader-prize-item">
+                    <span class="prize-desc">${item.desc}</span>
+                    <span class="prize-pts">+${item.pts}점</span>
+                  </li>
+                `).join('') : `
+                  <li class="leader-prize-item">
+                    <span class="prize-desc">전국대회 입상 포인트 획득</span>
+                    <span class="prize-pts">+${player.rPt.toFixed(1)}점</span>
+                  </li>
+                `}
+              </ul>
+            </div>
           </div>
           `;
         }).join('')}
