@@ -564,6 +564,47 @@ async function buildReport() {
   const outdoorRate = ((outdoorCount / totalSessionsCount) * 100).toFixed(1);
   const indoorRate = ((indoorCount / totalSessionsCount) * 100).toFixed(1);
 
+  const renderRptCard = (player: any) => {
+    let rankClass = `rank-${player.displayRank}`;
+    let rankLabel = `${player.displayRank}위`;
+    let praise = '전국구 테니스 에이스';
+    if (player.displayRank === 1) { rankLabel = '🥇 1위 (전국 대회 최고점)'; praise = '한울타리의 명예를 빛낸 슈퍼 에이스!'; }
+    else if (player.displayRank === 2) { rankLabel = '🥈 2위'; praise = '전국 대회 무대 입상자'; }
+    else if (player.displayRank === 3) { rankLabel = '🥉 3위'; praise = '전국구 강호 킬러'; }
+    else if (player.displayRank === 4) { rankLabel = '🎖️ 4위'; praise = '코트를 압도하는 실력파'; }
+    else if (player.displayRank === 5) { rankLabel = '🎖️ 5위'; praise = '언제나 든든한 대표 선수'; }
+
+    return `
+    <div class="leader-card ${rankClass}">
+      <span class="leader-rank-badge">${rankLabel}</span>
+      <img class="leader-avatar" src="${player.photoBase64}" alt="${player.name}" onerror="this.src='${logoBase64}'">
+      <div class="leader-name">${player.name}</div>
+      <div class="leader-main-val" style="color: #F59E0B;">${player.rPt.toFixed(1)}<span style="font-size: 1rem; color: #94A3B8;">점</span></div>
+      <div class="leader-sub-text">전국대회 입상 누적 포인트</div>
+      <span class="leader-tag">${praise}</span>
+
+      <div class="leader-prize-box">
+        <div class="leader-prize-title">
+          <span>🏆</span> <span>대회 입상 및 성적 내역 (${player.rDetails.length}건)</span>
+        </div>
+        <ul class="leader-prize-list">
+          ${player.rDetails && player.rDetails.length > 0 ? player.rDetails.map((item: any) => `
+            <li class="leader-prize-item">
+              <span class="prize-desc">${item.desc}</span>
+              <span class="prize-pts">+${item.pts}점</span>
+            </li>
+          `).join('') : `
+            <li class="leader-prize-item">
+              <span class="prize-desc">전국대회 입상 포인트 획득</span>
+              <span class="prize-pts">+${player.rPt.toFixed(1)}점</span>
+            </li>
+          `}
+        </ul>
+      </div>
+    </div>
+    `;
+  };
+
   console.log('Generating comprehensive HTML Dashboard...');
 
   // HTML 문서 생성
@@ -1413,9 +1454,32 @@ async function buildReport() {
       color: #93C5FD;
     }
 
-    /* 전국대회 입상 내역 상세 상자 */
-    #section-rpt .ranking-cards-grid {
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    /* 전국대회 입상 내역 상세 상자 & 3명(위줄) 2명(아래줄) 레이아웃 */
+    .rpt-cards-container {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .rpt-row-top {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+
+    .rpt-row-bottom {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 22px;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    @media (max-width: 950px) {
+      .rpt-row-top, .rpt-row-bottom {
+        grid-template-columns: 1fr;
+      }
     }
 
     .leader-prize-box {
@@ -1446,8 +1510,9 @@ async function buildReport() {
       display: flex;
       flex-direction: column;
       gap: 6px;
-      max-height: 180px;
-      overflow-y: auto;
+      /* 스크롤 없이 모든 내용 전수 표시 */
+      max-height: none;
+      overflow: visible;
     }
 
     .leader-prize-item {
@@ -2402,47 +2467,15 @@ async function buildReport() {
         <p class="card-desc">KATA, KATO 등 전국 테니스 대회에 출전 및 입상하여 한울타리의 위상을 드높인 전국구 에이스</p>
       </div>
 
-      <div class="ranking-cards-grid">
-        ${topRPt.map(player => {
-          let rankClass = `rank-${player.displayRank}`;
-          let rankLabel = `${player.displayRank}위`;
-          let praise = '전국구 테니스 에이스';
-          if (player.displayRank === 1) { rankLabel = '🥇 1위 (전국 대회 최고점)'; praise = '한울타리의 명예를 빛낸 슈퍼 에이스!'; }
-          else if (player.displayRank === 2) { rankLabel = '🥈 2위'; praise = '전국 대회 무대 입상자'; }
-          else if (player.displayRank === 3) { rankLabel = '🥉 3위'; praise = '전국구 강호 킬러'; }
-          else if (player.displayRank === 4) { rankLabel = '🎖️ 4위'; praise = '코트를 압도하는 실력파'; }
-          else if (player.displayRank === 5) { rankLabel = '🎖️ 5위'; praise = '언제나 든든한 대표 선수'; }
-
-          return `
-          <div class="leader-card ${rankClass}">
-            <span class="leader-rank-badge">${rankLabel}</span>
-            <img class="leader-avatar" src="${player.photoBase64}" alt="${player.name}" onerror="this.src='${logoBase64}'">
-            <div class="leader-name">${player.name}</div>
-            <div class="leader-main-val" style="color: #F59E0B;">${player.rPt.toFixed(1)}<span style="font-size: 1rem; color: #94A3B8;">점</span></div>
-            <div class="leader-sub-text">전국대회 입상 누적 포인트</div>
-            <span class="leader-tag">${praise}</span>
-
-            <div class="leader-prize-box">
-              <div class="leader-prize-title">
-                <span>🏆</span> <span>대회 입상 및 성적 내역 (${player.rDetails.length}건)</span>
-              </div>
-              <ul class="leader-prize-list">
-                ${player.rDetails && player.rDetails.length > 0 ? player.rDetails.map((item: any) => `
-                  <li class="leader-prize-item">
-                    <span class="prize-desc">${item.desc}</span>
-                    <span class="prize-pts">+${item.pts}점</span>
-                  </li>
-                `).join('') : `
-                  <li class="leader-prize-item">
-                    <span class="prize-desc">전국대회 입상 포인트 획득</span>
-                    <span class="prize-pts">+${player.rPt.toFixed(1)}점</span>
-                  </li>
-                `}
-              </ul>
-            </div>
-          </div>
-          `;
-        }).join('')}
+      <div class="rpt-cards-container">
+        <!-- 윗줄: 1~3위 (3명) -->
+        <div class="rpt-row-top">
+          ${topRPt.slice(0, 3).map(renderRptCard).join('')}
+        </div>
+        <!-- 아랫줄: 4~5위 (2명) -->
+        <div class="rpt-row-bottom">
+          ${topRPt.slice(3, 5).map(renderRptCard).join('')}
+        </div>
       </div>
     </section>
 
