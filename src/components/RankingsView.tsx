@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import combinations from '../data/combinations.json';
 import html2canvas from 'html2canvas';
-import { Camera, Medal } from 'lucide-react';
+import { Camera, Medal, Share2, Check } from 'lucide-react';
 import hanulLogo from '../assets/hanul_logo.jpg';
 import ImagePreviewModal, { type ImagePreviewData } from './ImagePreviewModal';
 
@@ -19,6 +19,9 @@ interface RankingsViewProps {
   courtName: string;
   courtType: string;
   courtEnv: string;
+  currentSessionId?: string | null;
+  currentSessionDate?: string;
+  forceSave?: () => void;
 }
 
 interface PlayerStats {
@@ -35,9 +38,22 @@ interface PlayerStats {
   rank: number;
 }
 
-export default function RankingsView({ allMembers, participatingMembers, bracketOption, matchScores, matchOverrides, courtName, courtType, courtEnv }: RankingsViewProps) {
+export default function RankingsView({ 
+  allMembers, 
+  participatingMembers, 
+  bracketOption, 
+  matchScores, 
+  matchOverrides, 
+  courtName, 
+  courtType, 
+  courtEnv,
+  currentSessionId,
+  currentSessionDate,
+  forceSave
+}: RankingsViewProps) {
   const tableRef = useRef<HTMLDivElement>(null);
   const [isCapturing, setIsCapturing] = useState<boolean>(false);
+  const [isCopiedLink, setIsCopiedLink] = useState<boolean>(false);
   const [previewImage, setPreviewImage] = useState<ImagePreviewData | null>(null);
 
   const handleClosePreview = () => {
@@ -302,14 +318,109 @@ export default function RankingsView({ allMembers, participatingMembers, bracket
     return sortedStats;
   }, [participatingMembers, bracketOption, matchScores]);
 
+  const handleShareLink = async () => {
+    // 공유 전 최신 대진표 및 설정 내용을 즉시 클라우드에 강제 저장
+    if (forceSave) {
+      forceSave();
+    }
+
+    const sessionQuery = currentSessionId ? `&session=${encodeURIComponent(currentSessionId)}` : '';
+    const shareUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? `${window.location.origin}${window.location.pathname}?tab=rankings${sessionQuery}`
+      : `https://edongju.github.io/hanultari-league/?tab=rankings${sessionQuery}`;
+
+    let dateStr = '';
+    if (currentSessionDate) {
+      const parts = currentSessionDate.split('-');
+      if (parts.length === 3) {
+        const dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        dateStr = dateObj.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+      }
+    }
+    if (!dateStr) {
+      dateStr = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+    }
+
+    const courtInfo = courtName ? `${courtName} (${courtType}, ${courtEnv})` : `${courtType} (${courtEnv})`;
+
+    const top3 = stats.slice(0, 3);
+    const medals = ['🥇', '🥈', '🥉'];
+    const top3Lines = top3.map((p, idx) => {
+      const diffStr = p.ptsDiff > 0 ? `+${p.ptsDiff}` : `${p.ptsDiff}`;
+      return `${medals[idx] || `${p.rank}위:`} ${p.name} (${p.wins}승 ${p.losses}패, 득실 ${diffStr})`;
+    });
+
+    const topRankersSection = top3Lines.length > 0
+      ? `\n\n🏆 실시간 순위 TOP 3\n` + top3Lines.join('\n')
+      : '';
+
+    const shareText = `🎾 한울타리 주말리그 실시간 순위
+📅 ${dateStr}
+📍 ${courtInfo}${topRankersSection}
+
+아래 링크를 눌러 실시간 리그 순위와 상세 경기 결과를 확인하세요:
+${shareUrl}`;
+
+    // 1. 모바일 기기 등 Web Share API 지원 환경 (카카오톡 등으로 바로 공유)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: '한울타리 주말리그 실시간 순위',
+          text: shareText,
+        });
+        return;
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
+      }
+    }
+
+    // 2. PC 또는 Share API 미지원 환경: 클립보드 복사
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareText);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = shareText;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setIsCopiedLink(true);
+      setTimeout(() => setIsCopiedLink(false), 2000);
+      alert('리그순위 안내 문구와 링크가 복사되었습니다.\n카카오톡 대화창에 붙여넣기(Ctrl+V)하여 공유할 수 있습니다.');
+    } catch (err) {
+      alert(`링크 복사에 실패했습니다. 아래 주소를 직접 복사해주세요:\n${shareUrl}`);
+    }
+  };
+
   return (
     <div className="content-card" style={{ position: 'relative' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', marginBottom: '10px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #E5E7EB', paddingBottom: '10px', marginBottom: '10px', flexWrap: 'wrap', gap: '10px' }}>
         <h2 style={{ color: '#1E3A8A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Medal size={24} /> 리그 순위
         </h2>
-        <div style={{ display: 'flex', gap: '10px' }}>
-
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <button 
+            onClick={handleShareLink}
+            style={{ 
+              background: isCopiedLink ? '#059669' : '#2563EB', 
+              color: 'white', 
+              border: 'none', 
+              padding: '8px 16px', 
+              borderRadius: '6px', 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              fontWeight: 'bold',
+              transition: 'background-color 0.2s'
+            }}
+            title="리그순위 링크 공유하기"
+          >
+            {isCopiedLink ? <Check size={18} /> : <Share2 size={18} />}
+            {isCopiedLink ? '복사됨!' : '링크공유'}
+          </button>
           <button 
             onClick={handleCapture}
             disabled={isCapturing}

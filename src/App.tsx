@@ -1202,6 +1202,9 @@ ${top3Text}`;
             courtName={courtName}
             courtType={courtType}
             courtEnv={courtEnv}
+            currentSessionId={currentSessionId}
+            currentSessionDate={currentSessionDate}
+            forceSave={forceSaveSession}
           />
         )}
         {activeTab === 'history' && (
